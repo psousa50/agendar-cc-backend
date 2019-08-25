@@ -1,0 +1,9 @@
+{
+  "extends": "../../config/tsconfig.json",
+  "include": ["../src/**/*", "../../shared"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "target": "es5", 
+    "outDir": "../../dist"
+  }
+}

@@ -1,0 +1,27 @@
+import { ask as askReader, reader } from "fp-ts/lib/Reader"
+import { ReaderTaskEither, readerTaskEither as RTE, rightReader } from "fp-ts/lib/ReaderTaskEither"
+import { Environment, ServiceError } from "./models"
+
+export type Action<I = void, R = void> = (i: I) => ReaderTaskEither<Environment, ServiceError, R>
+
+// tslint:disable:max-line-length
+// prettier-ignore
+export function pipe<A1, A2, A3>(f1: Action<A1, A2>, f2: Action<A2, A3>): Action<A1, A3>
+// prettier-ignore
+export function pipe<A1, A2, A3, A4>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>): Action<A1, A4>
+// prettier-ignore
+export function pipe<A1, A2, A3, A4, A5>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>): Action<A1, A5>
+// prettier-ignore
+export function pipe<A1, A2, A3, A4, A5, A6>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>, f5: Action<A5, A6>): Action<A1, A6>
+// prettier-ignore
+export function pipe<A1, A2, A3, A4, A5, A6, A7>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>, f5: Action<A5, A6>, f6: Action<A6, A7>): Action<A1, A7>
+// prettier-ignore
+export function pipe<A1, A2, A3, A4, A5, A6, A7, A8>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>, f5: Action<A5, A6>, f6: Action<A6, A7>, f7: Action<A7, A8>): Action<A1, A8>
+// prettier-ignore
+export function pipe(...fs: Action[]): Action {
+  return a => fs.reduce((acc, f) => RTE.chain(acc, f), rightReader<Environment, ServiceError, any>(reader.of(a)))
+}
+// prettier-ignore-end
+// tslint:disable:max-line-length
+
+export const ask = () => rightReader<Environment, ServiceError, Environment>(askReader<Environment>())
