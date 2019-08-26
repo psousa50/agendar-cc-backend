@@ -1,5 +1,3 @@
-import { AppConfig } from "./config";
-
 export enum ErrorCodes {
   UNKNOWN = "UNKNOWN",
   BAD_GATEWAY = "BAD_GATEWAY",
@@ -26,8 +24,4 @@ export enum LogLevel {
   info = "info",
   warn = "warn",
   error = "error",
-}
-
-export type Environment = {
-  config: AppConfig
 }

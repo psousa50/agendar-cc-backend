@@ -1,8 +1,14 @@
+import { right } from "fp-ts/lib/Either"
 import { ask as askReader, reader } from "fp-ts/lib/Reader"
-import { ReaderTaskEither, readerTaskEither as RTE, rightReader } from "fp-ts/lib/ReaderTaskEither"
-import { Environment, ServiceError } from "./models"
+import { fromEither, ReaderTaskEither, readerTaskEither as RTE, rightReader } from "fp-ts/lib/ReaderTaskEither"
+import { TaskEither } from "fp-ts/lib/TaskEither"
+import { Environment } from "../server/src/app/environment"
+import { ServiceError } from "./models"
 
-export type Action<I = void, R = void> = (i: I) => ReaderTaskEither<Environment, ServiceError, R>
+export type ActionResult<R = void> = ReaderTaskEither<Environment, ServiceError, R>
+export type Action<I = void, R = void> = (i: I) => ActionResult<R>
+
+export const actionOf  = <T>(v: T): ActionResult<T> => fromEither(right(v))
 
 // tslint:disable:max-line-length
 // prettier-ignore

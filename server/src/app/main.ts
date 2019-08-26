@@ -3,19 +3,27 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { chain, fromTaskEither, map } from "fp-ts/lib/ReaderTaskEither"
 import { tryCatch } from "fp-ts/lib/TaskEither"
 import { Server } from "http"
-import { ask, Action, pipe as pipeActions } from "../../shared/readerTaskEither"
-import { buildStaticRouter } from "./frontend/static";
-import { buildFrontendRouter } from "./frontend/router";
-import { config as appConfig } from "../../shared/config"
+import { Action, ask, pipe as pipeActions } from "../../../shared/actions"
+import { config as appConfig } from "../../../shared/config"
+import { buildFrontendRouter } from "../frontend/router"
+import { buildStaticRouter } from "../frontend/static"
+import { createErrorHandler, createNotFoundHandler } from "./errorHandler"
+import { router as v1Router } from "./routes/v1/router"
 
 export const createApp: Action<void, Express> = () =>
   pipe(
     ask(),
-    map(_ => {
+    map(environment => {
       const app: Express = express()
 
       app.use("/static", buildStaticRouter())
       app.use("/", buildFrontendRouter(appConfig))
+
+      app.use("/api/v1", v1Router(environment))
+
+      app.all("*", createNotFoundHandler())
+
+      app.use(createErrorHandler())
 
       return app
     }),

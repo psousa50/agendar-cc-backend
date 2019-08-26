@@ -11,7 +11,6 @@ export interface IAssets {
 }
 
 export function compileAssets(config: Config<AppConfig>): IAssets {
-  console.log("=====>\n", config.get("nodeEnv"))
   if (config.get("nodeEnv") !== "production") {
     return {
       _vendor: {

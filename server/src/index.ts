@@ -1,16 +1,20 @@
-import { expressApp } from "./main";
 import { run } from "fp-ts/lib/ReaderTaskEither"
+import { actionOf } from "../../shared/actions"
 import { config as appConfig } from "../../shared/config"
-import { Environment } from "../../shared/models";
+import { Environment } from "./app/environment"
+import { expressApp } from "./app/main"
 
-const init = async () => {
+const initApplication = async () => {
 
   const environment: Environment = {
-    config: appConfig.get()
+    config: appConfig.get(),
+    irnFetch: {} as any,
+    irnRepository: {} as any,
   }
 
   console.log("Environment =====>\n", environment)
-  await run( expressApp(), environment)
+
+  await run(expressApp(), environment)
 }
 
-init()
+initApplication()

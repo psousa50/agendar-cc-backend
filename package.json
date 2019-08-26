@@ -13,7 +13,7 @@
     "dev": "nodemon --exec 'ts-node --files --project server/config/tsconfig.json' server/src/index.ts",
     "lint": "tslint --project tsconfig.json",
     "start": "node dist/src/server/index.js",
-    "test": "jest --testPathPattern=test/unit/.+\\.spec\\.tsx?",
+    "test": "jest --testPathPattern=test/.+\\.spec\\.tsx?",
     "test:watch": "npm test -- --watch",
     "prettier": "prettier --no-semi --tab-width 2 --print-width 120 --trailing-comma all --parser typescript --list-different \"{src,test}/**/*.ts\"",
     "prettier-fix": "prettier --no-semi --tab-width 2 --print-width 120 --trailing-comma all --parser typescript --write \"{src,test}/**/*.ts\""
