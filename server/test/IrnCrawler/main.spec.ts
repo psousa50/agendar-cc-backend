@@ -1,7 +1,6 @@
 import { run } from "fp-ts/lib/ReaderTaskEither"
 import { actionOf } from "../../../shared/actions"
-import { Environment } from "../../src/app/environment"
-import { irnCrawler } from "../../src/irnCrawler/main"
+import { irnCrawler } from "../../src/irnCrawler/main";
 
 describe("IrnCrawler", () => {
   describe("start", () => {

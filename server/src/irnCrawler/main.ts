@@ -1,18 +1,13 @@
 import { array } from "fp-ts/lib/Array"
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
-import pipeP from "ramda/es/pipeP"
-import { Action, actionOf, ask } from "../../../shared/actions"
-import { IrnFetch } from "../irnFetch/models"
-import { Counties, IrnRepository } from "../irnRepository/models"
+import { actionOf, ask } from "../../../shared/actions"
+import { Counties } from "../irnRepository/models"
+import { IrnCrawler } from "./models"
 
 const rteArraySequence = array.sequence(readerTaskEither)
 
-interface IrnCrawler {
-  start: Action<void, void>
-}
-
-export const irnCrawler = {
+export const irnCrawler: IrnCrawler = {
   start: () => pipe(
     ask(),
     chain(env => {
