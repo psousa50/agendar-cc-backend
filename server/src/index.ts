@@ -1,5 +1,4 @@
 import { run } from "fp-ts/lib/ReaderTaskEither"
-import { actionOf } from "../../shared/actions"
 import { config as appConfig } from "../../shared/config"
 import { Environment } from "./app/environment"
 import { expressApp } from "./app/main"

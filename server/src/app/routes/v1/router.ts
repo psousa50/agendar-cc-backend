@@ -1,5 +1,4 @@
 import { Response, Router } from "express"
-import { right } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/pipeable"
 import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
 import { ErrorCodes, ServiceError } from "../../../../../shared/models"
@@ -18,7 +17,7 @@ const okHandler = (res: Response) => (responseBody: any) => {
 
 export const router = (env: Environment) =>
   Router()
-    .get("/find", async (req, res) => {
+    .get("/find", async (_, res) => {
       await run(
         pipe(
           findIrnTables({}),

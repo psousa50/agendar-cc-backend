@@ -1,7 +1,6 @@
 import { right } from "fp-ts/lib/Either"
 import { ask as askReader, reader } from "fp-ts/lib/Reader"
 import { fromEither, ReaderTaskEither, readerTaskEither as RTE, rightReader } from "fp-ts/lib/ReaderTaskEither"
-import { TaskEither } from "fp-ts/lib/TaskEither"
 import { Environment } from "../server/src/app/environment"
 import { ServiceError } from "./models"
 

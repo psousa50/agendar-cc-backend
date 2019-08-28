@@ -1,6 +1,8 @@
 import { Action } from "../../../shared/actions"
 
-export interface IrnCrawler {
-  start: Action<void, void>
+interface IrnCrawlerParams {
+  startDate: Date
 }
-
+export interface IrnCrawler {
+  start: Action<IrnCrawlerParams, void>
+}

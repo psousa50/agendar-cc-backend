@@ -1,6 +1,6 @@
 import { Action } from "../../../shared/actions"
-
-export type Time = string
+import { Time } from "../../../shared/models"
+import { IrnTable } from "../irnFetch/models"
 
 export type TimeSlot = {
   date: Date
@@ -13,14 +13,9 @@ export type County = {
 }
 export type Counties =  County[]
 
-export type IrnTable = {
-  county: County
-  name: string
-  tableNumber: number
-  address: string
-  availableSlots: readonly TimeSlot[]
-}
-export type IrnTables = IrnTable[]
+export type IrnRepositoryTable = IrnTable
+
+export type IrnRepositoryTables = IrnRepositoryTable[]
 
 export type FindParams = Partial<{
   districtId: number
@@ -32,8 +27,8 @@ export type FindParams = Partial<{
 }>
 
 export interface IrnRepository {
-  find: Action<FindParams, IrnTables>
-  getAll: Action<void, IrnTables>
-  clearAll: Action<void, IrnTables>
-  addTables: Action<IrnTables, void>
+  find: Action<FindParams, IrnRepositoryTables>
+  getAll: Action<void, IrnRepositoryTables>
+  clearAll: Action<void, IrnRepositoryTables>
+  addTables: Action<IrnRepositoryTables, void>
 }

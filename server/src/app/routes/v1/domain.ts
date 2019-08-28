@@ -1,4 +1,4 @@
 import { Action, actionOf } from "../../../../../shared/actions"
-import { IrnTables } from "../../../irnRepository/models"
+import { IrnRepositoryTables } from "../../../irnRepository/models"
 
-export const findIrnTables: Action<{}, IrnTables> = () => actionOf([])
+export const findIrnTables: Action<{}, IrnRepositoryTables> = () => actionOf([])

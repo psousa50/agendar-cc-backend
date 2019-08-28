@@ -25,3 +25,5 @@ export enum LogLevel {
   warn = "warn",
   error = "error",
 }
+
+export type Time = string
