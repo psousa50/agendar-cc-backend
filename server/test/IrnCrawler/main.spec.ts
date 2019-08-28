@@ -58,7 +58,7 @@ describe("IrnCrawler", () => {
       expect(irnRepository.addTables).toHaveBeenCalledWith([table])
     })
 
-    it.only("crawls for next available dates on tables", async () => {
+    it("crawls for next available dates on tables", async () => {
       const county = makeCounty()
 
       const table1Date1 = makeTable(county, 1, "2000-01-01")
