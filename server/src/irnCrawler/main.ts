@@ -16,7 +16,7 @@ const merge = (irnTables: IrnTables, toMerge: IrnTables) =>
 const findTableWithLowestDate = (irnTables: IrnTables) =>
   irnTables.reduce((acc, t) => (acc && acc.date < t.date ? acc : t), irnTables[0] || undefined)
 
-const crawlTableDates = (startDate: Date, nextDate?: Date): Action<IrnTables, IrnTables> => irnTables => {
+const crawlTableDates = (dateLimit: Date, nextDate: Date = new Date(0)): Action<IrnTables, IrnTables> => irnTables => {
 
   const fetchNextTables = (county: County, fromDate: Date): Action<void, IrnTables> => () =>
     pipe(
@@ -24,14 +24,14 @@ const crawlTableDates = (startDate: Date, nextDate?: Date): Action<IrnTables, Ir
       chain(env => env.irnFetch.find({ county, date: fromDate })),
       chain(newIrnTables =>
         newIrnTables.length > 0
-          ? crawlTableDates(startDate, fromDate)(merge(irnTables, newIrnTables))
+          ? crawlTableDates(dateLimit, fromDate)(merge(irnTables, newIrnTables))
           : actionOf(irnTables),
       ),
     )
 
-  const nextTableToCrawl = findTableWithLowestDate(irnTables.filter(t => t.date > (nextDate || new Date(0))))
+  const nextTableToCrawl = findTableWithLowestDate(irnTables.filter(t => t.date > nextDate))
 
-  return nextTableToCrawl
+  return nextTableToCrawl && nextTableToCrawl.date < dateLimit
     ? fetchNextTables(nextTableToCrawl.county, addDays(nextTableToCrawl.date, 1))()
     : actionOf(irnTables)
 }
@@ -49,7 +49,7 @@ export const irnCrawler: IrnCrawler = {
           env.irnFetch.getCounties(),
           chain(county => rteArraySequence(fetchTables(county))),
           chain(irnTables => actionOf(irnTables.reduce((acc, cur) => [...acc, ...cur], []))),
-          chain(crawlTableDates(params.startDate)),
+          chain(crawlTableDates(addDays(params.startDate, env.config.crawlDaysLimit))),
           chain(env.irnRepository.addTables),
         )
       }),

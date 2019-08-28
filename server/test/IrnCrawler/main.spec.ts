@@ -1,12 +1,15 @@
 import { run } from "fp-ts/lib/ReaderTaskEither"
-import { equals } from "ramda"
 import { actionOf } from "../../../shared/actions"
 import { irnCrawler } from "../../src/irnCrawler/main"
-import { FindParams, IrnTable } from "../../src/irnFetch/models"
-import { Counties, County } from "../../src/irnRepository/models"
+import { County } from "../../src/irnRepository/models"
 import { rndTo } from "../helpers"
 
 describe("IrnCrawler", () => {
+  const defaultEnvironment = {
+    config: {
+      crawlDaysLimit: 60,
+    },
+  }
   const makeCounty = () => ({
     countyId: rndTo(100),
     districtId: rndTo(100),
@@ -21,39 +24,29 @@ describe("IrnCrawler", () => {
     times: ["12:30"],
   })
 
-  interface FetchData {
-    input: FindParams
-    returnedTables: IrnTable[]
-  }
-
-  const stubIrnFetch = (data: FetchData[], counties: Counties) => ({
-    find: jest
-      .fn()
-      .mockImplementation(findParams => actionOf(data.find(d => equals(d.input, findParams))!.returnedTables)),
-    getCounties: jest.fn(() => actionOf(counties)),
-  })
-
   describe("start", () => {
     const defaultCrawlerParams = {
-      startDate: new Date("0000-01-01"),
+      startDate: new Date("2000-01-01"),
     }
 
     it("persist a single IrnTable", async () => {
       const county = makeCounty()
+      const table = makeTable(county)
 
-      const data: FetchData[] = [
-        {
-          input: { county },
-          returnedTables: [makeTable(county)],
-        },
-      ]
-      const irnFetch = stubIrnFetch(data, [county])
+      const irnFetch = {
+        find: jest
+          .fn()
+          .mockImplementationOnce(() => actionOf([table]))
+          .mockImplementationOnce(() => actionOf([])),
+        getCounties: jest.fn(() => actionOf([county])),
+      }
 
       const irnRepository = {
         addTables: jest.fn(() => actionOf(undefined)),
       } as any
 
       const environment = {
+        ...defaultEnvironment,
         irnFetch,
         irnRepository,
       } as any
@@ -62,7 +55,7 @@ describe("IrnCrawler", () => {
 
       expect(irnFetch.find).toHaveBeenCalledWith({ county })
 
-      expect(irnRepository.addTables).toHaveBeenCalledWith(data[0].returnedTables)
+      expect(irnRepository.addTables).toHaveBeenCalledWith([table])
     })
 
     it.only("crawls for next available dates on tables", async () => {
@@ -88,6 +81,7 @@ describe("IrnCrawler", () => {
       } as any
 
       const environment = {
+        ...defaultEnvironment,
         irnFetch,
         irnRepository,
       } as any
@@ -106,12 +100,18 @@ describe("IrnCrawler", () => {
     it("stops crawling after the crawl days limit", async () => {
       const county = makeCounty()
 
-      const dateAfterDateLimit = "2000-01-10"
+      const dateAfterDateLimit = "2000-01-11"
       const someDate = "2000-03-27"
-      const tables = [makeTable(county, 1, dateAfterDateLimit), makeTable(county, 1, someDate)]
+      const table1 = makeTable(county, 1, "2000-01-01")
+      const table2 = makeTable(county, 1, dateAfterDateLimit)
+      const tableAfterLimit = makeTable(county, 1, someDate)
 
       const irnFetch = {
-        find: jest.fn().mockImplementationOnce(() => actionOf(tables)),
+        find: jest
+          .fn()
+          .mockImplementationOnce(() => actionOf([table1]))
+          .mockImplementationOnce(() => actionOf([table2]))
+          .mockImplementationOnce(() => actionOf([tableAfterLimit])),
         getCounties: jest.fn(() => actionOf([county])),
       }
 
@@ -120,16 +120,19 @@ describe("IrnCrawler", () => {
       } as any
 
       const environment = {
-        crawlDaysLimit: 10,
+        config: {
+          crawlDaysLimit: 10,
+        },
         irnFetch,
         irnRepository,
       } as any
 
       await run(irnCrawler.start({ startDate: new Date("2000-01-01") }), environment)
 
+      expect(irnFetch.find).toHaveBeenCalledTimes(2)
       expect(irnFetch.find).toHaveBeenCalledWith({ county })
 
-      expect(irnRepository.addTables).toHaveBeenCalledWith(tables[0])
+      expect(irnRepository.addTables).toHaveBeenCalledWith([table1, table2])
     })
   })
 })
