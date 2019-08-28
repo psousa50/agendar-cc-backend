@@ -5,8 +5,9 @@
   "tasks": [
     {
       "label": "Build",
-      "type": "npm",
-      "script": "build:dev",
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "option": "watch",
       "presentation": {
         "echo": false,
         "reveal": "never",
@@ -17,7 +18,7 @@
       "group": {
         "kind": "build",
         "isDefault": true
-      },
+      }
     },
     {
       "label": "Lint",

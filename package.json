@@ -7,7 +7,7 @@
     "prebuild": "npm run lint",
     "build:client:dev": "tsc --project client/config/tsconfig.json && webpack --config=client/config/webpack.config.dev.js",
     "build:server:dev": "tsc --project server/config/tsconfig.json",
-    "build:dev": "npm run build:client:dev && npm run build:client:server",
+    "build:dev": "npm run build:server:dev",
     "build:client": "tsc --project client/config/tsconfig.json && NODE_ENV=production webpack --config=client/config/webpack.config.production.js",
     "clean": "rm -rf cache dist tmp ts-node",
     "dev": "nodemon --exec 'ts-node --files --project server/config/tsconfig.json' server/src/index.ts",
