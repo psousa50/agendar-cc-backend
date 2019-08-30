@@ -51,4 +51,3 @@ it("loads a page", () => {
 
   expect(tables).toEqual(expectedTables)
 })
-

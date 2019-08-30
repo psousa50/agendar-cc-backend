@@ -28,12 +28,12 @@ describe("IrnCrawler", () => {
     times: ["12:30"],
   })
 
-  interface FindCall {
+  interface GetTablesCalls {
     calledWith: FindParams
     returns: IrnTables
   }
-  const implementFindWith = (findCalls: FindCall[]) => (params: FindParams) => {
-    const call = findCalls.find(c => equals(c.calledWith, params))
+  const implementFindWith = (getTablesCalls: GetTablesCalls[]) => (params: FindParams) => {
+    const call = getTablesCalls.find(c => equals(c.calledWith, params))
     return call ? actionOf(call.returns) : (console.log("Call Not Found:", params), actionOf([]))
   }
 
@@ -46,7 +46,7 @@ describe("IrnCrawler", () => {
       const county = makeCounty()
       const table = makeTable(county, "1", "2000-01-01")
 
-      const findCalls = [
+      const getTablesCalls = [
         {
           calledWith: { county },
           returns: [table],
@@ -58,8 +58,8 @@ describe("IrnCrawler", () => {
       ]
 
       const irnFetch = {
-        find: jest.fn(implementFindWith(findCalls)),
         getCounties: jest.fn(() => actionOf([county])),
+        getTables: jest.fn(implementFindWith(getTablesCalls)),
       }
 
       const irnRepository = {
@@ -74,8 +74,8 @@ describe("IrnCrawler", () => {
 
       await run(irnCrawler.start(defaultCrawlerParams), environment)
 
-      expect(irnFetch.find).toHaveBeenCalledTimes(findCalls.length)
-      findCalls.forEach(c => expect(irnFetch.find).toHaveBeenCalledWith(c.calledWith))
+      expect(irnFetch.getTables).toHaveBeenCalledTimes(getTablesCalls.length)
+      getTablesCalls.forEach(c => expect(irnFetch.getTables).toHaveBeenCalledWith(c.calledWith))
 
       expect(irnRepository.addTables).toHaveBeenCalledWith([table])
     })
@@ -88,7 +88,7 @@ describe("IrnCrawler", () => {
       const table2Date1 = makeTable(county, "2", "2000-01-10")
       const table2Date2 = makeTable(county, "2", "2000-01-20")
 
-      const findCalls = [
+      const getTablesCalls = [
         {
           calledWith: { county },
           returns: [table1Date1, table2Date1],
@@ -108,8 +108,8 @@ describe("IrnCrawler", () => {
       ]
 
       const irnFetch = {
-        find: jest.fn(implementFindWith(findCalls)),
         getCounties: jest.fn(() => actionOf([county])),
+        getTables: jest.fn(implementFindWith(getTablesCalls)),
       }
 
       const irnRepository = {
@@ -124,8 +124,8 @@ describe("IrnCrawler", () => {
 
       await run(irnCrawler.start(defaultCrawlerParams), environment)
 
-      expect(irnFetch.find).toHaveBeenCalledTimes(findCalls.length)
-      findCalls.forEach(c => expect(irnFetch.find).toHaveBeenCalledWith(c.calledWith))
+      expect(irnFetch.getTables).toHaveBeenCalledTimes(getTablesCalls.length)
+      getTablesCalls.forEach(c => expect(irnFetch.getTables).toHaveBeenCalledWith(c.calledWith))
 
       const allTables = [table1Date1, table2Date1, table1Date2, table2Date2]
       expect(irnRepository.addTables).toHaveBeenCalledWith(allTables)
@@ -140,7 +140,7 @@ describe("IrnCrawler", () => {
       const tableCounty2Date1 = makeTable(county2, "1", "2000-01-02")
       const tableCounty2Date2 = makeTable(county2, "1", "2000-01-12")
 
-      const findCalls = [
+      const getTablesCalls = [
         {
           calledWith: { county: county1 },
           returns: [tableCounty1Date1],
@@ -168,8 +168,8 @@ describe("IrnCrawler", () => {
       ]
 
       const irnFetch = {
-        find: jest.fn(implementFindWith(findCalls)),
         getCounties: jest.fn(() => actionOf([county1, county2])),
+        getTables: jest.fn(implementFindWith(getTablesCalls)),
       }
 
       const irnRepository = {
@@ -184,8 +184,8 @@ describe("IrnCrawler", () => {
 
       await run(irnCrawler.start(defaultCrawlerParams), environment)
 
-      expect(irnFetch.find).toHaveBeenCalledTimes(findCalls.length)
-      findCalls.forEach(c => expect(irnFetch.find).toHaveBeenCalledWith(c.calledWith))
+      expect(irnFetch.getTables).toHaveBeenCalledTimes(getTablesCalls.length)
+      getTablesCalls.forEach(c => expect(irnFetch.getTables).toHaveBeenCalledWith(c.calledWith))
 
       const allTables = [tableCounty1Date1, tableCounty1Date2, tableCounty2Date1, tableCounty2Date2]
       expect(irnRepository.addTables).toHaveBeenCalledWith(allTables)
@@ -200,7 +200,7 @@ describe("IrnCrawler", () => {
       const dateAfterDateLimit = "2000-01-12"
       const table2 = makeTable(county, "1", dateAfterDateLimit)
 
-      const findCalls = [
+      const getTablesCalls = [
         {
           calledWith: { county },
           returns: [table1],
@@ -212,8 +212,8 @@ describe("IrnCrawler", () => {
       ]
 
       const irnFetch = {
-        find: jest.fn(implementFindWith(findCalls)),
         getCounties: jest.fn(() => actionOf([county])),
+        getTables: jest.fn(implementFindWith(getTablesCalls)),
       }
 
       const irnRepository = {
@@ -230,8 +230,8 @@ describe("IrnCrawler", () => {
 
       await run(irnCrawler.start({ startDate }), environment)
 
-      expect(irnFetch.find).toHaveBeenCalledTimes(findCalls.length)
-      findCalls.forEach(c => expect(irnFetch.find).toHaveBeenCalledWith(c.calledWith))
+      expect(irnFetch.getTables).toHaveBeenCalledTimes(getTablesCalls.length)
+      getTablesCalls.forEach(c => expect(irnFetch.getTables).toHaveBeenCalledWith(c.calledWith))
 
       expect(irnRepository.addTables).toHaveBeenCalledWith([table1, table2])
     })
