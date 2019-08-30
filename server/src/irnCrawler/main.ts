@@ -5,6 +5,7 @@ import { equals } from "ramda"
 import { Action, actionOf, ask } from "../../../shared/actions"
 import { IrnTables } from "../irnFetch/models"
 import { Counties, County } from "../irnRepository/models"
+import { flatten } from "../utils/collections"
 import { addDays } from "../utils/dates"
 import { IrnCrawler } from "./models"
 
@@ -12,6 +13,8 @@ const rteArraySequence = array.sequence(readerTaskEither)
 
 const merge = (irnTables: IrnTables, toMerge: IrnTables) =>
   toMerge.reduce((acc, table) => (acc.findIndex(t => equals(t, table)) < 0 ? [...acc, table] : acc), irnTables)
+
+const flattenTables: Action<IrnTables[], IrnTables> = irnTablesArray => actionOf(flatten(irnTablesArray))
 
 const findTableWithLowestDate = (irnTables: IrnTables) =>
   irnTables.reduce((acc, t) => (acc && acc.date <= t.date ? acc : t), irnTables[0] || undefined)
@@ -27,7 +30,6 @@ const crawlTableDates = (dateLimit: Date, nextDate: Date = new Date(0)): Action<
           : actionOf(irnTables),
       ),
     )
-
   const nextTableToCrawl = findTableWithLowestDate(irnTables.filter(t => t.date > nextDate))
 
   return nextTableToCrawl && nextTableToCrawl.date <= dateLimit
@@ -48,15 +50,8 @@ export const irnCrawler: IrnCrawler = {
         return pipe(
           env.irnFetch.getCounties(),
           chain(counties => rteArraySequence(fetchTables(counties))),
-          chain(irnTablesPerCounty =>
-            rteArraySequence(
-              irnTablesPerCounty.reduce(
-                (acc, cur) => [...acc, crawlTableDates(dateLimit)(cur)],
-                [actionOf([] as IrnTables)],
-              ),
-            ),
-          ),
-          chain(irnTablesArray => actionOf(irnTablesArray.reduce((acc, cur) => [...acc, ...cur], []))),
+          chain(irnTablesPerCounty => rteArraySequence(irnTablesPerCounty.map(crawlTableDates(dateLimit)))),
+          chain(flattenTables),
           chain(env.irnRepository.addTables),
         )
       }),
