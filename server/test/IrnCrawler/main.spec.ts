@@ -42,13 +42,21 @@ describe("IrnCrawler", () => {
 
     it("persist a single IrnTable", async () => {
       const county = makeCounty()
-      const table = makeTable(county)
+      const table = makeTable(county, 1, "2000-01-01")
+
+      const findCalls = [
+        {
+          calledWith: { county },
+          returns: [table],
+        },
+        {
+          calledWith: { county, date: new Date("2000-01-02") },
+          returns: [],
+        },
+      ]
 
       const irnFetch = {
-        find: jest
-          .fn()
-          .mockImplementationOnce(() => actionOf([table]))
-          .mockImplementationOnce(() => actionOf([])),
+        find: jest.fn(implementFindWith(findCalls)),
         getCounties: jest.fn(() => actionOf([county])),
       }
 
@@ -64,7 +72,8 @@ describe("IrnCrawler", () => {
 
       await run(irnCrawler.start(defaultCrawlerParams), environment)
 
-      expect(irnFetch.find).toHaveBeenCalledWith({ county })
+      expect(irnFetch.find).toHaveBeenCalledTimes(findCalls.length)
+      findCalls.forEach(c => expect(irnFetch.find).toHaveBeenCalledWith(c.calledWith))
 
       expect(irnRepository.addTables).toHaveBeenCalledWith([table])
     })
@@ -77,13 +86,27 @@ describe("IrnCrawler", () => {
       const table2Date1 = makeTable(county, 2, "2000-01-10")
       const table2Date2 = makeTable(county, 2, "2000-01-20")
 
+      const findCalls = [
+        {
+          calledWith: { county },
+          returns: [table1Date1, table2Date1],
+        },
+        {
+          calledWith: { county, date: new Date("2000-01-02") },
+          returns: [table2Date1],
+        },
+        {
+          calledWith: { county, date: new Date("2000-01-11") },
+          returns: [table1Date2, table2Date2],
+        },
+        {
+          calledWith: { county, date: new Date("2000-01-21") },
+          returns: [],
+        },
+      ]
+
       const irnFetch = {
-        find: jest
-          .fn()
-          .mockImplementationOnce(() => actionOf([table1Date1, table2Date1]))
-          .mockImplementationOnce(() => actionOf([table2Date1]))
-          .mockImplementationOnce(() => actionOf([table1Date2, table2Date2]))
-          .mockImplementationOnce(() => actionOf([])),
+        find: jest.fn(implementFindWith(findCalls)),
         getCounties: jest.fn(() => actionOf([county])),
       }
 
@@ -99,16 +122,14 @@ describe("IrnCrawler", () => {
 
       await run(irnCrawler.start(defaultCrawlerParams), environment)
 
-      expect(irnFetch.find).toHaveBeenCalledTimes(4)
-      expect(irnFetch.find).toHaveBeenCalledWith({ county })
-      expect(irnFetch.find).toHaveBeenCalledWith({ county, date: new Date("2000-01-02") })
-      expect(irnFetch.find).toHaveBeenCalledWith({ county, date: new Date("2000-01-11") })
+      expect(irnFetch.find).toHaveBeenCalledTimes(findCalls.length)
+      findCalls.forEach(c => expect(irnFetch.find).toHaveBeenCalledWith(c.calledWith))
 
       const allTables = [table1Date1, table2Date1, table1Date2, table2Date2]
       expect(irnRepository.addTables).toHaveBeenCalledWith(allTables)
     })
 
-    it.only("crawls for next available dates on multiple counties", async () => {
+    it("crawls for next available dates on multiple counties", async () => {
       const county1 = makeCounty(1)
       const county2 = makeCounty(2)
 
@@ -171,18 +192,25 @@ describe("IrnCrawler", () => {
     it("stops crawling after the crawl days limit", async () => {
       const county = makeCounty()
 
-      const dateAfterDateLimit = "2000-01-11"
-      const someDate = "2000-03-27"
+      const startDate = new Date("2000-01-01")
       const table1 = makeTable(county, 1, "2000-01-01")
+      const crawlDaysLimit = 10
+      const dateAfterDateLimit = "2000-01-12"
       const table2 = makeTable(county, 1, dateAfterDateLimit)
-      const tableAfterLimit = makeTable(county, 1, someDate)
+
+      const findCalls = [
+        {
+          calledWith: { county },
+          returns: [table1],
+        },
+        {
+          calledWith: { county, date: new Date("2000-01-02") },
+          returns: [table2],
+        },
+      ]
 
       const irnFetch = {
-        find: jest
-          .fn()
-          .mockImplementationOnce(() => actionOf([table1]))
-          .mockImplementationOnce(() => actionOf([table2]))
-          .mockImplementationOnce(() => actionOf([tableAfterLimit])),
+        find: jest.fn(implementFindWith(findCalls)),
         getCounties: jest.fn(() => actionOf([county])),
       }
 
@@ -192,16 +220,16 @@ describe("IrnCrawler", () => {
 
       const environment = {
         config: {
-          crawlDaysLimit: 10,
+          crawlDaysLimit,
         },
         irnFetch,
         irnRepository,
       } as any
 
-      await run(irnCrawler.start({ startDate: new Date("2000-01-01") }), environment)
+      await run(irnCrawler.start({ startDate }), environment)
 
-      expect(irnFetch.find).toHaveBeenCalledTimes(2)
-      expect(irnFetch.find).toHaveBeenCalledWith({ county })
+      expect(irnFetch.find).toHaveBeenCalledTimes(findCalls.length)
+      findCalls.forEach(c => expect(irnFetch.find).toHaveBeenCalledWith(c.calledWith))
 
       expect(irnRepository.addTables).toHaveBeenCalledWith([table1, table2])
     })
