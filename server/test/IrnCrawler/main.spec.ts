@@ -2,7 +2,7 @@ import { run } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { actionOf } from "../../../shared/actions"
 import { irnCrawler } from "../../src/irnCrawler/main"
-import { FindParams, IrnTables } from "../../src/irnFetch/models"
+import { FindParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
 import { County } from "../../src/irnRepository/models"
 import { rndTo } from "../helpers"
 
@@ -17,11 +17,13 @@ describe("IrnCrawler", () => {
     districtId: c,
   })
 
-  const makeTable = (county: County, tableNumber: number = 1, date: string = "2000-01-01") => ({
+  const makeTable = (county: County, tableNumber: string = "1", date: string = "2000-01-01"): IrnTable => ({
     address: "some address",
     county,
     date: new Date(date),
     locationName: "Some location name",
+    phone: "",
+    postalCode: "",
     tableNumber,
     times: ["12:30"],
   })
@@ -42,7 +44,7 @@ describe("IrnCrawler", () => {
 
     it("persist a single IrnTable", async () => {
       const county = makeCounty()
-      const table = makeTable(county, 1, "2000-01-01")
+      const table = makeTable(county, "1", "2000-01-01")
 
       const findCalls = [
         {
@@ -81,10 +83,10 @@ describe("IrnCrawler", () => {
     it("crawls for next available dates on a table", async () => {
       const county = makeCounty()
 
-      const table1Date1 = makeTable(county, 1, "2000-01-01")
-      const table1Date2 = makeTable(county, 1, "2000-01-30")
-      const table2Date1 = makeTable(county, 2, "2000-01-10")
-      const table2Date2 = makeTable(county, 2, "2000-01-20")
+      const table1Date1 = makeTable(county, "1", "2000-01-01")
+      const table1Date2 = makeTable(county, "1", "2000-01-30")
+      const table2Date1 = makeTable(county, "2", "2000-01-10")
+      const table2Date2 = makeTable(county, "2", "2000-01-20")
 
       const findCalls = [
         {
@@ -133,10 +135,10 @@ describe("IrnCrawler", () => {
       const county1 = makeCounty(1)
       const county2 = makeCounty(2)
 
-      const tableCounty1Date1 = makeTable(county1, 1, "2000-01-01")
-      const tableCounty1Date2 = makeTable(county1, 1, "2000-01-11")
-      const tableCounty2Date1 = makeTable(county2, 1, "2000-01-02")
-      const tableCounty2Date2 = makeTable(county2, 1, "2000-01-12")
+      const tableCounty1Date1 = makeTable(county1, "1", "2000-01-01")
+      const tableCounty1Date2 = makeTable(county1, "1", "2000-01-11")
+      const tableCounty2Date1 = makeTable(county2, "1", "2000-01-02")
+      const tableCounty2Date2 = makeTable(county2, "1", "2000-01-12")
 
       const findCalls = [
         {
@@ -193,10 +195,10 @@ describe("IrnCrawler", () => {
       const county = makeCounty()
 
       const startDate = new Date("2000-01-01")
-      const table1 = makeTable(county, 1, "2000-01-01")
+      const table1 = makeTable(county, "1", "2000-01-01")
       const crawlDaysLimit = 10
       const dateAfterDateLimit = "2000-01-12"
-      const table2 = makeTable(county, 1, dateAfterDateLimit)
+      const table2 = makeTable(county, "1", dateAfterDateLimit)
 
       const findCalls = [
         {

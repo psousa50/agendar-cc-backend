@@ -10,8 +10,10 @@ export type FindParams = {
 export type IrnTable = {
   county: County
   locationName: string
-  tableNumber: number
+  tableNumber: string
   address: string
+  postalCode: string
+  phone: string
   date: Date
   times: Time[]
 }
