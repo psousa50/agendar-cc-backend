@@ -2,6 +2,7 @@ import convict from "convict"
 
 export interface AppConfig {
   crawlDaysLimit: number
+  fetchDelay: number,
   irnUrl: string
   nodeEnv: string
   port: number
@@ -14,8 +15,14 @@ export const config = convict<AppConfig>({
     env: "",
     format: "number",
   },
+  fetchDelay: {
+    default: 500,
+    doc: "",
+    env: "",
+    format: "number",
+  },
   irnUrl: {
-    default: "http://localhost:20001",
+    default: "https://agendamento.irn.mj.pt/steps/",
     doc: "IRN URL.",
     env: "IRN_URL",
     format: "url",

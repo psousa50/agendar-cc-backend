@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+	<title>IRN - Agendamento Online</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<script src="js/jquery.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.5/validator.min.js"></script>
+	<link rel="stylesheet" href="css/agd.css">
+</head>
+
+<body>
+	<div class="container">
+		<div class="header">
+			<div class="row">
+				<div class="form-group col-md-6">
+					<a href="../index.php"><img src="images/irnlogo.jpg" alt="IRN" width="314" height="119"></a>
+				</div>
+				<div class="form-group col-md-6 center" id="note">
+					<div style="font-weight: bold; text-align: center;color: red;">Atenção</div>Para finalizar o seu
+					pedido de agendamento, deverá, no prazo de 12 horas confirmar através do e-mail que irá receber na
+					caixa de correio mencionada.
+				</div>
+			</div>
+		</div>
+
+		<form action="step2.php" method="POST" data-toggle="validator" role="form" id="formAgd">
+			<input autocomplete="off_autocomplete" name="hidden" type="text" style="display:none;">
+			<input type="hidden" name="tok" value="926c14aef268a7f94ccebae6bfc294f52d9e22b2bc9601dfbddf1b682be60707f8068fc7163e87e5189e549301f1e140e7e77beecca256e0d497ccf369235873">
+
+			<div class="row">
+				<div class="form-group col-md-12 has-danger" style="border: 3px solid orange; padding: 10px">
+					<label><img src="images/hint.png">&nbsp;Sabia que já é possível renovar online o Cartão de Cidadão a quem tem mais de 25 anos?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Aceda a <a href="https://eportugal.gov.pt/servicos/renovar-o-cartao-de-cidadao">eportugal.gov.pt</a> e efetue o pedido sem necessidade de deslocações!</label>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="form-group col-md-6 has-danger">
+					<label class="control-label" for="servico">Selecione o serviço que pretende agendar</label>
+					<select class="form-control" id="servico" name="servico" data-error="Por favor selecione um serviço" required>
+                                        <option value="" disabled selected>Selecione uma opção</option>
+<option value="1">Pedido / Renova&ccedil;&atilde;o de Cart&atilde;o de Cidad&atilde;o</option><option value="2">Levantamento de Cart&atilde;o de Cidad&atilde;o</option><option value="3">Pedido de Passaporte Electr&oacute;nico</option><option value="4">Levantamento de Passaporte Electr&oacute;nico</option><option value="5">Altera&ccedil;&atilde;o/Confirma&ccedil;&atilde;o de Morada</option><option value="6">Renova&ccedil;&atilde;o da Carta de Condu&ccedil;&atilde;o</option>                                </select>
+					<div class="help-block with-errors"></div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-md-6 has-danger">
+					<label class="control-label" for="distrito">Selecione o distrito</label>
+					<select class="form-control" id="distrito" name="distrito" data-error="Por favor selecione um distrito" required>
+					<option value="" disabled selected>Selecione uma opção</option>
+<option value="1">A&ccedil;ores</option><option value="2">Aveiro</option><option value="3">Beja</option><option value="4">Braga</option><option value="5">Bragan&ccedil;a</option><option value="6">Castelo Branco</option><option value="7">Coimbra</option><option value="8">&Eacute;vora</option><option value="9">Faro</option><option value="10">Guarda</option><option value="11">Leiria</option><option value="12">Lisboa</option><option value="13">Madeira</option><option value="14">Portalegre</option><option value="15">Porto</option><option value="16">Santar&eacute;m</option><option value="17">Set&uacute;bal</option><option value="18">Viana do Castelo</option><option value="19">Vila Real</option><option value="20">Viseu</option>				</select>
+					<div class="help-block with-errors"></div>
+				</div>
+				<div class="form-group col-md-6 has-danger">
+					<label class="control-label" for="concelho">Selecione o concelho</label>
+					<select class="form-control" id="concelho" name="concelho" data-error="Por favor selecione um concelho" required>
+       	                                <option value="" disabled selected>Selecione uma opção</option>
+               	                </select>
+					<div class="help-block with-errors"></div>
+				</div>
+
+			</div>
+			<div class="row">
+				<div class="form-group col-md-4 has-danger">
+					<label class="control-label" for="data">Selecione uma data</label>
+					<ul>
+						<div class="custom-control custom-radio">
+							<input type="radio" class="custom-control-input" id="primeira_data" name="data_tipo" checked value="primeira">
+							<label class="custom-control-label" for="primeira_data">Primeira data disponível</label>
+						</div>
+						<div class="custom-control custom-radio">
+							<input type="radio" class="custom-control-input" id="outra_data" name="data_tipo" value="outra">
+							<label class="custom-control-label" for="outra_data">Selecionar uma data</label>
+						</div>
+
+						<div class='input-group date' id='datepicker' style="display: none;">
+							<input type='text' class="form-control" id="data_input_3" name="data" value="2019-08-30" readonly />
+							<!--<input type='text' class="form-control" id="data_input_3" name="data" value="2019-08-30" readonly />-->
+							<span class="input-group-addon" style="clear:both;">
+                    <span class="glyphicon glyphicon-calendar">
+                    </span>
+							</span>
+						</div>
+
+					</ul>
+					<div class="help-block with-errors"></div>
+				</div>
+			</div>
+			<div class="row" id="row_sabado">
+				<div class="form-group col-md-4 has-danger">
+					<input type="checkbox" class="form-check-input" id="sabado" name="sabado">
+					<label class="form-check-label" for="sabado">Pesquisar apenas ao sábado</label>
+				</div>
+			</div>
+			<input type="hidden" name="sabado_show" id="sabado_show" value="0">
+			<div id="custom_error_div" style="display:none; color: red;"></div>
+			<br /><button type="button" class="btn btn-warning" onclick="window.location.href='../index.php'; return false;">Cancelar Agendamento</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<button class="btn btn-primary" id="btnSeguinte">Seguinte</button>
+		</form>
+		<br><br>
+</div>
+
+
+		<!-- Modal -->
+		<div id="myModal" class="modal fade" role="dialog">
+			<!--<div class="modal-dialog" style="width: 700px !important;">-->
+			<div class="modal-dialog modal-lg">
+
+				<!-- Modal content-->
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h4 class="modal-title">Atenção</h4>
+					</div>
+					<div class="modal-body" id="contentBody"></div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-warning" data-dismiss="modal">Fechar</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<script type="text/javascript" src="js/bootstrap-datepicker.min.js"></script>
+		<link rel="stylesheet" href="css/bootstrap-datepicker3.css" />
+		<!--<link rel="stylesheet" href="https://formden.com/static/cdn/font-awesome/4.4.0/css/font-awesome.min.css" />-->
+		<script type="text/javascript" src="js/bootstrap-datepicker.pt.js"></script>
+		<script>
+			$(document).ready(function(){
+
+
+//	if($('#concelho').val() != '') {
+//		alert($('#concelho').val());
+//	}
+
+	$('#servico').on('change', function() {
+//		$('#concelho').prop('selectedIndex',0);
+//		$('#distrito').prop('selectedIndex',0);
+		$( "#sabado" ).prop( "checked", false );
+		$( "#sabado_show" ).val( "0");
+		$( "#row_sabado" ).hide();
+
+/*		if( this.value == '2') {
+			$('#contentBody').html('O balc&atilde;o a selecionar para o agendamento do levantamento do cartão de cidadão deverá ser o escolhido no ato do pedido e mencionado na carta PIN recebida.<br><br>Deve ser portador dos códigos PIN (carta pin) no ato do levantamento.');
+			$('#myModal').modal('show');
+		} else*/ if( this.value == '4') {
+                        $('#contentBody').html('O levantamento de Passaporte Eletr&oacute;nico Português só pode ser efetuado no balc&atilde;o onde foi solicitado.');
+                        $('#myModal').modal('show');
+                } else if( this.value == '5') {
+                        $('#contentBody').html('Para confirma&ccedil;&atilde;o de morada deve ser possuidor dos código PIN atuais de Autenticação e de Morada e da carta de confirmação de morada.<br>');
+                        $('#myModal').modal('show');
+                }
+	});
+
+	$('input[name="data_tipo"]').change(function(e){
+            if($(this).val() == 'primeira') {
+		$('#datepicker').hide();
+	    } else {
+		$('#datepicker').show();
+	   } 
+        });
+
+	$(function () {
+
+
+              var date1 = new Date('2019-08-30');
+
+		$("#datepicker").datepicker({ 
+        		autoclose: true, 
+		        todayHighlight: true,
+			daysOfWeekDisabled:[0],
+			language: 'pt',
+			format: 'yyyy-mm-dd',
+			forceParse: false,
+			minDate: 2019-08-30,
+		}).datepicker('update', date1);
+	});
+
+        $('#distrito').change(function(){
+		$.ajax({
+		        type: "GET",
+		        url: "get_concelhos.php?id_distrito="+escape($(this).val()),
+        		success: function(data){
+				$('#concelho').html(data).fadeIn();
+				if($('#servico').val() == "2") {
+					$('#contentBody').html('O local a selecionar para o agendamento do levantamento do cartão de cidadão deverá ser o seguinte:<br><br><ul><li>O balcão que está  indicado na Carta PIN recebida</li><br>Ou<br><br><li>O balcão que indicou no caso de ter efetuado posteriormente alteração do local de levantamento</li></ul>');
+		                        $('#myModal').modal('show');
+				}
+//				$( "#sabado_show" ).val( "0");
+//				$( "#row_sabado" ).hide();
+			},
+		        failure: function(errMsg) {
+		            alert(errMsg);
+        		}
+  		});
+        });
+
+        $('#concelho').change(function(){
+                $.ajax({
+                        type: "GET",
+			url: "get_aval.php?f=agendaSabadoConcelho&ids="+$('#servico').val()+"&idc="+$('#concelho').val(),
+                        success: function(data){
+                                if(data == "1") {
+					$('#row_sabado').show();
+					$('#sabado_show').val("1");
+				} else {
+					$( "#sabado" ).prop( "checked", false );
+					$('#sabado_show').val("0");
+					$('#row_sabado').hide();
+				}
+                        },
+                        failure: function(errMsg) {
+                            alert(errMsg);
+                        }
+                });
+        });
+
+	$('#formAgd').validator().on('submit', function (e) {
+
+		if ( ! e.isDefaultPrevented()) {
+			var data1 = '2019-08-30';
+			if($('input[name=data_tipo]:checked').val() == 'outra') {
+				data1 = $('#data_input_3').val();
+			}
+
+			var sab = 0;
+			if($('#sabado').is(":checked"))
+				sab = 1;
+	                $.ajax({
+        	                type: "GET",
+                	        url: "get_aval.php?f=checkStep1&ids="+$('#servico').val()+"&idc="+$('#concelho').val()+"&data="+data1+"&sab="+sab,
+                        	success: function(data){
+                                	if(data == "0" && sab) {
+						$('#contentBody').html('O serviço que pretende agendar não se encontra disponível aos sábados.');
+			                        $('#myModal').modal('show');	
+						return false; 
+					} else if(data == "0" && ! sab) {
+                                                $('#contentBody').html('O serviço que pretende agendar não se encontra disponível neste concelho.');
+                                                $('#myModal').modal('show');    
+						return false; 
+                                        } else if(data == "1") {
+                                                $('#formAgd').append('<input type="hidden" name="servico_desc" value="'+$("#servico option:selected").text()+'" />');
+                                                $('#formAgd').append('<input type="hidden" name="concelho_desc" value="'+$("#concelho option:selected").text()+'" />');
+                                                $('#data_input_3').val(data1);
+                                                $('#formAgd')[0].submit();
+                                                $("#btnSeguinte").prop('disabled',true);
+                                                return false;
+                                        } else {
+                                                $('#contentBody').html('Ocorreu um erro de validação. Por favor tente mais tarde');
+                                                $('#myModal').modal('show');
+						return false;
+					}
+	                        },
+        	                failure: function(errMsg) {
+                	            alert(errMsg);
+                        	}
+                	});
+
+			return false;
+		}
+	});
+
+        if( $('#concelho option:selected').text() == "") {
+                $('#distrito').trigger("change");
+		//alert($('#concelho').text());
+        }
+
+	if($('input[name=data_tipo]:checked').val() == 'outra') {
+		$('#datepicker').show();
+	}
+
+});
+		</script>
+</body>
+
+</html>

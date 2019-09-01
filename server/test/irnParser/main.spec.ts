@@ -5,7 +5,7 @@ import { parseTables } from "../../src/irnParser/main"
 
 it("loads a page", () => {
 
-  const html = fs.readFileSync(path.join(__dirname, "./page1.html")).toString()
+  const html = fs.readFileSync(path.join(__dirname, "./step2_page1.html")).toString()
 
   const county = { districtId: 1, countyId: 1 }
 

@@ -1,13 +1,20 @@
-import { right } from "fp-ts/lib/Either"
+import { fold, right } from "fp-ts/lib/Either"
 import { ask as askReader, reader } from "fp-ts/lib/Reader"
-import { fromEither, ReaderTaskEither, readerTaskEither as RTE, rightReader } from "fp-ts/lib/ReaderTaskEither"
+import {
+  fromEither,
+  fromTaskEither,
+  ReaderTaskEither,
+  readerTaskEither as RTE,
+  rightReader,
+} from "fp-ts/lib/ReaderTaskEither"
+import { tryCatch } from "fp-ts/lib/TaskEither"
 import { Environment } from "../server/src/app/environment"
 import { ServiceError } from "./models"
 
 export type ActionResult<R = void> = ReaderTaskEither<Environment, ServiceError, R>
 export type Action<I = void, R = void> = (i: I) => ActionResult<R>
 
-export const actionOf  = <T>(v: T): ActionResult<T> => fromEither(right(v))
+export const actionOf = <T>(v: T): ActionResult<T> => fromEither(right(v))
 
 // tslint:disable:max-line-length
 // prettier-ignore
@@ -30,3 +37,15 @@ export function pipe(...fs: Action[]): Action {
 // tslint:disable:max-line-length
 
 export const ask = () => rightReader<Environment, ServiceError, Environment>(askReader<Environment>())
+
+export const delay = <E, A, R>(env: E) => (
+  millis: number,
+): ((rte: ReaderTaskEither<E, A, R>) => ReaderTaskEither<E, A, R>) => ma => {
+  const promiseDelay = new Promise<R>((resolve, reject) => {
+    setTimeout(() => {
+      ma(env)().then(fold(reject, resolve))
+    }, millis)
+  })
+
+  return fromTaskEither(tryCatch(() => promiseDelay, e => e as A))
+}

@@ -7,6 +7,7 @@ const initApplication = async () => {
 
   const environment: Environment = {
     config: appConfig.get(),
+    fetch: {} as any,
     irnFetch: {} as any,
     irnRepository: {} as any,
   }
