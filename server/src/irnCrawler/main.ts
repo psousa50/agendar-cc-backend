@@ -23,7 +23,7 @@ const crawlTableDates = (dateLimit: Date, nextDate: Date = new Date(0)): Action<
   const fetchNextTables = (county: County, fromDate: Date): Action<void, IrnTables> => () =>
     pipe(
       ask(),
-      chain(env => env.irnFetch.getTables({ county, date: fromDate })),
+      chain(env => env.irnFetch.getIrnTables({ county, date: fromDate })),
       chain(newIrnTables =>
         newIrnTables.length > 0
           ? crawlTableDates(dateLimit, fromDate)(merge(irnTables, newIrnTables))
@@ -43,7 +43,7 @@ export const irnCrawler: IrnCrawler = {
       ask(),
       chain(env => {
         const fetchTables = (counties: Counties) => {
-          return counties.map(county => env.irnFetch.getTables({ county }))
+          return counties.map(county => env.irnFetch.getIrnTables({ county }))
         }
 
         const dateLimit = addDays(params.startDate, env.config.crawlDaysLimit)

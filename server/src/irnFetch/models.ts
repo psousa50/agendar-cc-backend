@@ -20,7 +20,7 @@ export type IrnTable = {
 export type IrnTables = IrnTable[]
 
 export interface IrnFetch {
-  getTables: Action<FindParams, IrnTables>
+  getIrnTables: Action<FindParams, IrnTables>
   getCounties: Action<void, Counties>
-  getServices: Action<void, IrnServices>
+  getIrnServices: Action<void, IrnServices>
 }
