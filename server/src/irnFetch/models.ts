@@ -1,6 +1,6 @@
 import { Action } from "../../../shared/actions"
 import { Time } from "../../../shared/models"
-import { Counties, County, Services } from "../irnRepository/models"
+import { Counties, County, IrnServices } from "../irnRepository/models"
 
 export type FindParams = {
   county: County
@@ -22,5 +22,5 @@ export type IrnTables = IrnTable[]
 export interface IrnFetch {
   getTables: Action<FindParams, IrnTables>
   getCounties: Action<void, Counties>
-  getServices: Action<void, Services>
+  getServices: Action<void, IrnServices>
 }

@@ -52,7 +52,7 @@ export const irnCrawler: IrnCrawler = {
           chain(counties => rteArraySequence(fetchTables(counties))),
           chain(irnTablesPerCounty => rteArraySequence(irnTablesPerCounty.map(crawlTableDates(dateLimit)))),
           chain(flattenTables),
-          chain(env.irnRepository.addTables),
+          chain(env.irnRepository.addIrnTables),
         )
       }),
     ),
