@@ -5,6 +5,6 @@ import { ask, delay } from "../../../shared/actions"
 export const fetchWrapper = (page: string, options?: RequestInit) =>
   pipe(
     ask(),
-    chain(env => delay(env)(env.config.fetchDelay)(env.fetch(`${env.config.irnUrl}/${page}`, options))),
+    chain(env => delay(env)(env.config.fetchDelay)(env.fetch(`${env.config.irnUrlLocations.irnUrl}/${page}`, options))),
   )
 

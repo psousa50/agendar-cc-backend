@@ -1,6 +1,6 @@
 import cheerio from "cheerio"
 import { IrnTable, IrnTables } from "../irnFetch/models"
-import { County } from "../irnRepository/models"
+import { Counties, County, Districts } from "../irnRepository/models"
 import "../utils/strings"
 
 const fix = (s: string) => s.replaceAll("\"", "").trim()
@@ -40,4 +40,13 @@ export const parseTables = (county: County, html: string): IrnTables => {
   const horarios = $("select[name='horario']")
 
   return horarios.toArray().map(buildTable)
+}
+
+export type ParseDistricts = (html: string) => Districts
+export const parseDistricts: ParseDistricts = () => {
+  return []
+}
+export type ParseCounties = (html: string) => Counties
+export const parseCounties: ParseCounties = () => {
+  return []
 }

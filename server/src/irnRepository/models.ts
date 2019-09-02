@@ -7,14 +7,25 @@ export type TimeSlot = {
   hours: readonly Time[]
 }
 
+export type Service = {
+  serviceId: number
+}
+export type Services = Service[]
+
+export type District = {
+  districtId: number
+  districtName: string
+}
+export type Districts = District[]
+
 export type County = {
   districtId: number
   countyId: number
+  countyName: string
 }
-export type Counties =  County[]
+export type Counties = County[]
 
 export type IrnRepositoryTable = IrnTable
-
 export type IrnRepositoryTables = IrnRepositoryTable[]
 
 export type FindParams = Partial<{
@@ -31,4 +42,6 @@ export interface IrnRepository {
   getAll: Action<void, IrnRepositoryTables>
   clearAll: Action<void, IrnRepositoryTables>
   addTables: Action<IrnRepositoryTables, void>
+  addDistricts: Action<Counties, void>
+  addCounties: Action<Counties, void>
 }

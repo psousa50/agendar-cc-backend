@@ -2,8 +2,8 @@ import convict from "convict"
 
 export interface AppConfig {
   crawlDaysLimit: number
-  fetchDelay: number,
-  irnUrl: string
+  fetchDelay: number
+  irnUrlLocations: { irnUrl: string; countiesPage: string; tablesPage: string }
   nodeEnv: string
   port: number
 }
@@ -21,11 +21,25 @@ export const config = convict<AppConfig>({
     env: "",
     format: "number",
   },
-  irnUrl: {
-    default: "https://agendamento.irn.mj.pt/steps/",
-    doc: "IRN URL.",
-    env: "IRN_URL",
-    format: "url",
+  irnUrlLocations: {
+    countiesPage: {
+      default: "step1",
+      doc: "IRN URL.",
+      env: "IRN_URL",
+      format: "url",
+    },
+    irnUrl: {
+      default: "https://agendamento.irn.mj.pt/steps/",
+      doc: "IRN URL.",
+      env: "IRN_URL",
+      format: "url",
+    },
+    tablesPage: {
+      default: "step2",
+      doc: "IRN URL.",
+      env: "IRN_URL",
+      format: "url",
+    },
   },
   nodeEnv: {
     default: "development",

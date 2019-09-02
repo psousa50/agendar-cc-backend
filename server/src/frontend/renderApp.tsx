@@ -10,16 +10,23 @@ export function renderApp(req: Request, res: Response, config: Config<AppConfig>
   const clientConfig: AppConfig = {
     crawlDaysLimit: config.get("crawlDaysLimit"),
     fetchDelay: config.get("fetchDelay"),
-    irnUrl: config.get("irnUrl"),
+    irnUrlLocations: {
+      countiesPage: config.get("countiesPage"),
+      irnUrl: config.get("irnUrl"),
+      tablesPage: config.get("tablesPage"),
+    },
     nodeEnv: config.get("nodeEnv"),
     port: config.get("port"),
   }
 
-  res.send("<!DOCTYPE HTML>\n" + renderToString(
-    <Document
-      assets={compileAssets(config)}
-      clientConfig={clientConfig}
-      csrfToken={req.csrfToken ? req.csrfToken() : ""}
-    />,
-  ))
+  res.send(
+    "<!DOCTYPE HTML>\n" +
+      renderToString(
+        <Document
+          assets={compileAssets(config)}
+          clientConfig={clientConfig}
+          csrfToken={req.csrfToken ? req.csrfToken() : ""}
+        />,
+      ),
+  )
 }

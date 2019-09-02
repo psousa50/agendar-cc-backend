@@ -15,6 +15,7 @@ describe("IrnCrawler", () => {
   const makeCounty = (c = rndTo(100)) => ({
     countyId: c,
     districtId: c,
+    countyName: `County ${c}`
   })
 
   const makeTable = (county: County, tableNumber: string = "1", date: string = "2000-01-01"): IrnTable => ({

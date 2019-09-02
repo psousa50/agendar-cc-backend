@@ -1,4 +1,4 @@
-import { fold, right } from "fp-ts/lib/Either"
+import { fold, left, right } from "fp-ts/lib/Either"
 import { ask as askReader, reader } from "fp-ts/lib/Reader"
 import {
   fromEither,
@@ -13,8 +13,6 @@ import { ServiceError } from "./models"
 
 export type ActionResult<R = void> = ReaderTaskEither<Environment, ServiceError, R>
 export type Action<I = void, R = void> = (i: I) => ActionResult<R>
-
-export const actionOf = <T>(v: T): ActionResult<T> => fromEither(right(v))
 
 // tslint:disable:max-line-length
 // prettier-ignore
@@ -48,4 +46,14 @@ export const delay = <E, A, R>(env: E) => (
   })
 
   return fromTaskEither(tryCatch(() => promiseDelay, e => e as A))
+}
+
+export const actionOf = <T>(v: T): ActionResult<T> => fromEither(right(v))
+
+export const toAction = <I, R>(f: (i: I) => R): (i: I) => ActionResult<R> => i => {
+  try {
+    return actionOf(f(i))
+  } catch (error) {
+      return fromEither(left(error))
+  }
 }
