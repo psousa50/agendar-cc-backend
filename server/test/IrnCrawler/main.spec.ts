@@ -2,8 +2,8 @@ import { run } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { actionOf } from "../../../shared/actions"
 import { irnCrawler } from "../../src/irnCrawler/main"
-import { FindParams, IrnTable, IrnTables, IrnFetch } from "../../src/irnFetch/models"
-import { County, IrnRepository } from "../../src/irnRepository/models"
+import { FindParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
+import { County } from "../../src/irnRepository/models"
 import { rndTo } from "../helpers"
 
 describe("IrnCrawler", () => {
@@ -12,10 +12,11 @@ describe("IrnCrawler", () => {
       crawlDaysLimit: 60,
     },
   }
+  
   const makeCounty = (c = rndTo(100)) => ({
     countyId: c,
+    countyName: `County ${c}`,
     districtId: c,
-    countyName: `County ${c}`
   })
 
   const makeTable = (county: County, tableNumber: string = "1", date: string = "2000-01-01"): IrnTable => ({
@@ -58,12 +59,12 @@ describe("IrnCrawler", () => {
         },
       ]
 
-      const irnFetch: IrnFetch = {
+      const irnFetch = {
         getCounties: jest.fn(() => actionOf([county])),
-        getTables: jest.fn(implementFindWith(getTablesCalls)),
+        getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
       } as any
 
-      const irnRepository: IrnRepository = {
+      const irnRepository = {
         addIrnTables: jest.fn(() => actionOf(undefined)),
       } as any
 
@@ -108,12 +109,12 @@ describe("IrnCrawler", () => {
         },
       ]
 
-      const irnFetch: IrnFetch = {
+      const irnFetch = {
         getCounties: jest.fn(() => actionOf([county])),
-        getTables: jest.fn(implementFindWith(getTablesCalls)),
+        getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
       } as any
 
-      const irnRepository: IrnRepository = {
+      const irnRepository = {
         addIrnTables: jest.fn(() => actionOf(undefined)),
       } as any
 
@@ -168,12 +169,12 @@ describe("IrnCrawler", () => {
         },
       ]
 
-      const irnFetch: IrnFetch = {
+      const irnFetch = {
         getCounties: jest.fn(() => actionOf([county1, county2])),
-        getTables: jest.fn(implementFindWith(getTablesCalls)),
+        getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
       } as any
 
-      const irnRepository: IrnRepository = {
+      const irnRepository = {
         addIrnTables: jest.fn(() => actionOf(undefined)),
       } as any
 
@@ -212,12 +213,12 @@ describe("IrnCrawler", () => {
         },
       ]
 
-      const irnFetch: IrnFetch = {
+      const irnFetch = {
         getCounties: jest.fn(() => actionOf([county])),
-        getTables: jest.fn(implementFindWith(getTablesCalls)),
+        getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
       } as any
 
-      const irnRepository: IrnRepository = {
+      const irnRepository = {
         addIrnTables: jest.fn(() => actionOf(undefined)),
       } as any
 
