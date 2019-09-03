@@ -5,7 +5,7 @@ import "../utils/strings"
 
 const fix = (s: string) => s.replaceAll("\"", "").trim()
 
-export const parseTables = (county: County, html: string): IrnTables => {
+export const parseTables = (serviceId: number, county: County, html: string): IrnTables => {
   const $ = cheerio.load(html)
 
   const buildTable = (horario: CheerioElement) => {
@@ -30,6 +30,7 @@ export const parseTables = (county: County, html: string): IrnTables => {
       locationName: parts[3],
       phone: parts[7],
       postalCode: parts[6],
+      serviceId,
       tableNumber: parts[4],
       times: times.slice(1),
     }

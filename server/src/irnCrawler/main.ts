@@ -4,7 +4,7 @@ import { chain, map, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { Action, actionOf, ask } from "../../../shared/actions"
 import { IrnTables } from "../irnFetch/models"
-import { Counties, County, IrnServices } from "../irnRepository/models"
+import { Counties, County } from "../irnRepository/models"
 import { flatten } from "../utils/collections"
 import { addDays } from "../utils/dates"
 import { IrnCrawler } from "./models"
@@ -57,25 +57,21 @@ export const irnCrawler: IrnCrawler = {
             ),
           )
 
-        const fetchTables = (serviceId: number, counties: Counties) => {
-            return counties.map(county => env.irnFetch.getIrnTables({ serviceId, county }))
-          }
-
         const getTablesForService = (serviceId: number, counties: Counties) =>
           pipe(
-            rteArraySequence(fetchTables(serviceId, counties)),
+            rteArraySequence(counties.map(county => env.irnFetch.getIrnTables({ serviceId, county }))),
             chain(irnTablesPerCounty =>
               rteArraySequence(irnTablesPerCounty.map(crawlTableDates(serviceId, dateLimit))),
             ),
             chain(flattenTables),
           )
-        const getTables = (services: IrnServices, counties: Counties) =>
-          services.map(service => getTablesForService(service.serviceId, counties))
 
         const dateLimit = addDays(params.startDate, env.config.crawlDaysLimit)
         return pipe(
           getServicesAndCounties(),
-          chain(({ services, counties }) => rteArraySequence(getTables(services, counties))),
+          chain(({ services, counties }) =>
+            rteArraySequence(services.map(service => getTablesForService(service.serviceId, counties))),
+          ),
           chain(flattenTables),
           chain(env.irnRepository.addIrnTables),
         )

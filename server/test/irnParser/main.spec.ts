@@ -82,7 +82,7 @@ it("parses tables from irn html page", () => {
   }
   const expectedTables = [expectedTable1, expectedTable2]
 
-  const tables = parseTables(county, html)
+  const tables = parseTables(serviceId, county, html)
 
   expect(tables).toEqual(expectedTables)
 })
