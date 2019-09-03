@@ -2,7 +2,7 @@ import { run } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { actionOf } from "../../../shared/actions"
 import { irnCrawler } from "../../src/irnCrawler/main"
-import { FindParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
+import { getTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
 import { County } from "../../src/irnRepository/models"
 import { rndTo } from "../helpers"
 
@@ -42,10 +42,10 @@ describe("IrnCrawler", () => {
   })
 
   interface GetTablesCalls {
-    calledWith: FindParams
+    calledWith: getTableParams
     returns: IrnTables
   }
-  const implementFindWith = (getTablesCalls: GetTablesCalls[]) => (params: FindParams) => {
+  const implementFindWith = (getTablesCalls: GetTablesCalls[]) => (params: getTableParams) => {
     const call = getTablesCalls.find(c => equals(c.calledWith, params))
     return call ? actionOf(call.returns) : (console.log("Call Not Found:", params), actionOf([]))
   }

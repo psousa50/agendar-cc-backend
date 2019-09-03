@@ -9,6 +9,7 @@ export type TimeSlot = {
 
 export type IrnService = {
   serviceId: number
+  serviceName: string
 }
 export type IrnServices = IrnService[]
 

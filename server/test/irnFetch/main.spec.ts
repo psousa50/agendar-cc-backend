@@ -2,7 +2,7 @@ import { map } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/pipeable"
 import { run } from "fp-ts/lib/ReaderTaskEither"
 import { actionOf } from "../../../shared/actions"
-import { getCounties } from "../../src/irnFetch/main"
+import { buildGetCounties } from "../../src/irnFetch/main"
 
 describe("IrnFetch", () => {
   describe("getCounties", () => {
@@ -25,7 +25,7 @@ describe("IrnFetch", () => {
         fetch,
       } as any
 
-      const result = await run(getCounties(parseCounties)(), environment)
+      const result = await run( buildGetCounties(parseCounties)(), environment)
 
       expect(fetch).toHaveBeenCalledWith("some-url/some-page")
       expect(parseCounties).toHaveBeenCalledWith(text)

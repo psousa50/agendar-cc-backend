@@ -1,8 +1,8 @@
 import { Action } from "../../../shared/actions"
 import { Time } from "../../../shared/models"
-import { Counties, County, IrnServices } from "../irnRepository/models"
+import { Counties, County, Districts, IrnServices } from "../irnRepository/models"
 
-export type FindParams = {
+export type getTableParams = {
   serviceId: number
   county: County
   date?: Date
@@ -22,7 +22,8 @@ export type IrnTable = {
 export type IrnTables = IrnTable[]
 
 export interface IrnFetch {
-  getIrnTables: Action<FindParams, IrnTables>
+  getIrnTables: Action<getTableParams, IrnTables>
   getCounties: Action<void, Counties>
+  getDistricts: Action<void, Districts>
   getIrnServices: Action<void, IrnServices>
 }
