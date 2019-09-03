@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
 import { ErrorCodes, ServiceError } from "../../../../../shared/models"
 import { Environment } from "../../environment"
-import { findIrnTables } from "./domain"
+import { getIrnTables } from "./domain"
 
 const errorHandler = (res: Response) => (error: ServiceError) => {
   res.sendStatus(error.dependencyError ? (error.errorCode === ErrorCodes.NOT_FOUND ? 404 : 502) : 400)
@@ -17,10 +17,10 @@ const okHandler = (res: Response) => (responseBody: any) => {
 
 export const router = (env: Environment) =>
   Router()
-    .get("/find", async (_, res) => {
+    .get("/", async (_, res) => {
       await run(
         pipe(
-          findIrnTables({}),
+          getIrnTables({}),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,
