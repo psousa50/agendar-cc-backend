@@ -39,6 +39,7 @@ it("parses tables from irn html page", () => {
 
   const html = fs.readFileSync(path.join(__dirname, "./step2_page1.html")).toString()
 
+  const serviceId = 1
   const county = { districtId: 1, countyId: 1, countyName: "Some Name" }
 
   const expectedTable1: IrnTable = {
@@ -48,6 +49,7 @@ it("parses tables from irn html page", () => {
     locationName: "Conservatória do Registo Comercial de Cascais",
     phone: "214818630",
     postalCode: "2750-378",
+    serviceId,
     tableNumber: "1",
     times: ["13:45:00", "14:45:00"],
   }
@@ -59,6 +61,7 @@ it("parses tables from irn html page", () => {
     locationName: "2ª Conservatória do Registo Predial de Cascais",
     phone: "214843521",
     postalCode: "2750-379",
+    serviceId,
     tableNumber: "5",
     times: [
       "09:45:00",

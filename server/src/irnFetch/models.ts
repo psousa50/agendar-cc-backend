@@ -3,11 +3,13 @@ import { Time } from "../../../shared/models"
 import { Counties, County, IrnServices } from "../irnRepository/models"
 
 export type FindParams = {
+  serviceId: number
   county: County
   date?: Date
 }
 
 export type IrnTable = {
+  serviceId: number,
   county: County
   locationName: string
   tableNumber: string
