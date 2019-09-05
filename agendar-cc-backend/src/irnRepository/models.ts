@@ -1,6 +1,7 @@
 import { IrnTable } from "../irnFetch/models"
 import { Action } from "../utils/actions"
-import { Time } from "../utils/audit"
+
+type Time = string
 
 export type TimeSlot = {
   date: Date

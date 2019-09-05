@@ -1,6 +1,7 @@
 import { Counties, County, Districts, IrnServices } from "../irnRepository/models"
 import { Action } from "../utils/actions"
-import { Time } from "../utils/audit"
+
+type Time = string
 
 export type getTableParams = {
   serviceId: number
@@ -9,16 +10,16 @@ export type getTableParams = {
 }
 
 export type IrnTable = {
-  serviceId: number,
-  county: County
-  locationName: string
-  tableNumber: string
-  address: string
-  postalCode: string
-  phone: string
-  date: Date
-  times: Time[]
-}
+    serviceId: number,
+    county: County
+    locationName: string
+    tableNumber: string
+    address: string
+    postalCode: string
+    phone: string
+    date: Date
+    times: Time[]
+  }
 export type IrnTables = IrnTable[]
 
 export interface IrnFetch {

@@ -10,7 +10,7 @@ const makeTable = (
   date: string = "2000-01-01",
 ): IrnTable => ({
   address: "some address",
-  county: { districtId, countyId, countyName: `Count Name ${countyId}`},
+  county: { districtId, countyId, countyName: `Count Name ${countyId}` },
   date: new Date(date),
   locationName: "Some location name",
   phone: "123456789",
@@ -39,7 +39,11 @@ const getCounties: Action<void, Counties> = () =>
   ])
 
 const getDistricts: Action<void, Districts> = () =>
-  actionOf([{ districtId: 1, districtName: "District 1" }, { districtId: 2, districtName: "District 2" }])
+  actionOf([
+    { districtId: 1, districtName: "District 1" },
+    { districtId: 2, districtName: "District 2" },
+    { districtId: 3, districtName: "District 3" },
+  ])
 
 const getIrnServices: Action<void, IrnServices> = () => actionOf([{ serviceId: 1, serviceName: "Service 1" }])
 
