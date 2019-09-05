@@ -29,7 +29,7 @@ export type Counties = County[]
 export type IrnRepositoryTable = IrnTable
 export type IrnRepositoryTables = IrnRepositoryTable[]
 
-export type FindParams = Partial<{
+export type GetTableParams = Partial<{
   serviceId: number
   districtId: number
   countyId: number
@@ -41,13 +41,13 @@ export type FindParams = Partial<{
 
 export interface IrnRepository {
   addCounties: Action<Counties, void>
-  addDistricts: Action<Counties, void>
-  addIrnServices: Action<Counties, void>
+  addDistricts: Action<Districts, void>
+  addIrnServices: Action<IrnServices, void>
   addIrnTables: Action<IrnRepositoryTables, void>
   clearAll: Action<void, void>
   clearAllTables: Action<void, void>
   getCounties: Action<{ districtId?: number}, Counties>
   getDistricts: Action<void, Districts>
   getIrnServices: Action<void, IrnServices>
-  getIrnTables: Action<FindParams, IrnRepositoryTables>
+  getIrnTables: Action<GetTableParams, IrnRepositoryTables>
 }

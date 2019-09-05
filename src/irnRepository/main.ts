@@ -1,6 +1,7 @@
 import { isNil } from "ramda"
 import { IrnTables } from "../irnFetch/models"
-import { Counties, Districts, IrnServices } from "./models"
+import { Action, actionOf } from "../utils/actions"
+import { Counties, Districts, GetTableParams, IrnRepositoryTables, IrnServices } from "./models"
 
 interface Repository {
   counties: Counties
@@ -16,38 +17,57 @@ const Repository: Repository = {
   irnTables: [],
 }
 
-export const addCounties = (counties: Counties) => {
+const addCounties: Action<Counties, void> = counties => {
   Repository.counties = [...Repository.counties, ...counties]
+  return actionOf(undefined)
 }
 
-export const addDistricts = (districts: Districts) => {
+const addDistricts: Action<Districts, void> = districts => {
   Repository.districts = [...Repository.districts, ...districts]
+  return actionOf(undefined)
 }
 
-export const addIrnTables = (irnTables: IrnTables) => {
+const addIrnTables: Action<IrnRepositoryTables, void> = irnTables => {
   Repository.irnTables = [...Repository.irnTables, ...irnTables]
+  return actionOf(undefined)
 }
 
-export const addIrnServices = (irnServices: IrnServices) => {
+const addIrnServices: Action<IrnServices, void> = irnServices => {
   Repository.irnServices = [...Repository.irnServices, ...irnServices]
+  return actionOf(undefined)
 }
 
-export const clearAll = () => {
+const clearAll: Action<void, void> = () => {
   Repository.counties = []
   Repository.districts = []
   Repository.irnServices = []
   Repository.irnTables = []
+  return actionOf(undefined)
 }
 
-export const clearAllTables = () => {
+const clearAllTables: Action<void, void> = () => {
   Repository.irnTables = []
+  return actionOf(undefined)
 }
 
-export const getCounties = (districtId?: number) =>
-  Repository.counties.filter(c => isNil(districtId) || c.districtId === districtId)
+const getCounties: Action<{ districtId?: number }, Counties> = districtId =>
+  actionOf(Repository.counties.filter(c => isNil(districtId) || c.districtId === districtId))
 
-export const getDistricts = () => Repository.districts
+const getDistricts: Action<void, Districts> = () => actionOf(Repository.districts)
 
-export const getIrnServices = () => Repository.irnServices
+const getIrnServices: Action<void, IrnServices> = () => actionOf(Repository.irnServices)
 
-export const getIrnTables = () => Repository.irnTables
+const getIrnTables: Action<GetTableParams, IrnRepositoryTables> = () => actionOf(Repository.irnTables)
+
+export const irnRepository = {
+  addCounties,
+  addDistricts,
+  addIrnServices,
+  addIrnTables,
+  clearAll,
+  clearAllTables,
+  getCounties,
+  getDistricts,
+  getIrnServices,
+  getIrnTables,
+}

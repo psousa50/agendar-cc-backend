@@ -1,8 +1,9 @@
 import { Action } from "../utils/actions"
 
-interface IrnCrawlerParams {
+export interface RefreshTablesParams {
   startDate: Date
 }
 export interface IrnCrawler {
-  start: Action<IrnCrawlerParams, void>
+  start: Action<void, void>
+  refreshTables: Action<RefreshTablesParams, void>
 }

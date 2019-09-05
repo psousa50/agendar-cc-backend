@@ -52,6 +52,4 @@ export const runServer: Action<Express, Server> = app =>
     ),
   )
 
-console.log("exp=====>\n", )
-
 export const expressApp = pipeActions(createApp, runServer)

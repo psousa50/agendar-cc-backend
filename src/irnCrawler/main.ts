@@ -7,7 +7,7 @@ import { Counties, County } from "../irnRepository/models"
 import { Action, actionOf, ask } from "../utils/actions"
 import { flatten } from "../utils/collections"
 import { addDays } from "../utils/dates"
-import { IrnCrawler } from "./models"
+import { IrnCrawler, RefreshTablesParams } from "./models"
 
 const rteArraySequence = array.sequence(readerTaskEither)
 
@@ -41,40 +41,52 @@ const crawlTableDates = (
     : actionOf(irnTables)
 }
 
-export const irnCrawler: IrnCrawler = {
-  start: params =>
-    pipe(
-      ask(),
-      chain(env => {
-        const getServicesAndCounties = () =>
-          pipe(
-            env.irnRepository.getIrnServices(),
-            chain(services =>
-              pipe(
-                env.irnRepository.getCounties({}),
-                map(counties => ({ services, counties })),
-              ),
-            ),
-          )
-
-        const getTablesForService = (serviceId: number, counties: Counties) =>
-          pipe(
-            rteArraySequence(counties.map(county => env.irnFetch.getIrnTables({ serviceId, county }))),
-            chain(irnTablesPerCounty =>
-              rteArraySequence(irnTablesPerCounty.map(crawlTableDates(serviceId, dateLimit))),
-            ),
-            chain(flattenTables),
-          )
-
-        const dateLimit = addDays(params.startDate, env.config.crawlDaysLimit)
-        return pipe(
-          getServicesAndCounties(),
-          chain(({ services, counties }) =>
-            rteArraySequence(services.map(service => getTablesForService(service.serviceId, counties))),
-          ),
-          chain(flattenTables),
-          chain(env.irnRepository.addIrnTables),
-        )
-      }),
+const start = () =>
+  pipe(
+    ask(),
+    chain(env =>
+      pipe(
+        env.irnFetch.getDistricts(),
+        chain(env.irnRepository.addDistricts),
+      ),
     ),
+  )
+
+const refreshTables: Action<RefreshTablesParams, void> = params =>
+  pipe(
+    ask(),
+    chain(env => {
+      const getServicesAndCounties = () =>
+        pipe(
+          env.irnRepository.getIrnServices(),
+          chain(services =>
+            pipe(
+              env.irnRepository.getCounties({}),
+              map(counties => ({ services, counties })),
+            ),
+          ),
+        )
+
+      const getTablesForService = (serviceId: number, counties: Counties) =>
+        pipe(
+          rteArraySequence(counties.map(county => env.irnFetch.getIrnTables({ serviceId, county }))),
+          chain(irnTablesPerCounty => rteArraySequence(irnTablesPerCounty.map(crawlTableDates(serviceId, dateLimit)))),
+          chain(flattenTables),
+        )
+
+      const dateLimit = addDays(params.startDate, env.config.crawlDaysLimit)
+      return pipe(
+        getServicesAndCounties(),
+        chain(({ services, counties }) =>
+          rteArraySequence(services.map(service => getTablesForService(service.serviceId, counties))),
+        ),
+        chain(flattenTables),
+        chain(env.irnRepository.addIrnTables),
+      )
+    }),
+  )
+
+export const irnCrawler: IrnCrawler = {
+  refreshTables,
+  start,
 }

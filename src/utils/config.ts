@@ -13,13 +13,13 @@ export const config = convict<AppConfig>({
     default: 30,
     doc: "",
     env: "",
-    format: "number",
+    format: "int",
   },
   fetchDelay: {
     default: 500,
     doc: "",
     env: "",
-    format: "number",
+    format: "int",
   },
   irnUrlLocations: {
     countiesPage: {
