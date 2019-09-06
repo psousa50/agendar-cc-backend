@@ -15,6 +15,7 @@ export type FetchAction = (
 
 export const fetchAction = (input: Request | string, init?: RequestInit): ActionResult<Response> => {
   function coreFetch(): ActionResult<Response> {
+    console.log("Fetching... =====>\n", input)
     return fromTaskEither(tryCatch(() => isoFetch(input, init), error => new ServiceError((error as Error).message)))
   }
 

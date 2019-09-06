@@ -4,6 +4,6 @@ export interface RefreshTablesParams {
   startDate: Date
 }
 export interface IrnCrawler {
-  start: Action<void, void>
+  start: Action<void, void[]>
   refreshTables: Action<RefreshTablesParams, void>
 }

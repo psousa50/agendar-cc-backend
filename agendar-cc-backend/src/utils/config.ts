@@ -3,7 +3,7 @@ import convict from "convict"
 export interface AppConfig {
   crawlDaysLimit: number
   fetchDelay: number
-  irnUrlLocations: { irnUrl: string; countiesPage: string; tablesPage: string }
+  irnUrlLocations: { homePage: string; irnUrl: string; countiesPage: string; tablesPage: string }
   nodeEnv: string
   port: number
 }
@@ -23,21 +23,27 @@ export const config = convict<AppConfig>({
   },
   irnUrlLocations: {
     countiesPage: {
+      default: "get_concelhos.php",
+      doc: "",
+      env: "COUNTIES_URL",
+      format: "url",
+    },
+    homePage: {
       default: "step1",
-      doc: "IRN URL.",
-      env: "IRN_URL",
+      doc: "",
+      env: "HOME_URL",
       format: "url",
     },
     irnUrl: {
       default: "https://agendamento.irn.mj.pt/steps/",
-      doc: "IRN URL.",
+      doc: "",
       env: "IRN_URL",
       format: "url",
     },
     tablesPage: {
       default: "step2",
-      doc: "IRN URL.",
-      env: "IRN_URL",
+      doc: "",
+      env: "TABLES_URL",
       format: "url",
     },
   },

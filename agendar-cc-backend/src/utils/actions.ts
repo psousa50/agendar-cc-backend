@@ -38,10 +38,10 @@ export const ask = () => rightReader<Environment, ServiceError, Environment>(ask
 
 export const delay = <E, A, R>(env: E) => (
   millis: number,
-): ((rte: ReaderTaskEither<E, A, R>) => ReaderTaskEither<E, A, R>) => ma => {
+): ((rte: ReaderTaskEither<E, A, R>) => ReaderTaskEither<E, A, R>) => rte => {
   const promiseDelay = new Promise<R>((resolve, reject) => {
     setTimeout(() => {
-      ma(env)().then(fold(reject, resolve))
+      rte(env)().then(fold(reject, resolve))
     }, millis)
   })
 

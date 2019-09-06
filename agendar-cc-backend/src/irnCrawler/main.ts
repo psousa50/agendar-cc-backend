@@ -45,7 +45,17 @@ const crawlTableDates = (
 const start = () =>
   pipe(
     ask(),
-    chain(env => env.irnRepository.addDistricts(globalDistricts)),
+    chain(env => {
+      env.irnRepository.addDistricts(globalDistricts)
+      const a = globalDistricts.map(district =>
+        pipe(
+          env.irnFetch.getCounties(district),
+          chain(counties => env.irnRepository.addCounties(counties)),
+        ),
+      )
+      const b =  rteArraySequence(a)
+      return b
+    }),
   )
 
 const refreshTables: Action<RefreshTablesParams, void> = params =>

@@ -50,7 +50,7 @@ const clearAllTables: Action<void, void> = () => {
   return actionOf(undefined)
 }
 
-const getCounties: Action<{ districtId?: number }, Counties> = districtId =>
+const getCounties: Action<{ districtId?: number }, Counties> = ({ districtId }) =>
   actionOf(Repository.counties.filter(c => isNil(districtId) || c.districtId === districtId))
 
 const getDistricts: Action<void, Districts> = () => actionOf(Repository.districts)

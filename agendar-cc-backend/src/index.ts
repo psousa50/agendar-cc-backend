@@ -21,7 +21,7 @@ const buildEnvironment: () => Environment = () => {
 const initApplication = async () => {
   const environment = buildEnvironment()
 
-  run(irnCrawler.start(), environment)
+  await run(irnCrawler.start(), environment)
 
   console.log("Config =====>\n", environment.config)
 

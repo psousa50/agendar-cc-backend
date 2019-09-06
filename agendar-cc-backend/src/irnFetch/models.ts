@@ -24,7 +24,7 @@ export type IrnTables = IrnTable[]
 
 export interface IrnFetch {
   getIrnTables: Action<getTableParams, IrnTables>
-  getCounties: Action<void, Counties>
+  getCounties: Action<{districtId: number}, Counties>
   getDistricts: Action<void, Districts>
   getIrnServices: Action<void, IrnServices>
 }

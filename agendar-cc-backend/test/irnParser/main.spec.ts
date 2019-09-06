@@ -3,40 +3,23 @@ import * as path from "path"
 import { IrnTable } from "../../src/irnFetch/models"
 import { parseCounties, parseTables } from "../../src/irnParser/main"
 
-it.skip("parses counties from irn html page", () => {
+it("parses counties from irn html page", () => {
+  const html = fs.readFileSync(path.join(__dirname, "./counties.html")).toString()
 
-  const html = fs.readFileSync(path.join(__dirname, "./step1_page1.html")).toString()
-
-  const expectedDistricts = [
-    { districtId: "1", districtName: "Açores" },
-    { districtId: "2", districtName: "Aveiro" },
-    { districtId: "3", districtName: "Beja" },
-    { districtId: "4", districtName: "Braga" },
-    { districtId: "5", districtName: "Bragança" },
-    { districtId: "6", districtName: "Castelo Branco" },
-    { districtId: "7", districtName: "Coimbra" },
-    { districtId: "8", districtName: "&Eacute;vora" },
-    { districtId: "9", districtName: "Faro" },
-    { districtId: "10", districtName: "Guarda" },
-    { districtId: "11", districtName: "Leiria" },
-    { districtId: "12", districtName: "Lisboa" },
-    { districtId: "13", districtName: "Madeira" },
-    { districtId: "14", districtName: "Portalegre" },
-    { districtId: "15", districtName: "Porto" },
-    { districtId: "16", districtName: "Santar&eacute;m" },
-    { districtId: "17", districtName: "Setúbal" },
-    { districtId: "18", districtName: "Viana do Castelo" },
-    { districtId: "19", districtName: "Vila Real" },
-    { districtId: "20", districtName: "Viseu" },
+  const districtId = 10
+  const expectedCounties = [
+    { countyId: 32, name: "ANGRA DO HEROÍSMO", districtId },
+    { countyId: 38, name: "HORTA", districtId },
+    { countyId: 33, name: "PONTA DELGADA", districtId },
+    { countyId: 39, name: "PRAIA DA VITÓRIA", districtId },
   ]
 
-  const tables = parseCounties(html)
+  const counties = parseCounties(districtId)(html)
 
-  expect(tables).toEqual(expectedDistricts)
+  expect(counties).toEqual(expectedCounties)
 })
 
 it("parses tables from irn html page", () => {
-
   const html = fs.readFileSync(path.join(__dirname, "./step2_page1.html")).toString()
 
   const serviceId = 1
