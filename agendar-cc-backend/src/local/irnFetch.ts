@@ -10,7 +10,7 @@ const makeTable = (
   date: string = "2000-01-01",
 ): IrnTable => ({
   address: "some address",
-  county: { districtId, countyId, countyName: `Count Name ${countyId}` },
+  county: { districtId, countyId, name: `Count Name ${countyId}` },
   date: new Date(date),
   locationName: "Some location name",
   phone: "123456789",
@@ -32,20 +32,20 @@ const getIrnTables: Action<getTableParams, IrnTables> = () => {
 
 const getCounties: Action<void, Counties> = () =>
   actionOf([
-    { districtId: 1, countyId: 10, countyName: "C 10" },
-    { districtId: 1, countyId: 11, countyName: "C 11" },
-    { districtId: 2, countyId: 20, countyName: "C 20" },
-    { districtId: 2, countyId: 21, countyName: "C 21" },
+    { districtId: 1, countyId: 10, name: "C 10" },
+    { districtId: 1, countyId: 11, name: "C 11" },
+    { districtId: 2, countyId: 20, name: "C 20" },
+    { districtId: 2, countyId: 21, name: "C 21" },
   ])
 
 const getDistricts: Action<void, Districts> = () =>
   actionOf([
-    { districtId: 1, districtName: "District 1" },
-    { districtId: 2, districtName: "District 2" },
-    { districtId: 3, districtName: "District 3" },
+    { districtId: 1, name: "District 1" },
+    { districtId: 2, name: "District 2" },
+    { districtId: 3, name: "District 3" },
   ])
 
-const getIrnServices: Action<void, IrnServices> = () => actionOf([{ serviceId: 1, serviceName: "Service 1" }])
+const getIrnServices: Action<void, IrnServices> = () => actionOf([{ serviceId: 1, name: "Service 1" }])
 
 export const irnFetchLocal = {
   getCounties,

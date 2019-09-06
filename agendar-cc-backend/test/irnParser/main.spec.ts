@@ -40,7 +40,7 @@ it("parses tables from irn html page", () => {
   const html = fs.readFileSync(path.join(__dirname, "./step2_page1.html")).toString()
 
   const serviceId = 1
-  const county = { districtId: 1, countyId: 1, countyName: "Some Name" }
+  const county = { districtId: 1, countyId: 1, name: "Some Name" }
 
   const expectedTable1: IrnTable = {
     address: "Palácio da Justiça - Rua Jayme Thompson",

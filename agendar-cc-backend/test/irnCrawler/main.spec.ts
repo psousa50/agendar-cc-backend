@@ -20,8 +20,8 @@ describe("IrnCrawler", () => {
 
   const makeCounty = (c = rndTo(100)) => ({
     countyId: c,
-    countyName: `County ${c}`,
     districtId: c,
+    name: `County ${c}`,
   })
 
   const makeTable = (
@@ -86,7 +86,7 @@ describe("IrnCrawler", () => {
         irnRepository,
       } as any
 
-      await run(irnCrawler.start(defaultCrawlerParams), environment)
+      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
@@ -144,7 +144,7 @@ describe("IrnCrawler", () => {
         irnRepository,
       } as any
 
-      await run(irnCrawler.start(defaultCrawlerParams), environment)
+      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
@@ -195,7 +195,7 @@ describe("IrnCrawler", () => {
         irnRepository,
       } as any
 
-      await run(irnCrawler.start(defaultCrawlerParams), environment)
+      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
@@ -256,7 +256,7 @@ describe("IrnCrawler", () => {
         irnRepository,
       } as any
 
-      await run(irnCrawler.start(defaultCrawlerParams), environment)
+      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
@@ -303,7 +303,7 @@ describe("IrnCrawler", () => {
         irnRepository,
       } as any
 
-      await run(irnCrawler.start({ startDate }), environment)
+      await run(irnCrawler.refreshTables({ startDate }), environment)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))

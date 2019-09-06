@@ -10,20 +10,20 @@ export type TimeSlot = {
 
 export type IrnService = {
   serviceId: number
-  serviceName: string
+  name: string
 }
 export type IrnServices = IrnService[]
 
 export type District = {
   districtId: number
-  districtName: string
+  name: string
 }
 export type Districts = District[]
 
 export type County = {
   districtId: number
   countyId: number
-  countyName: string
+  name: string
 }
 export type Counties = County[]
 
