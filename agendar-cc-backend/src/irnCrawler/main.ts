@@ -4,6 +4,7 @@ import { chain, map, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { IrnTables } from "../irnFetch/models"
 import { Counties, County } from "../irnRepository/models"
+import { globalDistricts } from "../staticData/districts"
 import { Action, actionOf, ask } from "../utils/actions"
 import { flatten } from "../utils/collections"
 import { addDays } from "../utils/dates"
@@ -44,12 +45,7 @@ const crawlTableDates = (
 const start = () =>
   pipe(
     ask(),
-    chain(env =>
-      pipe(
-        env.irnFetch.getDistricts(),
-        chain(env.irnRepository.addDistricts),
-      ),
-    ),
+    chain(env => env.irnRepository.addDistricts(globalDistricts)),
   )
 
 const refreshTables: Action<RefreshTablesParams, void> = params =>
