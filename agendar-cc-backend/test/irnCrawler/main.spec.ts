@@ -1,7 +1,7 @@
 import { run } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { irnCrawler } from "../../src/irnCrawler/main"
-import { getTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
+import { GetTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
 import { County } from "../../src/irnRepository/models"
 import { actionOf } from "../../src/utils/actions"
 import { rndTo } from "../helpers"
@@ -42,10 +42,10 @@ describe("IrnCrawler", () => {
   })
 
   interface GetTablesCalls {
-    calledWith: getTableParams
+    calledWith: GetTableParams
     returns: IrnTables
   }
-  const implementFindWith = (getTablesCalls: GetTablesCalls[]) => (params: getTableParams) => {
+  const implementFindWith = (getTablesCalls: GetTablesCalls[]) => (params: GetTableParams) => {
     const call = getTablesCalls.find(c => equals(c.calledWith, params))
     return call ? actionOf(call.returns) : (console.log("Call Not Found:", params), actionOf([]))
   }
@@ -61,11 +61,11 @@ describe("IrnCrawler", () => {
 
       const getTablesCalls = [
         {
-          calledWith: { serviceId: someServiceId, county },
+          calledWith: { service: someService, county },
           returns: [table],
         },
         {
-          calledWith: { serviceId: someServiceId, county, date: new Date("2000-01-02") },
+          calledWith: { service: someService, county, date: new Date("2000-01-02") },
           returns: [],
         },
       ]
@@ -97,33 +97,35 @@ describe("IrnCrawler", () => {
     it("persist a tables from multiple services", async () => {
       const county = makeCounty()
       const serviceId1 = 1
+      const service1 = {
+        name: "Some name",
+        serviceId: serviceId1,
+      }
       const serviceId2 = 2
+      const service2 = {
+        name: "Some name",
+        serviceId: serviceId2,
+      }
       const tableService1 = makeTable(serviceId1, county, "1", "2000-01-01")
       const tableService2 = makeTable(serviceId1, county, "1", "2000-01-01")
 
-      const services = [
-        {
-        serviceId: serviceId1,
-      },
-        {
-        serviceId: serviceId2,
-      },
-    ]
+      const services = [service1, service2]
+
       const getTablesCalls = [
         {
-          calledWith: { serviceId: serviceId1, county },
+          calledWith: { service: service1, county },
           returns: [tableService1],
         },
         {
-          calledWith: { serviceId: serviceId1, county, date: new Date("2000-01-02") },
+          calledWith: { service: service1, county, date: new Date("2000-01-02") },
           returns: [],
         },
         {
-          calledWith: { serviceId: serviceId2, county },
+          calledWith: { service: service2, county },
           returns: [tableService2],
         },
         {
-          calledWith: { serviceId: serviceId2, county, date: new Date("2000-01-02") },
+          calledWith: { service: service2, county, date: new Date("2000-01-02") },
           returns: [],
         },
       ]
@@ -162,19 +164,19 @@ describe("IrnCrawler", () => {
 
       const getTablesCalls = [
         {
-          calledWith: { serviceId: someServiceId, county },
+          calledWith: { service: someService, county },
           returns: [table1Date1, table2Date1],
         },
         {
-          calledWith: { serviceId: someServiceId, county, date: new Date("2000-01-02") },
+          calledWith: { service: someService, county, date: new Date("2000-01-02") },
           returns: [table2Date1],
         },
         {
-          calledWith: { serviceId: someServiceId, county, date: new Date("2000-01-11") },
+          calledWith: { service: someService, county, date: new Date("2000-01-11") },
           returns: [table1Date2, table2Date2],
         },
         {
-          calledWith: { serviceId: someServiceId, county, date: new Date("2000-01-21") },
+          calledWith: { service: someService, county, date: new Date("2000-01-21") },
           returns: [],
         },
       ]
@@ -215,27 +217,27 @@ describe("IrnCrawler", () => {
 
       const getTablesCalls = [
         {
-          calledWith: { serviceId: someServiceId, county: county1 },
+          calledWith: { service: someService, county: county1 },
           returns: [tableCounty1Date1],
         },
         {
-          calledWith: { serviceId: someServiceId, county: county1, date: new Date("2000-01-02") },
+          calledWith: { service: someService, county: county1, date: new Date("2000-01-02") },
           returns: [tableCounty1Date2],
         },
         {
-          calledWith: { serviceId: someServiceId, county: county1, date: new Date("2000-01-12") },
+          calledWith: { service: someService, county: county1, date: new Date("2000-01-12") },
           returns: [],
         },
         {
-          calledWith: { serviceId: someServiceId, county: county2 },
+          calledWith: { service: someService, county: county2 },
           returns: [tableCounty2Date1],
         },
         {
-          calledWith: { serviceId: someServiceId, county: county2, date: new Date("2000-01-03") },
+          calledWith: { service: someService, county: county2, date: new Date("2000-01-03") },
           returns: [tableCounty2Date2],
         },
         {
-          calledWith: { serviceId: someServiceId, county: county2, date: new Date("2000-01-13") },
+          calledWith: { service: someService, county: county2, date: new Date("2000-01-13") },
           returns: [],
         },
       ]
@@ -276,11 +278,11 @@ describe("IrnCrawler", () => {
 
       const getTablesCalls = [
         {
-          calledWith: { serviceId: someServiceId, county },
+          calledWith: { service: someService, county },
           returns: [table1],
         },
         {
-          calledWith: { serviceId: someServiceId, county, date: new Date("2000-01-02") },
+          calledWith: { service: someService, county, date: new Date("2000-01-02") },
           returns: [table2],
         },
       ]

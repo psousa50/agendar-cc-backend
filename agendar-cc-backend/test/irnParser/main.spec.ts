@@ -1,9 +1,9 @@
 import * as fs from "fs"
 import * as path from "path"
 import { IrnTable } from "../../src/irnFetch/models"
-import { parseCounties, parseTables } from "../../src/irnParser/main"
+import { parseCounties, parseIrnTables, parseTok } from "../../src/irnParser/main"
 
-it("parses counties from irn html page", () => {
+it("parses counties from get_concelhos html", () => {
   const html = fs.readFileSync(path.join(__dirname, "./counties.html")).toString()
 
   const districtId = 10
@@ -19,10 +19,21 @@ it("parses counties from irn html page", () => {
   expect(counties).toEqual(expectedCounties)
 })
 
-it("parses tables from irn html page", () => {
+it("parses tok from the home page", () => {
+  const html = fs.readFileSync(path.join(__dirname, "./step1_page1.html")).toString()
+
+  const tok = parseTok(html)
+
+  expect(tok).toEqual("926c14aef268a7f94ccebae6bfc294f52d9e22b2bc9601dfbddf1b682be60707f8068fc7163e87e5189e549301f1e140e7e77beecca256e0d497ccf369235873")
+})
+
+it("parses tables from irn tables html page", () => {
   const html = fs.readFileSync(path.join(__dirname, "./step2_page1.html")).toString()
 
   const serviceId = 1
+  const service = {
+    serviceId,
+  } as any
   const county = { districtId: 1, countyId: 1, name: "Some Name" }
 
   const expectedTable1: IrnTable = {
@@ -65,7 +76,7 @@ it("parses tables from irn html page", () => {
   }
   const expectedTables = [expectedTable1, expectedTable2]
 
-  const tables = parseTables(serviceId, county, html)
+  const tables = parseIrnTables(service, county)(html)
 
   expect(tables).toEqual(expectedTables)
 })

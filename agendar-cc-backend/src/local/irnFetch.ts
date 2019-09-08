@@ -1,4 +1,4 @@
-import { getTableParams, IrnTable, IrnTables } from "../irnFetch/models"
+import { GetTableParams, IrnTable, IrnTables } from "../irnFetch/models"
 import { Counties, Districts, IrnServices } from "../irnRepository/models"
 import { Action, actionOf } from "../utils/actions"
 
@@ -20,7 +20,7 @@ const makeTable = (
   times: ["12:30"],
 })
 
-const getIrnTables: Action<getTableParams, IrnTables> = () => {
+const getIrnTables: Action<GetTableParams, IrnTables> = () => {
   return actionOf([
     makeTable(1, 1, 1, "1", "2010-01-01"),
     makeTable(1, 1, 1, "2", "2010-01-10"),

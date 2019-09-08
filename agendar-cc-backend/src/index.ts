@@ -13,7 +13,7 @@ const buildEnvironment: () => Environment = () => {
   return {
     config,
     fetch: fetchAction,
-    irnFetch: config.nodeEnv === "development" ? irnFetchLocal : irnFetch,
+    irnFetch: config.nodeEnv === "development2" ? irnFetchLocal : irnFetch,
     irnRepository,
   }
 }
@@ -22,6 +22,7 @@ const initApplication = async () => {
   const environment = buildEnvironment()
 
   await run(irnCrawler.start(), environment)
+  // await run(irnCrawler.refreshTables({startDate: new Date(Date.now())}), environment)
 
   console.log("Config =====>\n", environment.config)
 

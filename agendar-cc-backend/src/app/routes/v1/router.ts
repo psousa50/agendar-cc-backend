@@ -26,19 +26,19 @@ export const router = (env: Environment) =>
         env,
       )
     })
-    .get("/counties/:districtId", async (req, res) => {
+    .get("/counties/", async (req, res) => {
       await run(
         pipe(
-          getCounties({ districtId: Number.parseInt(req.params.districtId, 10) }),
+          getCounties({ districtId: req.query.districtId}),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,
       )
     })
-    .get("/irnTables", async (_, res) => {
+    .get("/irnTables", async (req, res) => {
       await run(
         pipe(
-          getIrnTables({}),
+          getIrnTables({ serviceId: req.params.serviceId}),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,
