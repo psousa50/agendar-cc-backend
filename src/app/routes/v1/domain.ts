@@ -28,7 +28,7 @@ interface GetIrnTablesParams {
   districtId?: string
   countyId?: string
   startDate?: string
-  EndDate?: string
+  endDate?: string
 }
 export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = params =>
   pipe(
@@ -37,7 +37,7 @@ export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = par
       env.irnRepository.getIrnTables({
         countyId: toNumber(params.countyId),
         districtId: toNumber(params.districtId),
-        endDate: toDate(params.startDate),
+        endDate: toDate(params.endDate),
         serviceId: toNumber(params.serviceId),
         startDate: toDate(params.startDate),
       }),

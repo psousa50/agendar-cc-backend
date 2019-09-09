@@ -29,6 +29,7 @@ describe("IrnCrawler", () => {
     county: County,
     tableNumber: string = "1",
     date: string = "2000-01-01",
+    times: string[] = ["12:30"],
   ): IrnTable => ({
     address: "some address",
     county,
@@ -38,7 +39,7 @@ describe("IrnCrawler", () => {
     postalCode: "",
     serviceId,
     tableNumber,
-    times: ["12:30"],
+    times,
   })
 
   interface GetTablesCalls {

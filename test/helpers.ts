@@ -3,7 +3,8 @@ import { Action } from "../src/utils/actions"
 
 export const rndTo = (max: number) => Math.floor(Math.random() * max)
 
-export const chainLogRTE = <I, R>(m: string, action: Action<I, R>) => chain((v: I) => {
-  console.log(`${m}=>`, v)
-  return action(v)
-})
+export const chainLogRTE = <I, R>(m: string, action: Action<I, R>) =>
+  chain((v: I) => {
+    console.log(`${m}=>`, v)
+    return action(v)
+  })

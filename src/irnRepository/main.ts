@@ -1,7 +1,7 @@
 import { isNil } from "ramda"
 import { IrnTables } from "../irnFetch/models"
 import { Action, actionOf } from "../utils/actions"
-import { Counties, Districts, GetTableParams, IrnRepositoryTables, IrnServices } from "./models"
+import { Counties, Districts, GetTableParams, IrnRepositoryTable, IrnRepositoryTables, IrnServices } from "./models"
 
 interface Repository {
   counties: Counties
@@ -57,7 +57,17 @@ const getDistricts: Action<void, Districts> = () => actionOf(Repository.district
 
 const getIrnServices: Action<void, IrnServices> = () => actionOf(Repository.irnServices)
 
-const getIrnTables: Action<GetTableParams, IrnRepositoryTables> = () => actionOf(Repository.irnTables)
+const by = ({ serviceId, districtId, countyId, startDate, endDate }: GetTableParams) => (
+  irnTable: IrnRepositoryTable,
+) =>
+  (isNil(serviceId) || irnTable.serviceId === serviceId) &&
+  (isNil(districtId) || irnTable.county.districtId === districtId) &&
+  (isNil(countyId) || irnTable.county.countyId === countyId) &&
+  (isNil(startDate) || irnTable.date >= startDate) &&
+  (isNil(endDate) || irnTable.date <= endDate)
+
+const getIrnTables: Action<GetTableParams, IrnRepositoryTables> = params =>
+  actionOf(Repository.irnTables.filter(by(params)))
 
 export const irnRepository = {
   addCounties,
