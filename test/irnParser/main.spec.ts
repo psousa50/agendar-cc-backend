@@ -4,7 +4,7 @@ import { IrnTable } from "../../src/irnFetch/models"
 import { parseCounties, parseIrnTables, parseTok } from "../../src/irnParser/main"
 
 it("parses counties from get_concelhos html", () => {
-  const html = fs.readFileSync(path.join(__dirname, "./counties.html")).toString()
+  const html = fs.readFileSync(path.join(__dirname, "./htmlSamples/counties.html")).toString()
 
   const districtId = 10
   const expectedCounties = [
@@ -20,7 +20,7 @@ it("parses counties from get_concelhos html", () => {
 })
 
 it("parses tok from the home page", () => {
-  const html = fs.readFileSync(path.join(__dirname, "./step1_page1.html")).toString()
+  const html = fs.readFileSync(path.join(__dirname, "./htmlSamples/step1_page1.html")).toString()
 
   const tok = parseTok(html)
 
@@ -28,7 +28,7 @@ it("parses tok from the home page", () => {
 })
 
 it("parses tables from irn tables html page", () => {
-  const html = fs.readFileSync(path.join(__dirname, "./step2_page1.html")).toString()
+  const html = fs.readFileSync(path.join(__dirname, "./htmlSamples/step2_page1.html")).toString()
 
   const serviceId = 1
   const service = {
