@@ -17,7 +17,8 @@ const okHandler = (res: Response) => (responseBody: any) => {
 
 export const router = (env: Environment) =>
   Router()
-    .get("/districts", async (_, res) => {
+    .get("/districts", async (req, res) => {
+      console.log("GET districts=====>\n", req.query)
       await run(
         pipe(
           getDistricts(),
@@ -27,6 +28,7 @@ export const router = (env: Environment) =>
       )
     })
     .get("/counties/", async (req, res) => {
+      console.log("GET counties=====>\n", req.query)
       await run(
         pipe(
           getCounties({ districtId: req.query.districtId }),
@@ -36,6 +38,7 @@ export const router = (env: Environment) =>
       )
     })
     .get("/irnTables", async (req, res) => {
+      console.log("GET irnTables=====>\n", req.query)
       const { serviceId, districtId, countyId, startDate, endDate } = req.query
       await run(
         pipe(
