@@ -1,5 +1,6 @@
 import FormData from "form-data"
 import fetch from "isomorphic-fetch"
+import { debug } from "./utils/debug"
 
 fetch("https://agendamento.irn.mj.pt/steps/step1.php").then(r =>
   r.text().then(html => {
@@ -32,7 +33,7 @@ fetch("https://agendamento.irn.mj.pt/steps/step1.php").then(r =>
     const init = {
       body: formData.getBuffer().toString(),
       headers: {
-        "Cookie": cookies.join(","),
+        Cookie: cookies.join(","),
         "content-type": `multipart/form-data; boundary=${formData.getBoundary()}`,
       },
       method: "POST",
@@ -40,7 +41,7 @@ fetch("https://agendamento.irn.mj.pt/steps/step1.php").then(r =>
 
     setTimeout(() => {
       fetch("https://agendamento.irn.mj.pt/steps/step2.php", init).then(res =>
-        res.text().then(h => console.log("=====>\n", h)),
+        res.text().then(h => debug("=====>\n", h)),
       )
     }, 500)
   }),

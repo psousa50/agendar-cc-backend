@@ -5,6 +5,7 @@ import isoFetch from "isomorphic-fetch"
 import { Environment } from "../app/environment"
 import { actionOf, ActionResult } from "./actions"
 import { ServiceError } from "./audit"
+import { debug } from "./debug"
 import * as Errors from "./errors"
 
 export type FetchFn = (input: Request | string, init?: RequestInit) => Promise<Response>
@@ -15,7 +16,7 @@ export type FetchAction = (
 
 export const fetchAction = (input: Request | string, init?: RequestInit): ActionResult<Response> => {
   function coreFetch(): ActionResult<Response> {
-    console.log("Fetching... =====>\n", input)
+    debug("Fetching... =====>\n", input)
     return fromTaskEither(tryCatch(() => isoFetch(input, init), error => new ServiceError((error as Error).message)))
   }
 

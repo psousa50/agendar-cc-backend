@@ -6,6 +6,7 @@ import { irnFetch } from "./irnFetch/main"
 import { irnRepository } from "./irnRepository/main"
 import { irnFetchLocal } from "./local/irnFetch"
 import { config as appConfig } from "./utils/config"
+import { debug } from "./utils/debug"
 import { fetchAction } from "./utils/fetch"
 
 const buildEnvironment: () => Environment = () => {
@@ -24,7 +25,7 @@ const initApplication = async () => {
   await run(irnCrawler.start(), environment)
   // await run(irnCrawler.refreshTables({startDate: new Date(Date.now())}), environment)
 
-  console.log("Config =====>\n", environment.config)
+  debug("Config =====>\n", environment.config)
 
   await run(expressApp(), environment)
 }
