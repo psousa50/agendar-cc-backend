@@ -2,6 +2,7 @@ import { Response, Router } from "express"
 import { pipe } from "fp-ts/lib/pipeable"
 import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
 import { ErrorCodes, ServiceError } from "../../../utils/audit"
+import { debug } from "../../../utils/debug"
 import { Environment } from "../../environment"
 import { getCounties, getDistricts, getIrnTables } from "./domain"
 
@@ -18,7 +19,7 @@ const okHandler = (res: Response) => (responseBody: any) => {
 export const router = (env: Environment) =>
   Router()
     .get("/districts", async (req, res) => {
-      console.log("GET districts=====>\n", req.query)
+      debug("GET districts=====>\n", req.query)
       await run(
         pipe(
           getDistricts(),
@@ -28,7 +29,7 @@ export const router = (env: Environment) =>
       )
     })
     .get("/counties/", async (req, res) => {
-      console.log("GET counties=====>\n", req.query)
+      debug("GET counties=====>\n", req.query)
       await run(
         pipe(
           getCounties({ districtId: req.query.districtId }),
@@ -38,7 +39,7 @@ export const router = (env: Environment) =>
       )
     })
     .get("/irnTables", async (req, res) => {
-      console.log("GET irnTables=====>\n", req.query)
+      debug("GET irnTables=====>\n", req.query)
       const { serviceId, districtId, countyId, startDate, endDate } = req.query
       await run(
         pipe(

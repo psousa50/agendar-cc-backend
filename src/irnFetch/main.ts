@@ -84,8 +84,8 @@ export const buildGetIrnTables: BuildGetIrnTables = (
     const options = {
       body: formData.data,
       headers: {
-        "Cookie": cookies.join(","),
-        "content-type": `multipart/form-data; boundary=${formData.boundary}`,
+        ["Cookie"]: cookies.join(","),
+        ["content-type"]: `multipart/form-data; boundary=${formData.boundary}`,
       },
       method: "POST",
     }

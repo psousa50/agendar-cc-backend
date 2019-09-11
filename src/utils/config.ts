@@ -12,13 +12,13 @@ export const config = convict<AppConfig>({
   crawlDaysLimit: {
     default: 30,
     doc: "",
-    env: "",
+    env: "CRAWL_DAYS_LIMIT",
     format: "int",
   },
   fetchDelay: {
     default: 500,
     doc: "",
-    env: "",
+    env: "FETCH_DELAY",
     format: "int",
   },
   irnUrlLocations: {
@@ -37,7 +37,7 @@ export const config = convict<AppConfig>({
     irnTablesPage: {
       default: "step2.php",
       doc: "",
-      env: "TABLES_URL",
+      env: "IRNTABLES_URL",
       format: "url",
     },
     irnUrl: {
@@ -56,7 +56,9 @@ export const config = convict<AppConfig>({
   port: {
     default: 3000,
     doc: "",
-    env: "",
+    env: "PORT",
     format: "port",
   },
 })
+
+export const isDev = (c: AppConfig) => c.nodeEnv === "development"

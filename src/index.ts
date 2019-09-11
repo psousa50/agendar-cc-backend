@@ -5,7 +5,8 @@ import { irnCrawler } from "./irnCrawler/main"
 import { irnFetch } from "./irnFetch/main"
 import { irnRepository } from "./irnRepository/main"
 import { irnFetchLocal } from "./local/irnFetch"
-import { config as appConfig } from "./utils/config"
+import { globalIrnTables } from "./staticData/irnTables"
+import { config as appConfig, isDev } from "./utils/config"
 import { debug } from "./utils/debug"
 import { fetchAction } from "./utils/fetch"
 
@@ -14,20 +15,25 @@ const buildEnvironment: () => Environment = () => {
   return {
     config,
     fetch: fetchAction,
-    irnFetch: config.nodeEnv === "development2" ? irnFetchLocal : irnFetch,
+    irnFetch: isDev(config) ? irnFetchLocal : irnFetch,
     irnRepository,
   }
 }
 
-const initApplication = async () => {
+const startApplication = async () => {
   const environment = buildEnvironment()
 
-  await run(irnCrawler.start(), environment)
-  // await run(irnCrawler.refreshTables({startDate: new Date(Date.now())}), environment)
-
   debug("Config =====>\n", environment.config)
+
+  await run(irnCrawler.start(), environment)
+
+  if (isDev(environment.config)) {
+    environment.irnRepository.addIrnTables(globalIrnTables)
+  } else {
+    await run(irnCrawler.refreshTables({ startDate: new Date(Date.now()) }), environment)
+  }
 
   await run(expressApp(), environment)
 }
 
-initApplication()
+startApplication()

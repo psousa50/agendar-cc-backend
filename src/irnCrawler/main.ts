@@ -6,7 +6,6 @@ import { IrnTables } from "../irnFetch/models"
 import { Counties, County, IrnService } from "../irnRepository/models"
 import { globalCounties } from "../staticData/counties"
 import { globalDistricts } from "../staticData/districts"
-import { globalIrnTables } from "../staticData/irnTables"
 import { globalIrnServices } from "../staticData/services"
 import { Action, actionOf, ask } from "../utils/actions"
 import { flatten } from "../utils/collections"
@@ -58,15 +57,6 @@ const start = () =>
       env.irnRepository.addIrnServices(globalIrnServices)
       env.irnRepository.addDistricts(globalDistricts)
       env.irnRepository.addCounties(globalCounties)
-      env.irnRepository.addIrnTables(globalIrnTables)
-      // return rteArraySequence(
-      //   globalDistricts.map(district =>
-      //     pipe(
-      //       env.irnFetch.getCounties(district),
-      //       chain(counties => env.irnRepository.addCounties(counties)),
-      //     ),
-      //   ),
-      // )
       return actionOf([])
     }),
   )
@@ -94,6 +84,7 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
         )
 
       const dateLimit = addDays(params.startDate, env.config.crawlDaysLimit)
+
       return pipe(
         getServicesAndCounties(),
         chain(({ services, counties }) =>
