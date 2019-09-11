@@ -33,8 +33,8 @@ fetch("https://agendamento.irn.mj.pt/steps/step1.php").then(r =>
     const init = {
       body: formData.getBuffer().toString(),
       headers: {
-        Cookie: cookies.join(","),
-        "content-type": `multipart/form-data; boundary=${formData.getBoundary()}`,
+        ["Cookie"]: cookies.join(","),
+        ["content-type"]: `multipart/form-data; boundary=${formData.getBoundary()}`,
       },
       method: "POST",
     }
