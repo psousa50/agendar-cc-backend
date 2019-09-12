@@ -1,9 +1,9 @@
 import { Response, Router } from "express"
 import { pipe } from "fp-ts/lib/pipeable"
 import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
+import { Environment } from "../../../environment"
 import { ErrorCodes, ServiceError } from "../../../utils/audit"
 import { debug } from "../../../utils/debug"
-import { Environment } from "../../environment"
 import { getCounties, getDistricts, getIrnTables } from "./domain"
 
 const errorHandler = (res: Response) => (error: ServiceError) => {

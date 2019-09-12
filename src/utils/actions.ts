@@ -8,7 +8,7 @@ import {
   rightReader,
 } from "fp-ts/lib/ReaderTaskEither"
 import { tryCatch } from "fp-ts/lib/TaskEither"
-import { Environment } from "../app/environment"
+import { Environment } from "../environment"
 import { ServiceError } from "./audit"
 
 export type ActionResult<R = void> = ReaderTaskEither<Environment, ServiceError, R>
@@ -50,10 +50,10 @@ export const delay = <E, A, R>(env: E) => (
 
 export const actionOf = <T>(v: T): ActionResult<T> => fromEither(right(v))
 
-export const toAction = <I, R>(f: (i: I) => R): (i: I) => ActionResult<R> => i => {
+export const toAction = <I, R>(f: (i: I) => R): ((i: I) => ActionResult<R>) => i => {
   try {
     return actionOf(f(i))
   } catch (error) {
-      return fromEither(left(error))
+    return fromEither(left(error))
   }
 }

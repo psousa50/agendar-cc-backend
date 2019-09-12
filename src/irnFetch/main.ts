@@ -1,7 +1,7 @@
 import FormData from "form-data"
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain } from "fp-ts/lib/ReaderTaskEither"
-import { Environment } from "../app/environment"
+import { Environment } from "../environment"
 import { ParseCounties, parseCounties, parseIrnTables, ParseIrnTables, ParseTok, parseTok } from "../irnParser/main"
 import { Counties } from "../irnRepository/models"
 import { Action, ActionResult, ask, delay, toAction } from "../utils/actions"

@@ -1,0 +1,46 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "option": "watch",
+      "problemMatcher": ["$tsc-watch"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Lint",
+      "type": "npm",
+      "script": "lint",
+      "presentation": {
+        "echo": false,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": ["$tslint5"]
+    },
+    {
+      "type": "npm",
+      "script": "test",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "isBackground": true
+    }
+  ]
+}
