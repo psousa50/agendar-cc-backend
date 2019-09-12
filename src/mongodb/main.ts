@@ -34,7 +34,7 @@ export const getIrnServices = get(IRN_SERVICES)()
 
 export const getDistricts = get(DISTRICTS)()
 
-export const getCounties = (districtId?: number) => get(COUNTIES)({ districtId })
+export const getCounties = (districtId?: number) => get(COUNTIES)({ ...(districtId ? { districtId } : {}) })
 
 const buildGetIrnTablesQuery = ({ serviceId, districtId, countyId, startDate, endDate }: GetTableParams) => ({
   ...(isNil(serviceId) ? {} : { serviceId }),
