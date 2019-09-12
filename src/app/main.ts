@@ -32,7 +32,7 @@ export const runServer: Action<Express, Server> = app =>
           () =>
             new Promise<Server>((resolve, reject) => {
               try {
-                const port = env.config.port
+                const port = env.config.port || process.env.PORT
                 const server: Server = app.listen(port, () => {
                   console.log(`Server started, listening at ${port}...`)
                   return resolve(server)
