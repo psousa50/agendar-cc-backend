@@ -9,7 +9,7 @@
     "build": "npm run tsc",
     "clean": "rm -rf dist",
     "worker": "nodemon --exec 'ts-node --files' ./src/worker/index.ts",
-    "dev": "USE_LOCAL_IRN_TABLES=true nodemon --exec 'ts-node --files' ./src/index.ts",
+    "dev": "nodemon --exec 'ts-node --files' ./src/index.ts",
     "lint": "tslint --project tsconfig.json",
     "start": "NODE_ENV=production node dist/index.js",
     "start-worker": "NODE_ENV=production node dist/worker/index.js",

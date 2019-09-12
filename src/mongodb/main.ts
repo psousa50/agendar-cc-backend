@@ -3,6 +3,7 @@ import { FilterQuery, MongoClient } from "mongodb"
 import { isNil } from "ramda"
 import { Counties, Districts, GetTableParams, IrnRepositoryTables, IrnServices } from "../irnRepository/models"
 import { ServiceError } from "../utils/audit"
+import { logDebug } from "../utils/debug"
 
 const DB_CONFIG = "_dbConfig"
 const IRN_SERVICES = "IrnServices"
@@ -23,13 +24,14 @@ export const connect = (mongoDbUri: string): TaskEither<ServiceError, MongoClien
 export const clearAll = (client: MongoClient) => client.db().dropDatabase()
 export const clearAllTables = (client: MongoClient) => client.db().dropCollection(IRN_TABLES)
 
-const get = (collection: string) => (query: FilterQuery<any> = {}) => (client: MongoClient) =>
-  client
+const get = (collection: string) => (query: FilterQuery<any> = {}) => (client: MongoClient) => {
+  logDebug(collection, query)
+  return client
     .db()
     .collection(collection)
     .find(query)
     .toArray()
-
+}
 export const getIrnServices = get(IRN_SERVICES)()
 
 export const getDistricts = get(DISTRICTS)()
@@ -38,7 +40,7 @@ export const getCounties = (districtId?: number) => get(COUNTIES)({ ...(district
 
 const buildGetIrnTablesQuery = ({ serviceId, districtId, countyId, startDate, endDate }: GetTableParams) => ({
   ...(isNil(serviceId) ? {} : { serviceId }),
-  ...(isNil(districtId) ? {} : { "district.districtId": districtId }),
+  ...(isNil(districtId) ? {} : { "county.districtId": districtId }),
   ...(isNil(countyId) ? {} : { "county.countyId": countyId }),
   ...(isNil(startDate) && isNil(endDate)
     ? {}

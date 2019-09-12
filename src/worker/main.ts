@@ -25,7 +25,9 @@ export const startWorker = async () => {
         if (environment.config.infra.useLocalIrnTables) {
           run(environment.irnRepository.addIrnTables(globalIrnTables), environment)
         } else {
-          run(irnCrawler.refreshTables({ startDate: new Date(Date.now()) }), environment)
+          if (false) {
+            run(irnCrawler.refreshTables({ startDate: new Date(Date.now()) }), environment)
+          }
         }
         return task.of(undefined)
       },

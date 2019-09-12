@@ -8,7 +8,7 @@ import { irnRepository as irnRepositoryLocal } from "./irnRepository/local"
 import { irnRepository } from "./irnRepository/main"
 import { IrnRepository } from "./irnRepository/models"
 import { connect } from "./mongodb/main"
-import { config as appConfig, isDev } from "./utils/config"
+import { config as appConfig } from "./utils/config"
 import { AppConfig } from "./utils/config"
 import { FetchAction, fetchAction } from "./utils/fetch"
 
@@ -30,7 +30,7 @@ export const buildEnvironment = () => {
       config,
       dbClient: mongoClient,
       fetch: fetchAction,
-      irnFetch: isDev(config) ? irnFetchLocal : irnFetch,
+      irnFetch: config.infra.useLocalIrnTables ? irnFetchLocal : irnFetch,
       irnRepository: config.infra.useMemoryRepository ? irnRepositoryLocal : irnRepository,
     })),
   )
