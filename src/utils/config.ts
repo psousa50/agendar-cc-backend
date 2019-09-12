@@ -3,7 +3,14 @@ import convict from "convict"
 export interface AppConfig {
   crawlDaysLimit: number
   fetchDelay: number
+  infra: {
+    useMemoryRepository: boolean
+    useLocalIrnTables: boolean
+  }
   irnUrlLocations: { homePage: string; irnUrl: string; countiesPage: string; irnTablesPage: string }
+  mongodb: {
+    uri: string
+  }
   nodeEnv: string
   port: number
 }
@@ -20,6 +27,20 @@ export const config = convict<AppConfig>({
     doc: "",
     env: "FETCH_DELAY",
     format: "int",
+  },
+  infra: {
+    useLocalIrnTables: {
+      default: false,
+      doc: "",
+      env: "USE_LOCAL_IRN_TABLES",
+      format: "Boolean",
+    },
+    useMemoryRepository: {
+      default: false,
+      doc: "",
+      env: "USE_MEMORY_REPOSITORY",
+      format: "Boolean",
+    },
   },
   irnUrlLocations: {
     countiesPage: {
@@ -44,6 +65,14 @@ export const config = convict<AppConfig>({
       default: "https://agendamento.irn.mj.pt/steps",
       doc: "",
       env: "IRN_URL",
+      format: "url",
+    },
+  },
+  mongodb: {
+    uri: {
+      default: "mongodb://localhost:27017/agendar-cc",
+      doc: "",
+      env: "MONGODB_URI",
       format: "url",
     },
   },

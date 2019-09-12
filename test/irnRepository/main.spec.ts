@@ -1,7 +1,7 @@
 import { map } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/pipeable"
 import { run } from "fp-ts/lib/ReaderTaskEither"
-import { irnRepository } from "../../src/irnRepository/main"
+import { irnRepository } from "../../src/irnRepository/local"
 import { IrnRepositoryTable } from "../../src/irnRepository/models"
 
 describe("IrnRepository", () => {

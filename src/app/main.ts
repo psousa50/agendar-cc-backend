@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { chain, fromTaskEither, map } from "fp-ts/lib/ReaderTaskEither"
 import { tryCatch } from "fp-ts/lib/TaskEither"
 import { Server } from "http"
-import { Action, ask, pipe as pipeActions } from "../utils/actions"
+import { Action, ask, pipeActions } from "../utils/actions"
 import { createErrorHandler, createNotFoundHandler } from "./errorHandler"
 import { router as v1Router } from "./routes/v1/router"
 
@@ -32,7 +32,7 @@ export const runServer: Action<Express, Server> = app =>
           () =>
             new Promise<Server>((resolve, reject) => {
               try {
-                const port = env.config.port || process.env.PORT
+                const port = process.env.PORT || env.config.port
                 const server: Server = app.listen(port, () => {
                   console.log(`Server started, listening at ${port}...`)
                   return resolve(server)

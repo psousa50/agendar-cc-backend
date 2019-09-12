@@ -1,6 +1,6 @@
 import FormData from "form-data"
 import fetch from "isomorphic-fetch"
-import { debug } from "./utils/debug"
+import { logDebug } from "./utils/debug"
 
 fetch("https://agendamento.irn.mj.pt/steps/step1.php").then(r =>
   r.text().then(html => {
@@ -41,7 +41,7 @@ fetch("https://agendamento.irn.mj.pt/steps/step1.php").then(r =>
 
     setTimeout(() => {
       fetch("https://agendamento.irn.mj.pt/steps/step2.php", init).then(res =>
-        res.text().then(h => debug("=====>\n", h)),
+        res.text().then(h => logDebug("=====>\n", h)),
       )
     }, 500)
   }),

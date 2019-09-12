@@ -50,15 +50,24 @@ const crawlTableDates = (
     : actionOf(irnTables)
 }
 
+const addStaticData: Action<void, void> = () =>
+  pipe(
+    ask(),
+    chain(env =>
+      pipe(
+        env.irnRepository.addIrnServices(globalIrnServices),
+        chain(() => env.irnRepository.addDistricts(globalDistricts)),
+        chain(() => env.irnRepository.addCounties(globalCounties)),
+        chain(() => env.irnRepository.updateConfig({ staticDataAdded: true })),
+      ),
+    ),
+  )
+
 const start = () =>
   pipe(
     ask(),
-    chain(env => {
-      env.irnRepository.addIrnServices(globalIrnServices)
-      env.irnRepository.addDistricts(globalDistricts)
-      env.irnRepository.addCounties(globalCounties)
-      return actionOf([])
-    }),
+    chain(env => env.irnRepository.getConfig()),
+    chain(dbConfig => (dbConfig && dbConfig.staticDataAdded ? actionOf(undefined) : addStaticData())),
   )
 
 const refreshTables: Action<RefreshTablesParams, void> = params =>

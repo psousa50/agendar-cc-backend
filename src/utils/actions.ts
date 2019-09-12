@@ -1,6 +1,9 @@
 import { fold, left, right } from "fp-ts/lib/Either"
+import { pipe } from "fp-ts/lib/pipeable"
 import { ask as askReader, reader } from "fp-ts/lib/Reader"
+
 import {
+  chain,
   fromEither,
   fromTaskEither,
   ReaderTaskEither,
@@ -10,25 +13,26 @@ import {
 import { tryCatch } from "fp-ts/lib/TaskEither"
 import { Environment } from "../environment"
 import { ServiceError } from "./audit"
+import { logDebug } from "./debug"
 
 export type ActionResult<R = void> = ReaderTaskEither<Environment, ServiceError, R>
 export type Action<I = void, R = void> = (i: I) => ActionResult<R>
 
 // tslint:disable:max-line-length
 // prettier-ignore
-export function pipe<A1, A2, A3>(f1: Action<A1, A2>, f2: Action<A2, A3>): Action<A1, A3>
+export function pipeActions<A1, A2, A3>(f1: Action<A1, A2>, f2: Action<A2, A3>): Action<A1, A3>
 // prettier-ignore
-export function pipe<A1, A2, A3, A4>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>): Action<A1, A4>
+export function pipeActions<A1, A2, A3, A4>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>): Action<A1, A4>
 // prettier-ignore
-export function pipe<A1, A2, A3, A4, A5>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>): Action<A1, A5>
+export function pipeActions<A1, A2, A3, A4, A5>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>): Action<A1, A5>
 // prettier-ignore
-export function pipe<A1, A2, A3, A4, A5, A6>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>, f5: Action<A5, A6>): Action<A1, A6>
+export function pipeActions<A1, A2, A3, A4, A5, A6>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>, f5: Action<A5, A6>): Action<A1, A6>
 // prettier-ignore
-export function pipe<A1, A2, A3, A4, A5, A6, A7>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>, f5: Action<A5, A6>, f6: Action<A6, A7>): Action<A1, A7>
+export function pipeActions<A1, A2, A3, A4, A5, A6, A7>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>, f5: Action<A5, A6>, f6: Action<A6, A7>): Action<A1, A7>
 // prettier-ignore
-export function pipe<A1, A2, A3, A4, A5, A6, A7, A8>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>, f5: Action<A5, A6>, f6: Action<A6, A7>, f7: Action<A7, A8>): Action<A1, A8>
+export function pipeActions<A1, A2, A3, A4, A5, A6, A7, A8>(f1: Action<A1, A2>, f2: Action<A2, A3>, f3: Action<A3, A4>, f4: Action<A4, A5>, f5: Action<A5, A6>, f6: Action<A6, A7>, f7: Action<A7, A8>): Action<A1, A8>
 // prettier-ignore
-export function pipe(...fs: Action[]): Action {
+export function pipeActions(...fs: Action[]): Action {
   return a => fs.reduce((acc, f) => RTE.chain(acc, f), rightReader<Environment, ServiceError, any>(reader.of(a)))
 }
 // prettier-ignore-end
@@ -57,3 +61,25 @@ export const toAction = <I, R>(f: (i: I) => R): ((i: I) => ActionResult<R>) => i
     return fromEither(left(error))
   }
 }
+
+export const fromPromise = <T>(promise: (env: Environment) => Promise<T>) =>
+  pipe(
+    ask(),
+    chain(env =>
+      fromTaskEither(
+        tryCatch(
+          () => promise(env),
+          e => {
+            logDebug(`ERROR: ${(e as Error).message}`)
+            return new ServiceError((e as Error).message)
+          },
+        ),
+      ),
+    ),
+  )
+
+export const fromVoidPromise = <T>(promise: (env: Environment) => Promise<T>) =>
+  fromPromise(env => {
+    promise(env)
+    return Promise.resolve(undefined)
+  })

@@ -1,1 +1,1 @@
-export const debug = console.log
+export const logDebug = console.log

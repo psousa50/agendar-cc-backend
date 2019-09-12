@@ -1,73 +1,38 @@
-import { isNil } from "ramda"
-import { IrnTables } from "../irnFetch/models"
-import { Action, actionOf } from "../utils/actions"
-import { Counties, Districts, GetTableParams, IrnRepositoryTable, IrnRepositoryTables, IrnServices } from "./models"
+import * as mongoDb from "../mongodb/main"
+import { DbConfig } from "../mongodb/main"
+import { Action, fromPromise, fromVoidPromise } from "../utils/actions"
+import { Counties, Districts, GetTableParams, IrnRepositoryTables, IrnServices } from "./models"
 
-interface Repository {
-  counties: Counties
-  districts: Districts
-  irnServices: IrnServices
-  irnTables: IrnTables
-}
+const clearAll: Action<void, void> = () => fromVoidPromise(env => mongoDb.clearAll(env.dbClient))
 
-const Repository: Repository = {
-  counties: [],
-  districts: [],
-  irnServices: [],
-  irnTables: [],
-}
-
-const addCounties: Action<Counties, void> = counties => {
-  Repository.counties = [...Repository.counties, ...counties]
-  return actionOf(undefined)
-}
-
-const addDistricts: Action<Districts, void> = districts => {
-  Repository.districts = [...Repository.districts, ...districts]
-  return actionOf(undefined)
-}
-
-const addIrnTables: Action<IrnRepositoryTables, void> = irnTables => {
-  Repository.irnTables = [...Repository.irnTables, ...irnTables]
-  return actionOf(undefined)
-}
-
-const addIrnServices: Action<IrnServices, void> = irnServices => {
-  Repository.irnServices = [...Repository.irnServices, ...irnServices]
-  return actionOf(undefined)
-}
-
-const clearAll: Action<void, void> = () => {
-  Repository.counties = []
-  Repository.districts = []
-  Repository.irnServices = []
-  Repository.irnTables = []
-  return actionOf(undefined)
-}
-
-const clearAllTables: Action<void, void> = () => {
-  Repository.irnTables = []
-  return actionOf(undefined)
-}
+const clearAllTables: Action<void, void> = () => fromVoidPromise(env => mongoDb.clearAllTables(env.dbClient))
 
 const getCounties: Action<{ districtId?: number }, Counties> = ({ districtId }) =>
-  actionOf(Repository.counties.filter(c => isNil(districtId) || c.districtId === districtId))
+  fromPromise(env => mongoDb.getCounties(districtId)(env.dbClient))
 
-const getDistricts: Action<void, Districts> = () => actionOf(Repository.districts)
+const getDistricts: Action<void, Districts> = () => fromPromise(env => mongoDb.getDistricts(env.dbClient))
 
-const getIrnServices: Action<void, IrnServices> = () => actionOf(Repository.irnServices)
-
-const by = ({ serviceId, districtId, countyId, startDate, endDate }: GetTableParams) => (
-  irnTable: IrnRepositoryTable,
-) =>
-  (isNil(serviceId) || irnTable.serviceId === serviceId) &&
-  (isNil(districtId) || irnTable.county.districtId === districtId) &&
-  (isNil(countyId) || irnTable.county.countyId === countyId) &&
-  (isNil(startDate) || irnTable.date >= startDate) &&
-  (isNil(endDate) || irnTable.date <= endDate)
+const getIrnServices: Action<void, IrnServices> = () => fromPromise(env => mongoDb.getIrnServices(env.dbClient))
 
 const getIrnTables: Action<GetTableParams, IrnRepositoryTables> = params =>
-  actionOf(Repository.irnTables.filter(by(params)))
+  fromPromise(env => mongoDb.getIrnTables(params)(env.dbClient))
+
+const addCounties: Action<Counties, void> = counties =>
+  fromVoidPromise(env => mongoDb.addCounties(counties.map(c => ({ _id: c.countyId, ...c })))(env.dbClient))
+
+const addDistricts: Action<Districts, void> = districts =>
+  fromVoidPromise(env => mongoDb.addDistricts(districts.map(d => ({ _id: d.districtId, ...d })))(env.dbClient))
+
+const addIrnTables: Action<IrnRepositoryTables, void> = irnTables =>
+  fromVoidPromise(env => mongoDb.addIrnTables(irnTables)(env.dbClient))
+
+const addIrnServices: Action<IrnServices, void> = irnServices =>
+  fromVoidPromise(env => mongoDb.addRIrnServices(irnServices)(env.dbClient))
+
+const getConfig: Action<void, DbConfig> = () => fromPromise(env => mongoDb.getConfig(env.dbClient))
+
+const updateConfig: Action<DbConfig, void> = dbConfig =>
+  fromVoidPromise(env => mongoDb.updateConfig(dbConfig)(env.dbClient))
 
 export const irnRepository = {
   addCounties,
@@ -76,8 +41,10 @@ export const irnRepository = {
   addIrnTables,
   clearAll,
   clearAllTables,
+  getConfig,
   getCounties,
   getDistricts,
   getIrnServices,
   getIrnTables,
+  updateConfig,
 }

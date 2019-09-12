@@ -4,7 +4,7 @@ import { irnCrawler } from "../../src/irnCrawler/main"
 import { GetTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
 import { County } from "../../src/irnRepository/models"
 import { actionOf } from "../../src/utils/actions"
-import { debug } from "../../src/utils/debug"
+import { logDebug } from "../../src/utils/debug"
 import { rndTo } from "../helpers"
 
 describe("IrnCrawler", () => {
@@ -49,7 +49,7 @@ describe("IrnCrawler", () => {
   }
   const implementFindWith = (getTablesCalls: GetTablesCalls[]) => (params: GetTableParams) => {
     const call = getTablesCalls.find(c => equals(c.calledWith, params))
-    return call ? actionOf(call.returns) : (debug("Call Not Found:", params), actionOf([]))
+    return call ? actionOf(call.returns) : (logDebug("Call Not Found:", params), actionOf([]))
   }
 
   describe("start", () => {

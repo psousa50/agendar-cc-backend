@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
 import { Environment } from "../../../environment"
 import { ErrorCodes, ServiceError } from "../../../utils/audit"
-import { debug } from "../../../utils/debug"
+import { logDebug } from "../../../utils/debug"
 import { getCounties, getDistricts, getIrnTables } from "./domain"
 
 const errorHandler = (res: Response) => (error: ServiceError) => {
@@ -19,7 +19,7 @@ const okHandler = (res: Response) => (responseBody: any) => {
 export const router = (env: Environment) =>
   Router()
     .get("/districts", async (req, res) => {
-      debug("GET districts=====>\n", req.query)
+      logDebug("GET districts=====>\n", req.query)
       await run(
         pipe(
           getDistricts(),
@@ -29,7 +29,7 @@ export const router = (env: Environment) =>
       )
     })
     .get("/counties/", async (req, res) => {
-      debug("GET counties=====>\n", req.query)
+      logDebug("GET counties=====>\n", req.query)
       await run(
         pipe(
           getCounties({ districtId: req.query.districtId }),
@@ -39,7 +39,7 @@ export const router = (env: Environment) =>
       )
     })
     .get("/irnTables", async (req, res) => {
-      debug("GET irnTables=====>\n", req.query)
+      logDebug("GET irnTables=====>\n", req.query)
       const { serviceId, districtId, countyId, startDate, endDate } = req.query
       await run(
         pipe(

@@ -1,6 +1,6 @@
-import { GetTableParams, IrnTable, IrnTables } from "../irnFetch/models"
 import { Counties, Districts, IrnServices } from "../irnRepository/models"
 import { Action, actionOf } from "../utils/actions"
+import { GetTableParams, IrnTable, IrnTables } from "./models"
 
 const makeTable = (
   serviceId: number,
@@ -30,17 +30,19 @@ const getIrnTables: Action<GetTableParams, IrnTables> = () => {
   ])
 }
 
-const getCounties: Action<{districtId: number}, Counties> = ({ districtId }) =>
-  actionOf([
-    { districtId: 1, countyId: 10, name: "C 10" },
-    { districtId: 1, countyId: 11, name: "C 11" },
-    { districtId: 2, countyId: 20, name: "C 20" },
-    { districtId: 2, countyId: 21, name: "C 21" },
-    { districtId: 3, countyId: 31, name: "C 31" },
-    { districtId: 4, countyId: 41, name: "C 41" },
-    { districtId: 5, countyId: 51, name: "C 51" },
-    { districtId: 6, countyId: 61, name: "C 61" },
-  ].filter(c => !districtId || c.districtId === districtId))
+const getCounties: Action<{ districtId: number }, Counties> = ({ districtId }) =>
+  actionOf(
+    [
+      { districtId: 1, countyId: 10, name: "C 10" },
+      { districtId: 1, countyId: 11, name: "C 11" },
+      { districtId: 2, countyId: 20, name: "C 20" },
+      { districtId: 2, countyId: 21, name: "C 21" },
+      { districtId: 3, countyId: 31, name: "C 31" },
+      { districtId: 4, countyId: 41, name: "C 41" },
+      { districtId: 5, countyId: 51, name: "C 51" },
+      { districtId: 6, countyId: 61, name: "C 61" },
+    ].filter(c => !districtId || c.districtId === districtId),
+  )
 
 const getDistricts: Action<void, Districts> = () =>
   actionOf([
@@ -51,7 +53,7 @@ const getDistricts: Action<void, Districts> = () =>
 
 const getIrnServices: Action<void, IrnServices> = () => actionOf([{ serviceId: 1, name: "Service 1" }])
 
-export const irnFetchLocal = {
+export const irnFetch = {
   getCounties,
   getDistricts,
   getIrnServices,

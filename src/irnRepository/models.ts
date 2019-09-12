@@ -1,4 +1,5 @@
 import { IrnTable } from "../irnFetch/models"
+import { DbConfig } from "../mongodb/main"
 import { Action } from "../utils/actions"
 
 type Time = string
@@ -40,6 +41,14 @@ export type GetTableParams = Partial<{
   endTime: Time
 }>
 
+export interface Repository {
+  dbConfig: DbConfig
+  counties: Counties
+  districts: Districts
+  irnServices: IrnServices
+  irnTables: IrnRepositoryTables
+}
+
 export interface IrnRepository {
   addCounties: Action<Counties, void>
   addDistricts: Action<Districts, void>
@@ -47,8 +56,10 @@ export interface IrnRepository {
   addIrnTables: Action<IrnRepositoryTables, void>
   clearAll: Action<void, void>
   clearAllTables: Action<void, void>
-  getCounties: Action<{ districtId?: number}, Counties>
+  getConfig: Action<void, DbConfig>
+  getCounties: Action<{ districtId?: number }, Counties>
   getDistricts: Action<void, Districts>
   getIrnServices: Action<void, IrnServices>
   getIrnTables: Action<GetTableParams, IrnRepositoryTables>
+  updateConfig: Action<DbConfig, void>
 }
