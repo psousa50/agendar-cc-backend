@@ -47,10 +47,12 @@ const buildGetIrnTablesQuery = ({ serviceId, districtId, countyId, startDate, en
 export const getIrnTables = (params: GetTableParams) => get(IRN_TABLES)(buildGetIrnTablesQuery(params))
 
 const insertMany = <T>(collection: string) => (data: T[]) => (client: MongoClient) =>
-  client
-    .db()
-    .collection(collection)
-    .insertMany(data)
+  data.length > 0
+    ? client
+        .db()
+        .collection(collection)
+        .insertMany(data)
+    : Promise.resolve(undefined)
 
 export const addRIrnServices = (services: IrnServices) => insertMany(IRN_SERVICES)(services)
 

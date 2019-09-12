@@ -7,6 +7,7 @@ import { buildEnvironment } from "../environment"
 import { irnCrawler } from "../irnCrawler/main"
 import { globalIrnTables } from "../staticData/irnTables"
 import { ServiceError } from "../utils/audit"
+import { safeConfig } from "../utils/config"
 
 const exitProcess = (error: ServiceError) => {
   debug("Shutting down Worker", error.message)
@@ -19,7 +20,7 @@ export const startWorker = async () => {
     fold(
       e => task.of(exitProcess(e)),
       environment => {
-        debug("Worker Config =====>\n", environment.config)
+        debug("Worker Config =====>\n", safeConfig(environment.config))
         run(irnCrawler.start(), environment)
         if (environment.config.infra.useLocalIrnTables) {
           run(environment.irnRepository.addIrnTables(globalIrnTables), environment)

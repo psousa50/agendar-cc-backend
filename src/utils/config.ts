@@ -91,3 +91,8 @@ export const config = convict<AppConfig>({
 })
 
 export const isDev = (c: AppConfig) => c.nodeEnv === "development"
+
+export const safeConfig = (c: AppConfig) => {
+  const { mongodb, ...safe } = c
+  return safe
+}
