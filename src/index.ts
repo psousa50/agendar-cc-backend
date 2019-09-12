@@ -20,7 +20,7 @@ const buildEnvironment: () => Environment = () => {
   }
 }
 
-const startApplication = async () => {
+export const startApplication = async () => {
   const environment = buildEnvironment()
 
   debug("Config =====>\n", environment.config)
@@ -36,4 +36,7 @@ const startApplication = async () => {
   await run(expressApp(), environment)
 }
 
-startApplication()
+// startApplication()
+
+console.log("port =====>\n", process.env.port)
+console.log("PORT =====>\n", process.env.PORT)
