@@ -34,6 +34,7 @@ export const runServer: Action<Express, Server> = app =>
               try {
                 const port = env.config.port
                 const server: Server = app.listen(port, () => {
+                  console.log(`Server started, listening at ${port}...`)
                   return resolve(server)
                 })
                 server.on("checkContinue", (__, res) => {
