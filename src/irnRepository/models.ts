@@ -56,6 +56,7 @@ export interface IrnRepository {
   addIrnTables: Action<IrnRepositoryTables, void>
   clearAll: Action<void, void>
   clearAllTables: Action<void, void>
+  end: Action<void, void>
   getConfig: Action<void, DbConfig>
   getCounties: Action<{ districtId?: number }, Counties>
   getDistricts: Action<void, Districts>

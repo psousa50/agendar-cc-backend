@@ -1,6 +1,6 @@
 import { debug } from "console"
 import { pipe } from "fp-ts/lib/pipeable"
-import { run } from "fp-ts/lib/ReaderTaskEither"
+import { chain, run } from "fp-ts/lib/ReaderTaskEither"
 import { task } from "fp-ts/lib/Task"
 import { fold } from "fp-ts/lib/TaskEither"
 import { buildEnvironment } from "../environment"
@@ -21,12 +21,20 @@ export const startWorker = async () => {
       e => task.of(exitProcess(e)),
       environment => {
         debug("Worker Config =====>\n", safeConfig(environment.config))
-        run(irnCrawler.start(), environment)
-        if (environment.config.infra.useLocalIrnTables) {
-          run(environment.irnRepository.addIrnTables(globalIrnTables), environment)
-        } else {
-          run(irnCrawler.refreshTables({ startDate: new Date(Date.now()) }), environment)
-        }
+        run(
+          pipe(
+            irnCrawler.start(),
+            chain(() => environment.irnRepository.updateConfig({ refreshStarted: new Date(Date.now()) })),
+            chain(() =>
+              environment.config.infra.useLocalIrnTables
+                ? environment.irnRepository.addIrnTables(globalIrnTables)
+                : irnCrawler.refreshTables({ startDate: new Date(Date.now()) }),
+            ),
+            chain(() => environment.irnRepository.updateConfig({ refreshEnded: new Date(Date.now()) })),
+            chain(() => environment.irnRepository.end()),
+          ),
+          environment,
+        )
         return task.of(undefined)
       },
     ),

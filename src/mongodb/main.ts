@@ -13,6 +13,8 @@ const IRN_TABLES = "IrnTables"
 
 export interface DbConfig {
   staticDataAdded?: boolean
+  refreshStarted?: Date
+  refreshEnded?: Date
 }
 
 export const connect = (mongoDbUri: string): TaskEither<ServiceError, MongoClient> =>
@@ -20,6 +22,8 @@ export const connect = (mongoDbUri: string): TaskEither<ServiceError, MongoClien
     () => MongoClient.connect(mongoDbUri, { useNewUrlParser: true, useUnifiedTopology: true }),
     error => new ServiceError((error as Error).message),
   )
+
+export const disconnect = (client: MongoClient) => client.close()
 
 export const clearAll = (client: MongoClient) => client.db().dropDatabase()
 export const clearAllTables = (client: MongoClient) => client.db().dropCollection(IRN_TABLES)

@@ -226,4 +226,4 @@ export const globalCounties = [
     name: "COIMBRA",
     districtId: 7,
   },
-]
+].slice(0, 1)

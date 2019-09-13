@@ -1,5 +1,7 @@
+import { pipe } from "fp-ts/lib/pipeable"
+import { chain } from "fp-ts/lib/ReaderTaskEither"
 import * as mongoDb from "../mongodb/main"
-import { DbConfig } from "../mongodb/main"
+import { DbConfig, disconnect } from "../mongodb/main"
 import { Action, fromPromise, fromVoidPromise } from "../utils/actions"
 import { Counties, Districts, GetTableParams, IrnRepositoryTables, IrnServices } from "./models"
 
@@ -32,7 +34,12 @@ const addIrnServices: Action<IrnServices, void> = irnServices =>
 const getConfig: Action<void, DbConfig> = () => fromPromise(env => mongoDb.getConfig(env.dbClient))
 
 const updateConfig: Action<DbConfig, void> = dbConfig =>
-  fromVoidPromise(env => mongoDb.updateConfig(dbConfig)(env.dbClient))
+  pipe(
+    fromPromise(env => mongoDb.getConfig(env.dbClient)),
+    chain(oldDbConfig => fromVoidPromise(env => mongoDb.updateConfig({ ...oldDbConfig, ...dbConfig })(env.dbClient))),
+  )
+
+const end: Action<void, void> = () => fromVoidPromise(env => disconnect(env.dbClient))
 
 export const irnRepository = {
   addCounties,
@@ -41,6 +48,7 @@ export const irnRepository = {
   addIrnTables,
   clearAll,
   clearAllTables,
+  end,
   getConfig,
   getCounties,
   getDistricts,
