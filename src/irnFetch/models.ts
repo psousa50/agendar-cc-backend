@@ -3,7 +3,7 @@ import { Action } from "../utils/actions"
 
 type Time = string
 
-export type GetTableParams = {
+export type GetIrnTableParams = {
   service: IrnService
   county: County
   date?: Date
@@ -23,6 +23,6 @@ export type IrnTable = {
 export type IrnTables = IrnTable[]
 
 export interface IrnFetch {
-  getIrnTables: Action<GetTableParams, IrnTables>
+  getIrnTables: Action<GetIrnTableParams, IrnTables>
   getCounties: Action<{ districtId: number }, Counties>
 }

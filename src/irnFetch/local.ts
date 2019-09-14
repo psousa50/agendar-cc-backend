@@ -1,6 +1,6 @@
 import { Counties, Districts, IrnServices } from "../irnRepository/models"
 import { Action, actionOf } from "../utils/actions"
-import { GetTableParams, IrnTable, IrnTables } from "./models"
+import { GetIrnTableParams, IrnTable, IrnTables } from "./models"
 
 const makeTable = (
   serviceId: number,
@@ -20,7 +20,7 @@ const makeTable = (
   times: ["12:30"],
 })
 
-const getIrnTables: Action<GetTableParams, IrnTables> = () => {
+const getIrnTables: Action<GetIrnTableParams, IrnTables> = () => {
   return actionOf([
     makeTable(1, 1, 1, "1", "2010-01-01"),
     makeTable(1, 1, 1, "2", "2010-01-10"),

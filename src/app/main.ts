@@ -4,6 +4,7 @@ import { chain, fromTaskEither, map } from "fp-ts/lib/ReaderTaskEither"
 import { tryCatch } from "fp-ts/lib/TaskEither"
 import { Server } from "http"
 import { Action, ask, pipeActions } from "../utils/actions"
+import { logDebug } from "../utils/debug"
 import { createErrorHandler, createNotFoundHandler } from "./errorHandler"
 import { router as v1Router } from "./routes/v1/router"
 
@@ -34,7 +35,7 @@ export const runServer: Action<Express, Server> = app =>
               try {
                 const port = process.env.PORT || env.config.port
                 const server: Server = app.listen(port, () => {
-                  console.log(`Server started, listening at ${port}...`)
+                  logDebug(`Server started, listening at ${port}...`)
                   return resolve(server)
                 })
                 server.on("checkContinue", (__, res) => {

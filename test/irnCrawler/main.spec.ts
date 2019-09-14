@@ -1,7 +1,7 @@
 import { run } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { irnCrawler } from "../../src/irnCrawler/main"
-import { GetTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
+import { GetIrnTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
 import { County } from "../../src/irnRepository/models"
 import { actionOf } from "../../src/utils/actions"
 import { logDebug } from "../../src/utils/debug"
@@ -44,10 +44,10 @@ describe("IrnCrawler", () => {
   })
 
   interface GetTablesCalls {
-    calledWith: GetTableParams
+    calledWith: GetIrnTableParams
     returns: IrnTables
   }
-  const implementFindWith = (getTablesCalls: GetTablesCalls[]) => (params: GetTableParams) => {
+  const implementFindWith = (getTablesCalls: GetTablesCalls[]) => (params: GetIrnTableParams) => {
     const call = getTablesCalls.find(c => equals(c.calledWith, params))
     return call ? actionOf(call.returns) : (logDebug("Call Not Found:", params), actionOf([]))
   }
@@ -156,13 +156,14 @@ describe("IrnCrawler", () => {
       expect(irnRepository.addIrnTables).toHaveBeenCalledWith([tableService1, tableService2])
     })
 
-    it("crawls for next available dates on a table", async () => {
+    it.only("crawls for next available dates on a table", async () => {
       const county = makeCounty()
 
       const table1Date1 = makeTable(someServiceId, county, "1", "2000-01-01")
-      const table1Date2 = makeTable(someServiceId, county, "1", "2000-01-30")
-      const table2Date1 = makeTable(someServiceId, county, "2", "2000-01-10")
-      const table2Date2 = makeTable(someServiceId, county, "2", "2000-01-20")
+      const table1Date2 = makeTable(someServiceId, county, "1", "2000-01-10")
+      const table1Date3 = makeTable(someServiceId, county, "1", "2000-01-20")
+      const table2Date1 = makeTable(someServiceId, county, "2", "2000-01-02")
+      const table2Date2 = makeTable(someServiceId, county, "2", "2000-01-10")
 
       const getTablesCalls = [
         {
@@ -171,11 +172,15 @@ describe("IrnCrawler", () => {
         },
         {
           calledWith: { service: someService, county, date: new Date("2000-01-02") },
-          returns: [table2Date1],
+          returns: [table1Date2, table2Date1],
+        },
+        {
+          calledWith: { service: someService, county, date: new Date("2000-01-03") },
+          returns: [table1Date2, table2Date2],
         },
         {
           calledWith: { service: someService, county, date: new Date("2000-01-11") },
-          returns: [table1Date2, table2Date2],
+          returns: [table1Date3],
         },
         {
           calledWith: { service: someService, county, date: new Date("2000-01-21") },
@@ -204,7 +209,7 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      const allTables = [table1Date1, table2Date1, table1Date2, table2Date2]
+      const allTables = [table1Date1, table2Date1, table1Date2, table2Date2, table1Date3]
       expect(irnRepository.addIrnTables).toHaveBeenCalledWith(allTables)
     })
 

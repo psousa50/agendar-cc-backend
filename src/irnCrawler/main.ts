@@ -43,7 +43,7 @@ const crawlTableDates = (
           : actionOf(irnTables),
       ),
     )
-  const nextTableToCrawl = findTableWithLowestDate(irnTables.filter(t => t.date > nextDate))
+  const nextTableToCrawl = findTableWithLowestDate(irnTables.filter(t => t.date >= nextDate))
 
   return nextTableToCrawl && nextTableToCrawl.date <= dateLimit
     ? fetchNextTables(nextTableToCrawl.county, addDays(nextTableToCrawl.date, 1))()

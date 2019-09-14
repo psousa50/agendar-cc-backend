@@ -8,7 +8,7 @@ import { Action, ActionResult, ask, delay, toAction } from "../utils/actions"
 import { ServiceError } from "../utils/audit"
 import { AppConfig } from "../utils/config"
 import { extractText } from "../utils/fetch"
-import { GetTableParams, IrnTables } from "./models"
+import { GetIrnTableParams, IrnTables } from "./models"
 
 export const delayedFetch = (page: string, options?: RequestInit): ActionResult<Response> =>
   pipe(
@@ -49,19 +49,23 @@ const extractCookies = (response: Response) => {
   return cookies
 }
 
-type BuildFormData = (tok: string, params: GetTableParams) => { data: string; boundary: string }
-const buildFormData: BuildFormData = (tok, { service, county, date }) => {
-  const data = [
-    ["tok", tok],
-    ["servico", service.serviceId.toString()],
-    ["distrito", county.districtId.toString()],
-    ["concelho", county.countyId.toString()],
-    ["data_tipo", "primeira"],
-    ["data", date ? date.toISOString().substr(0, 10) : "2019-09-08"],
-    ["sabado_show", "0"],
-    ["servico_desc", "Pedido / Renovação de Cartão de Cidadão"],
-    ["concelho_desc", "LISBOA"],
-  ]
+type FormDataParam = [string, string]
+type BuildFormDataParams = (tok: string, params: GetIrnTableParams) => FormDataParam[]
+export const buildFormDataParams: BuildFormDataParams = (tok, { service, county, date }) => [
+  ["tok", tok],
+  ["servico", service.serviceId.toString()],
+  ["distrito", county.districtId.toString()],
+  ["concelho", county.countyId.toString()],
+  ["data_tipo", date ? "outra" : "primeira"],
+  ["data", date ? date.toISOString().substr(0, 10) : "2000-01-01"],
+  ["sabado_show", "0"],
+  ["servico_desc", service.name],
+  ["concelho_desc", county.name],
+]
+
+type BuildFormData = (tok: string, params: GetIrnTableParams) => { data: string; boundary: string }
+const buildFormData: (_: BuildFormDataParams) => BuildFormData = b => (tok, params) => {
+  const data = b(tok, params)
 
   const formData = new FormData()
   data.forEach(d => formData.append(d[0], d[1]))
@@ -72,8 +76,7 @@ const buildFormData: BuildFormData = (tok, { service, county, date }) => {
   }
 }
 
-type BuildGetIrnTables = (_: ParseTok, __: ParseIrnTables, ___: BuildFormData) => Action<GetTableParams, IrnTables>
-
+type BuildGetIrnTables = (_: ParseTok, __: ParseIrnTables, ___: BuildFormData) => Action<GetIrnTableParams, IrnTables>
 export const buildGetIrnTables: BuildGetIrnTables = (
   injectedParseTok,
   injectedParseIrnTables,
@@ -112,7 +115,7 @@ export const buildGetIrnTables: BuildGetIrnTables = (
   )
 }
 
-const getIrnTables = buildGetIrnTables(parseTok, parseIrnTables, buildFormData)
+const getIrnTables = buildGetIrnTables(parseTok, parseIrnTables, buildFormData(buildFormDataParams))
 
 export const irnFetch = {
   getCounties,

@@ -1,7 +1,7 @@
 import { map } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/pipeable"
 import { run } from "fp-ts/lib/ReaderTaskEither"
-import { buildGetCounties, buildGetIrnTables, delayedFetch } from "../../src/irnFetch/main"
+import { buildFormDataParams, buildGetCounties, buildGetIrnTables, delayedFetch } from "../../src/irnFetch/main"
 import { actionOf } from "../../src/utils/actions"
 import { timingFn } from "../../src/utils/timing"
 
@@ -57,13 +57,11 @@ describe("IrnFetch", () => {
       const tok = "some-tok-value"
       const homeResponse = {
         headers: {
-          forEach: jest
-            .fn()
-            .mockImplementationOnce((cb: any) => {
-              cb("cookie1", "set-cookie")
-              cb("some-header-typeÌ", "some-header")
-              cb("cookie2", "set-cookie")
-            }),
+          forEach: jest.fn().mockImplementationOnce((cb: any) => {
+            cb("cookie1", "set-cookie")
+            cb("some-header-typeÌ", "some-header")
+            cb("cookie2", "set-cookie")
+          }),
         },
         text: () => Promise.resolve(homeHtml),
       }
@@ -102,8 +100,8 @@ describe("IrnFetch", () => {
       const options = {
         body: formData.data,
         headers: {
-          "Cookie": "cookie1,cookie2",
-          "content-type": `multipart/form-data; boundary=${formData.boundary}`,
+          ["Cookie"]: "cookie1,cookie2",
+          ["content-type"]: `multipart/form-data; boundary=${formData.boundary}`,
         },
         method: "POST",
       }
@@ -122,6 +120,58 @@ describe("IrnFetch", () => {
         map(r => expect(r).toBe(irnTables)),
       )
     })
+  })
+})
+
+describe.only("buildFormDataParams generates params for a fetch irnTable", () => {
+  const countyId = 10
+  const serviceId = 20
+  const districtId = 30
+  const defaulParams = {
+    county: {
+      countyId,
+      districtId,
+      name: "Some County Name",
+    },
+    service: {
+      name: "Some Service Name",
+      serviceId,
+    },
+  }
+  it("when a date is not present", () => {
+    const params = defaulParams
+
+    const expectedParams = [
+      ["tok", "some-tok"],
+      ["servico", "20"],
+      ["distrito", "30"],
+      ["concelho", "10"],
+      ["data_tipo", "primeira"],
+      ["data", "2000-01-01"],
+      ["sabado_show", "0"],
+      ["servico_desc", "Some Service Name"],
+      ["concelho_desc", "Some County Name"],
+    ]
+
+    expect(buildFormDataParams("some-tok", params)).toEqual(expectedParams)
+  })
+
+  it("when a date is present", () => {
+    const params = { ...defaulParams, date: new Date("2019-01-02") }
+
+    const expectedParams = [
+      ["tok", "some-tok"],
+      ["servico", "20"],
+      ["distrito", "30"],
+      ["concelho", "10"],
+      ["data_tipo", "outra"],
+      ["data", "2019-01-02"],
+      ["sabado_show", "0"],
+      ["servico_desc", "Some Service Name"],
+      ["concelho_desc", "Some County Name"],
+    ]
+
+    expect(buildFormDataParams("some-tok", params)).toEqual(expectedParams)
   })
 })
 
