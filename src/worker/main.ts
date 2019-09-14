@@ -20,8 +20,8 @@ const addLocalIrntables = (environment: Environment) => environment.irnRepositor
 
 const refreshTables = (environment: Environment) =>
   pipe(
-    environment.irnRepository.clearAllTables(),
-    chain(() => irnCrawler.refreshTables({ startDate: new Date(Date.now()) })),
+    irnCrawler.refreshTables({ startDate: new Date(Date.now()) }),
+    chain(() => environment.irnRepository.switchIrnTables()),
   )
 
 const start = (environment: Environment) => {

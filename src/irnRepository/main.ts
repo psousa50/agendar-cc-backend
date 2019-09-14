@@ -39,6 +39,8 @@ const updateConfig: Action<DbConfig, void> = dbConfig =>
     chain(oldDbConfig => fromVoidPromise(env => mongoDb.updateConfig({ ...oldDbConfig, ...dbConfig })(env.dbClient))),
   )
 
+const switchIrnTables: Action<void, void> = () => fromVoidPromise(env => mongoDb.switchIrnTables(env.dbClient))
+
 const end: Action<void, void> = () => fromVoidPromise(env => disconnect(env.dbClient))
 
 export const irnRepository = {
@@ -54,5 +56,6 @@ export const irnRepository = {
   getDistricts,
   getIrnServices,
   getIrnTables,
+  switchIrnTables,
   updateConfig,
 }

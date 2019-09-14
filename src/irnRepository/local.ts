@@ -78,6 +78,7 @@ const updateConfig: Action<DbConfig, void> = dbConfig => {
 }
 
 const end: Action<void, void> = () => actionOf(undefined)
+const switchIrnTables: Action<void, void> = () => actionOf(undefined)
 
 export const irnRepository = {
   addCounties,
@@ -92,5 +93,6 @@ export const irnRepository = {
   getDistricts,
   getIrnServices,
   getIrnTables,
+  switchIrnTables,
   updateConfig,
 }

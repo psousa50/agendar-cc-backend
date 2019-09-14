@@ -9,6 +9,7 @@ const DB_CONFIG = "_dbConfig"
 const IRN_SERVICES = "IrnServices"
 const DISTRICTS = "Districts"
 const COUNTIES = "Counties"
+const IRN_TABLES_ADD = "IrnTablesAdd"
 const IRN_TABLES = "IrnTables"
 
 export interface DbConfig {
@@ -26,7 +27,7 @@ export const connect = (mongoDbUri: string): TaskEither<ServiceError, MongoClien
 export const disconnect = (client: MongoClient) => client.close()
 
 export const clearAll = (client: MongoClient) => client.db().dropDatabase()
-export const clearAllTables = (client: MongoClient) => client.db().dropCollection(IRN_TABLES)
+export const clearAllTables = (client: MongoClient) => client.db().dropCollection(IRN_TABLES_ADD)
 
 const get = (collection: string) => (query: FilterQuery<any> = {}) => (client: MongoClient) => {
   logDebug(collection, query)
@@ -66,7 +67,7 @@ export const addDistricts = (districts: Districts) => insertMany(DISTRICTS)(dist
 
 export const addCounties = (counties: Counties) => insertMany(COUNTIES)(counties)
 
-export const addIrnTables = (irnTables: IrnRepositoryTables) => insertMany(IRN_TABLES)(irnTables)
+export const addIrnTables = (irnTables: IrnRepositoryTables) => insertMany(IRN_TABLES_ADD)(irnTables)
 
 export const getConfig = (client: MongoClient) =>
   client
@@ -79,3 +80,6 @@ export const updateConfig = (dbConfig: DbConfig) => (client: MongoClient) =>
     .db()
     .collection(DB_CONFIG)
     .updateOne({ _id: 1 }, { $set: { _id: 1, ...dbConfig } }, { upsert: true })
+
+export const switchIrnTables = (client: MongoClient) =>
+  client.db().renameCollection(IRN_TABLES_ADD, IRN_TABLES, { dropTarget: true })

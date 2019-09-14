@@ -62,5 +62,6 @@ export interface IrnRepository {
   getDistricts: Action<void, Districts>
   getIrnServices: Action<void, IrnServices>
   getIrnTables: Action<GetTableParams, IrnRepositoryTables>
+  switchIrnTables: Action<void, void>
   updateConfig: Action<DbConfig, void>
 }
