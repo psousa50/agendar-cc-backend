@@ -18,6 +18,7 @@ export type IrnServices = IrnService[]
 export type District = {
   districtId: number
   name: string
+  gps: [number, number]
 }
 export type Districts = District[]
 
@@ -25,6 +26,7 @@ export type County = {
   districtId: number
   countyId: number
   name: string
+  gps: [number, number]
 }
 export type Counties = County[]
 

@@ -3468,4 +3468,8 @@ const irnTables = [
   },
 ]
 
-export const globalIrnTables = irnTables.map(t => ({ ...t, date: new Date(t.date) }))
+export const globalIrnTables = irnTables.map(t => ({
+  ...t,
+  date: new Date(t.date),
+  county: { ...t.county, gps: [0, 0] as [number, number] },
+}))

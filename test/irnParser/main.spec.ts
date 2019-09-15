@@ -8,10 +8,10 @@ it("parses counties from get_concelhos html", () => {
 
   const districtId = 10
   const expectedCounties = [
-    { countyId: 32, name: "ANGRA DO HEROÍSMO", districtId },
-    { countyId: 38, name: "HORTA", districtId },
-    { countyId: 33, name: "PONTA DELGADA", districtId },
-    { countyId: 39, name: "PRAIA DA VITÓRIA", districtId },
+    { countyId: 32, name: "ANGRA DO HEROÍSMO", districtId, gps: [0, 0] },
+    { countyId: 38, name: "HORTA", districtId, gps: [0, 0] },
+    { countyId: 33, name: "PONTA DELGADA", districtId, gps: [0, 0] },
+    { countyId: 39, name: "PRAIA DA VITÓRIA", districtId, gps: [0, 0] },
   ]
 
   const counties = parseCounties(districtId)(html)
@@ -24,7 +24,9 @@ it("parses tok from the home page", () => {
 
   const tok = parseTok(html)
 
-  expect(tok).toEqual("926c14aef268a7f94ccebae6bfc294f52d9e22b2bc9601dfbddf1b682be60707f8068fc7163e87e5189e549301f1e140e7e77beecca256e0d497ccf369235873")
+  expect(tok).toEqual(
+    "926c14aef268a7f94ccebae6bfc294f52d9e22b2bc9601dfbddf1b682be60707f8068fc7163e87e5189e549301f1e140e7e77beecca256e0d497ccf369235873",
+  )
 })
 
 it("parses tables from irn tables html page", () => {
@@ -34,7 +36,7 @@ it("parses tables from irn tables html page", () => {
   const service = {
     serviceId,
   } as any
-  const county = { districtId: 1, countyId: 1, name: "Some Name" }
+  const county = { districtId: 1, countyId: 1, name: "Some Name", gps: [0, 0] as [number, number] }
 
   const expectedTable1: IrnTable = {
     address: "Palácio da Justiça - Rua Jayme Thompson",

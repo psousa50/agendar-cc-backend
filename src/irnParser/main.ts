@@ -7,7 +7,6 @@ const fix = (s: string) => s.replaceAll('"', "").trim()
 
 export type ParseTok = (html: string) => string
 export const parseTok: ParseTok = html => {
-
   const $ = cheerio.load(html)
 
   const tokInput = $("input[name='tok']")
@@ -17,7 +16,6 @@ export const parseTok: ParseTok = html => {
 
 export type ParseIrnTables = (service: IrnService, county: County) => (html: string) => IrnTables
 export const parseIrnTables: ParseIrnTables = (serviceId, county) => html => {
-
   const $ = cheerio.load(html)
 
   const buildTable = (horario: CheerioElement) => {
@@ -64,6 +62,5 @@ export const parseCounties: ParseCounties = districtId => html => {
   return options
     .toArray()
     .filter(o => $(o).attr("value").length > 0)
-    .map(o => ({ countyId: Number.parseInt($(o).attr("value"), 10), name: $(o).text(), districtId }))
-
+    .map(o => ({ countyId: Number.parseInt($(o).attr("value"), 10), name: $(o).text(), districtId, gps: [0, 0] }))
 }

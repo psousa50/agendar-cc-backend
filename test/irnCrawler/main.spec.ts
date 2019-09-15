@@ -22,6 +22,7 @@ describe("IrnCrawler", () => {
   const makeCounty = (c = rndTo(100)) => ({
     countyId: c,
     districtId: c,
+    gps: [0, 0] as [number, number],
     name: `County ${c}`,
   })
 
