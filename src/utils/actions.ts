@@ -79,7 +79,7 @@ export const fromPromise = <T>(promise: (env: Environment) => Promise<T>) =>
   )
 
 export const fromVoidPromise = <T>(promise: (env: Environment) => Promise<T>) =>
-  fromPromise(env => {
-    promise(env)
-    return Promise.resolve(undefined)
-  })
+  pipe(
+    fromPromise(env => promise(env)),
+    chain(() => actionOf(undefined)),
+  )
