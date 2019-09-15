@@ -1,5 +1,5 @@
 import { TaskEither, tryCatch } from "fp-ts/lib/TaskEither"
-import { FilterQuery, MongoClient } from "mongodb"
+import { FilterQuery, InsertWriteOpResult, MongoClient } from "mongodb"
 import { isNil } from "ramda"
 import { Counties, Districts, GetTableParams, IrnRepositoryTables, IrnServices } from "../irnRepository/models"
 import { ServiceError } from "../utils/audit"
@@ -59,7 +59,7 @@ const insertMany = <T>(collection: string) => (data: T[]) => (client: MongoClien
         .db()
         .collection(collection)
         .insertMany(data)
-    : Promise.resolve(undefined)
+    : Promise.resolve({} as InsertWriteOpResult)
 
 export const addRIrnServices = (services: IrnServices) => insertMany(IRN_SERVICES)(services)
 
@@ -69,7 +69,7 @@ export const addCounties = (counties: Counties) => insertMany(COUNTIES)(counties
 
 export const addIrnTables = (irnTables: IrnRepositoryTables) => insertMany(IRN_TABLES_ADD)(irnTables)
 
-export const getConfig = (client: MongoClient) =>
+export const getConfig = (client: MongoClient): Promise<DbConfig | null> =>
   client
     .db()
     .collection(DB_CONFIG)
@@ -82,4 +82,7 @@ export const updateConfig = (dbConfig: DbConfig) => (client: MongoClient) =>
     .updateOne({ _id: 1 }, { $set: { _id: 1, ...dbConfig } }, { upsert: true })
 
 export const switchIrnTables = (client: MongoClient) =>
-  client.db().renameCollection(IRN_TABLES_ADD, IRN_TABLES, { dropTarget: true })
+  client
+    .db()
+    .collection(IRN_TABLES_ADD)
+    .rename(IRN_TABLES, { dropTarget: true })

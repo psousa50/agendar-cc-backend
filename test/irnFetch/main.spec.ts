@@ -123,7 +123,7 @@ describe("IrnFetch", () => {
   })
 })
 
-describe.only("buildFormDataParams generates params for a fetch irnTable", () => {
+describe("buildFormDataParams generates params for a fetch irnTable", () => {
   const countyId = 10
   const serviceId = 20
   const districtId = 30

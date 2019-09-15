@@ -1,4 +1,3 @@
-import { debug } from "console"
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain, mapLeft, run } from "fp-ts/lib/ReaderTaskEither"
 import { task } from "fp-ts/lib/Task"
@@ -11,7 +10,7 @@ import { safeConfig } from "../utils/config"
 import { logDebug } from "../utils/debug"
 
 const exitProcess = (error: ServiceError) => {
-  debug("Shutting down Worker", error.message)
+  logDebug("Shutting down Worker", error.message)
   process.exit(1)
   return task.of(undefined)
 }
@@ -25,7 +24,7 @@ const refreshTables = (environment: Environment) =>
   )
 
 const start = (environment: Environment) => {
-  debug("Worker Config =====>\n", safeConfig(environment.config))
+  logDebug("Worker Config =====>\n", safeConfig(environment.config))
   run(
     pipe(
       irnCrawler.start(),
