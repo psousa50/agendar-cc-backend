@@ -41,15 +41,9 @@ describe("IrnFetch", () => {
   })
   describe("getIrnTables", () => {
     it("fetches the irn tables for a specifice service, county and date", async () => {
-      const service = {
-        name: "Some Service name",
-        serviceId: 5,
-      }
-      const county = {
-        countyId: 10,
-        districtId: 20,
-        name: "Some County name",
-      }
+      const serviceId = 5
+      const countyId = 10
+      const districtId = 20
       const dateStr = "2010-02-28"
       const date = new Date(dateStr)
 
@@ -94,7 +88,7 @@ describe("IrnFetch", () => {
         fetch,
       } as any
 
-      const params = { service, county, date }
+      const params = { serviceId, countyId, date, districtId }
       const result = await run(buildGetIrnTables(parseTok, parseIrnTablesBuilder, buildFormData)(params), environment)
 
       const options = {
@@ -112,7 +106,7 @@ describe("IrnFetch", () => {
       expect(buildFormData).toHaveBeenCalledWith(tok, params)
 
       expect(fetch).toHaveBeenCalledWith("some-url/some-tables-page", options)
-      expect(parseIrnTablesBuilder).toHaveBeenCalledWith(service, county)
+      expect(parseIrnTablesBuilder).toHaveBeenCalledWith(serviceId, countyId, districtId)
       expect(parseIrnTables).toHaveBeenCalledWith(tablesHtml)
 
       pipe(
@@ -127,19 +121,13 @@ describe("buildFormDataParams generates params for a fetch irnTable", () => {
   const countyId = 10
   const serviceId = 20
   const districtId = 30
-  const defaulParams = {
-    county: {
-      countyId,
-      districtId,
-      name: "Some County Name",
-    },
-    service: {
-      name: "Some Service Name",
-      serviceId,
-    },
+  const defaultParams = {
+    countyId,
+    districtId,
+    serviceId,
   }
   it("when a date is not present", () => {
-    const params = defaulParams
+    const params = defaultParams
 
     const expectedParams = [
       ["tok", "some-tok"],
@@ -149,15 +137,15 @@ describe("buildFormDataParams generates params for a fetch irnTable", () => {
       ["data_tipo", "primeira"],
       ["data", "2000-01-01"],
       ["sabado_show", "0"],
-      ["servico_desc", "Some Service Name"],
-      ["concelho_desc", "Some County Name"],
+      ["servico_desc", ""],
+      ["concelho_desc", ""],
     ]
 
     expect(buildFormDataParams("some-tok", params)).toEqual(expectedParams)
   })
 
   it("when a date is present", () => {
-    const params = { ...defaulParams, date: new Date("2019-01-02") }
+    const params = { ...defaultParams, date: new Date("2019-01-02") }
 
     const expectedParams = [
       ["tok", "some-tok"],
@@ -167,8 +155,8 @@ describe("buildFormDataParams generates params for a fetch irnTable", () => {
       ["data_tipo", "outra"],
       ["data", "2019-01-02"],
       ["sabado_show", "0"],
-      ["servico_desc", "Some Service Name"],
-      ["concelho_desc", "Some County Name"],
+      ["servico_desc", ""],
+      ["concelho_desc", ""],
     ]
 
     expect(buildFormDataParams("some-tok", params)).toEqual(expectedParams)

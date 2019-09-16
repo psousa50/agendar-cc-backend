@@ -5,6 +5,7 @@ import { GetIrnTableParams, IrnTable, IrnTables } from "../../src/irnFetch/model
 import { County } from "../../src/irnRepository/models"
 import { actionOf } from "../../src/utils/actions"
 import { logDebug } from "../../src/utils/debug"
+import { TimeSlot } from "../../src/utils/models"
 import { rndTo } from "../helpers"
 
 describe("IrnCrawler", () => {
@@ -14,35 +15,36 @@ describe("IrnCrawler", () => {
     },
   }
 
-  const someServiceId = 1
-  const someService = {
-    serviceId: someServiceId,
-  } as any
-
-  const makeCounty = (c = rndTo(100)) => ({
-    countyId: c,
-    districtId: c,
-    gps: [0, 0] as [number, number],
-    name: `County ${c}`,
-  })
-
-  const makeTable = (
-    serviceId: number,
-    county: County,
-    tableNumber: string = "1",
-    date: string = "2000-01-01",
-    times: string[] = ["12:30"],
-  ): IrnTable => ({
-    address: "some address",
-    county,
-    date: new Date(date),
-    locationName: "Some location name",
-    phone: "",
-    postalCode: "",
+  const serviceId = 10
+  const countyId = 20
+  const districtId = 30
+  const county = {
+    countyId,
+    districtId,
+  }
+  const service = {
     serviceId,
-    tableNumber,
-    times,
-  })
+  }
+
+  const makeTable = (irnTable: Partial<IrnTable>): IrnTable => {
+    const defaultIrnTable = {
+      address: "some address",
+      countyId,
+      date: new Date("2000-01-01"),
+      districtId,
+      locationName: "Some location name",
+      phone: "",
+      postalCode: "",
+      serviceId,
+      tableNumber: "1",
+      timeSlots: ["12:30"],
+    }
+
+    return {
+      ...defaultIrnTable,
+      ...irnTable,
+    }
+  }
 
   interface GetTablesCalls {
     calledWith: GetIrnTableParams
@@ -59,16 +61,15 @@ describe("IrnCrawler", () => {
     }
 
     it("persist a single IrnTable", async () => {
-      const county = makeCounty()
-      const table = makeTable(someServiceId, county, "1", "2000-01-01")
+      const table = makeTable({ date: new Date("2000-01-01") })
 
       const getTablesCalls = [
         {
-          calledWith: { service: someService, county },
+          calledWith: { serviceId, countyId, districtId },
           returns: [table],
         },
         {
-          calledWith: { service: someService, county, date: new Date("2000-01-02") },
+          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-02") },
           returns: [],
         },
       ]
@@ -80,7 +81,7 @@ describe("IrnCrawler", () => {
       const irnRepository = {
         addIrnTables: jest.fn(() => actionOf(undefined)),
         getCounties: jest.fn(() => actionOf([county])),
-        getIrnServices: jest.fn(() => actionOf([someService])),
+        getIrnServices: jest.fn(() => actionOf([service])),
       } as any
 
       const environment = {
@@ -98,37 +99,34 @@ describe("IrnCrawler", () => {
     })
 
     it("persist a tables from multiple services", async () => {
-      const county = makeCounty()
       const serviceId1 = 1
       const service1 = {
-        name: "Some name",
         serviceId: serviceId1,
       }
       const serviceId2 = 2
       const service2 = {
-        name: "Some name",
         serviceId: serviceId2,
       }
-      const tableService1 = makeTable(serviceId1, county, "1", "2000-01-01")
-      const tableService2 = makeTable(serviceId1, county, "1", "2000-01-01")
+      const tableService1 = makeTable({ serviceId: serviceId1, date: new Date("2000-01-01") })
+      const tableService2 = makeTable({ serviceId: serviceId1, date: new Date("2000-01-01") })
 
       const services = [service1, service2]
 
       const getTablesCalls = [
         {
-          calledWith: { service: service1, county },
+          calledWith: { serviceId: serviceId1, countyId, districtId },
           returns: [tableService1],
         },
         {
-          calledWith: { service: service1, county, date: new Date("2000-01-02") },
+          calledWith: { serviceId: serviceId1, countyId, districtId, date: new Date("2000-01-02") },
           returns: [],
         },
         {
-          calledWith: { service: service2, county },
+          calledWith: { serviceId: serviceId2, countyId, districtId },
           returns: [tableService2],
         },
         {
-          calledWith: { service: service2, county, date: new Date("2000-01-02") },
+          calledWith: { serviceId: serviceId2, countyId, districtId, date: new Date("2000-01-02") },
           returns: [],
         },
       ]
@@ -158,33 +156,31 @@ describe("IrnCrawler", () => {
     })
 
     it("crawls for next available dates on a table", async () => {
-      const county = makeCounty()
-
-      const table1Date1 = makeTable(someServiceId, county, "1", "2000-01-01")
-      const table1Date2 = makeTable(someServiceId, county, "1", "2000-01-10")
-      const table1Date3 = makeTable(someServiceId, county, "1", "2000-01-20")
-      const table2Date1 = makeTable(someServiceId, county, "2", "2000-01-02")
-      const table2Date2 = makeTable(someServiceId, county, "2", "2000-01-10")
+      const table1Date1 = makeTable({ tableNumber: "1", date: new Date("2000-01-01") })
+      const table1Date2 = makeTable({ tableNumber: "1", date: new Date("2000-01-10") })
+      const table1Date3 = makeTable({ tableNumber: "1", date: new Date("2000-01-20") })
+      const table2Date1 = makeTable({ tableNumber: "2", date: new Date("2000-01-02") })
+      const table2Date2 = makeTable({ tableNumber: "2", date: new Date("2000-01-10") })
 
       const getTablesCalls = [
         {
-          calledWith: { service: someService, county },
+          calledWith: { serviceId, countyId, districtId },
           returns: [table1Date1, table2Date1],
         },
         {
-          calledWith: { service: someService, county, date: new Date("2000-01-02") },
+          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-02") },
           returns: [table1Date2, table2Date1],
         },
         {
-          calledWith: { service: someService, county, date: new Date("2000-01-03") },
+          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-03") },
           returns: [table1Date2, table2Date2],
         },
         {
-          calledWith: { service: someService, county, date: new Date("2000-01-11") },
+          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-11") },
           returns: [table1Date3],
         },
         {
-          calledWith: { service: someService, county, date: new Date("2000-01-21") },
+          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-21") },
           returns: [],
         },
       ]
@@ -196,7 +192,7 @@ describe("IrnCrawler", () => {
       const irnRepository = {
         addIrnTables: jest.fn(() => actionOf(undefined)),
         getCounties: jest.fn(() => actionOf([county])),
-        getIrnServices: jest.fn(() => actionOf([someService])),
+        getIrnServices: jest.fn(() => actionOf([service])),
       } as any
 
       const environment = {
@@ -215,37 +211,45 @@ describe("IrnCrawler", () => {
     })
 
     it("crawls for next available dates on multiple counties", async () => {
-      const county1 = makeCounty(1)
-      const county2 = makeCounty(2)
+      const countyId1 = 1
+      const countyId2 = 2
+      const county1 = {
+        countyId: countyId1,
+        districtId,
+      }
+      const county2 = {
+        countyId: countyId2,
+        districtId,
+      }
 
-      const tableCounty1Date1 = makeTable(someServiceId, county1, "1", "2000-01-01")
-      const tableCounty1Date2 = makeTable(someServiceId, county1, "1", "2000-01-11")
-      const tableCounty2Date1 = makeTable(someServiceId, county2, "1", "2000-01-02")
-      const tableCounty2Date2 = makeTable(someServiceId, county2, "1", "2000-01-12")
+      const tableCounty1Date1 = makeTable({ countyId: countyId1, date: new Date("2000-01-01") })
+      const tableCounty1Date2 = makeTable({ countyId: countyId1, date: new Date("2000-01-11") })
+      const tableCounty2Date1 = makeTable({ countyId: countyId2, date: new Date("2000-01-02") })
+      const tableCounty2Date2 = makeTable({ countyId: countyId2, date: new Date("2000-01-12") })
 
       const getTablesCalls = [
         {
-          calledWith: { service: someService, county: county1 },
+          calledWith: { serviceId, countyId: countyId1, districtId },
           returns: [tableCounty1Date1],
         },
         {
-          calledWith: { service: someService, county: county1, date: new Date("2000-01-02") },
+          calledWith: { serviceId, countyId: countyId1, districtId, date: new Date("2000-01-02") },
           returns: [tableCounty1Date2],
         },
         {
-          calledWith: { service: someService, county: county1, date: new Date("2000-01-12") },
+          calledWith: { serviceId, countyId: countyId1, districtId, date: new Date("2000-01-12") },
           returns: [],
         },
         {
-          calledWith: { service: someService, county: county2 },
+          calledWith: { serviceId, countyId: countyId2, districtId },
           returns: [tableCounty2Date1],
         },
         {
-          calledWith: { service: someService, county: county2, date: new Date("2000-01-03") },
+          calledWith: { serviceId, countyId: countyId2, districtId, date: new Date("2000-01-03") },
           returns: [tableCounty2Date2],
         },
         {
-          calledWith: { service: someService, county: county2, date: new Date("2000-01-13") },
+          calledWith: { serviceId, countyId: countyId2, districtId, date: new Date("2000-01-13") },
           returns: [],
         },
       ]
@@ -257,7 +261,7 @@ describe("IrnCrawler", () => {
       const irnRepository = {
         addIrnTables: jest.fn(() => actionOf(undefined)),
         getCounties: jest.fn(() => actionOf([county1, county2])),
-        getIrnServices: jest.fn(() => actionOf([someService])),
+        getIrnServices: jest.fn(() => actionOf([service])),
       } as any
 
       const environment = {
@@ -276,21 +280,19 @@ describe("IrnCrawler", () => {
     })
 
     it("stops crawling after the crawl days limit", async () => {
-      const county = makeCounty()
-
       const startDate = new Date("2000-01-01")
-      const table1 = makeTable(someServiceId, county, "1", "2000-01-01")
+      const table1 = makeTable({ date: new Date("2000-01-01") })
       const crawlDaysLimit = 10
-      const dateAfterDateLimit = "2000-01-12"
-      const table2 = makeTable(someServiceId, county, "1", dateAfterDateLimit)
+      const dateAfterDateLimit = new Date("2000-01-12")
+      const table2 = makeTable({ date: dateAfterDateLimit })
 
       const getTablesCalls = [
         {
-          calledWith: { service: someService, county },
+          calledWith: { serviceId, countyId, districtId },
           returns: [table1],
         },
         {
-          calledWith: { service: someService, county, date: new Date("2000-01-02") },
+          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-02") },
           returns: [table2],
         },
       ]
@@ -302,7 +304,7 @@ describe("IrnCrawler", () => {
       const irnRepository = {
         addIrnTables: jest.fn(() => actionOf(undefined)),
         getCounties: jest.fn(() => actionOf([county])),
-        getIrnServices: jest.fn(() => actionOf([someService])),
+        getIrnServices: jest.fn(() => actionOf([service])),
       } as any
 
       const environment = {

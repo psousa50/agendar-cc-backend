@@ -1,13 +1,7 @@
 import { IrnTable } from "../irnFetch/models"
 import { DbConfig } from "../mongodb/main"
 import { Action } from "../utils/actions"
-
-type Time = string
-
-export type TimeSlot = {
-  date: Date
-  hours: readonly Time[]
-}
+import { GpsLocation, TimeSlot } from "../utils/models"
 
 export type IrnService = {
   serviceId: number
@@ -18,7 +12,7 @@ export type IrnServices = IrnService[]
 export type District = {
   districtId: number
   name: string
-  gps: [number, number]
+  gpsLocation?: GpsLocation
 }
 export type Districts = District[]
 
@@ -26,7 +20,7 @@ export type County = {
   districtId: number
   countyId: number
   name: string
-  gps: [number, number]
+  gpsLocation?: GpsLocation
 }
 export type Counties = County[]
 
@@ -39,8 +33,8 @@ export type GetTableParams = Partial<{
   countyId: number
   startDate: Date
   endDate: Date
-  startTime: Time
-  endTime: Time
+  startTime: TimeSlot
+  endTime: TimeSlot
 }>
 
 export interface Repository {
@@ -67,3 +61,8 @@ export interface IrnRepository {
   switchIrnTables: Action<void, void>
   updateConfig: Action<DbConfig, void>
 }
+
+export const getCountyFromIrnTable = (irnTable: IrnRepositoryTable) => ({
+  countyId: irnTable.countyId,
+  districtId: irnTable.districtId,
+})

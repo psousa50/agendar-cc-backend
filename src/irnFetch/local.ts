@@ -10,14 +10,15 @@ const makeTable = (
   date: string = "2000-01-01",
 ): IrnTable => ({
   address: "some address",
-  county: { districtId, countyId, name: `Count Name ${countyId}`, gps: [0, 0] },
+  countyId,
   date: new Date(date),
+  districtId,
   locationName: "Some location name",
   phone: "123456789",
   postalCode: "1234-567",
   serviceId,
   tableNumber,
-  times: ["12:30"],
+  timeSlots: ["12:30"],
 })
 
 const getIrnTables: Action<GetIrnTableParams, IrnTables> = () => {
@@ -30,26 +31,26 @@ const getIrnTables: Action<GetIrnTableParams, IrnTables> = () => {
   ])
 }
 
-const gps: [number, number] = [0, 0]
+const gpsLocation = { latitude: 0, longitude: 0 }
 const getCounties: Action<{ districtId: number }, Counties> = ({ districtId }) =>
   actionOf(
     [
-      { districtId: 1, countyId: 10, name: "C 10", gps },
-      { districtId: 1, countyId: 11, name: "C 11", gps },
-      { districtId: 2, countyId: 20, name: "C 20", gps },
-      { districtId: 2, countyId: 21, name: "C 21", gps },
-      { districtId: 3, countyId: 31, name: "C 31", gps },
-      { districtId: 4, countyId: 41, name: "C 41", gps },
-      { districtId: 5, countyId: 51, name: "C 51", gps },
-      { districtId: 6, countyId: 61, name: "C 61", gps },
+      { districtId: 1, countyId: 10, name: "C 10", gpsLocation },
+      { districtId: 1, countyId: 11, name: "C 11", gpsLocation },
+      { districtId: 2, countyId: 20, name: "C 20", gpsLocation },
+      { districtId: 2, countyId: 21, name: "C 21", gpsLocation },
+      { districtId: 3, countyId: 31, name: "C 31", gpsLocation },
+      { districtId: 4, countyId: 41, name: "C 41", gpsLocation },
+      { districtId: 5, countyId: 51, name: "C 51", gpsLocation },
+      { districtId: 6, countyId: 61, name: "C 61", gpsLocation },
     ].filter(c => !districtId || c.districtId === districtId),
   )
 
 const getDistricts: Action<void, Districts> = () =>
   actionOf([
-    { districtId: 1, name: "District 1", gps: [0, 0] },
-    { districtId: 2, name: "District 2", gps: [0, 0] },
-    { districtId: 3, name: "District 3", gps: [0, 0] },
+    { districtId: 1, name: "District 1", gpsLocation },
+    { districtId: 2, name: "District 2", gpsLocation },
+    { districtId: 3, name: "District 3", gpsLocation },
   ])
 
 const getIrnServices: Action<void, IrnServices> = () => actionOf([{ serviceId: 1, name: "Service 1" }])

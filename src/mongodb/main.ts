@@ -45,8 +45,8 @@ export const getCounties = (districtId?: number) => get(COUNTIES)({ ...(district
 
 const buildGetIrnTablesQuery = ({ serviceId, districtId, countyId, startDate, endDate }: GetTableParams) => ({
   ...(isNil(serviceId) ? {} : { serviceId }),
-  ...(isNil(districtId) ? {} : { "county.districtId": districtId }),
-  ...(isNil(countyId) ? {} : { "county.countyId": countyId }),
+  ...(isNil(districtId) ? {} : { districtId }),
+  ...(isNil(countyId) ? {} : { countyId }),
   ...(isNil(startDate) && isNil(endDate)
     ? {}
     : { date: { ...(isNil(startDate) ? {} : { $gte: startDate }), ...(isNil(endDate) ? {} : { $lte: endDate }) } }),

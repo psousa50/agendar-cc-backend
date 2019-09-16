@@ -14,18 +14,15 @@ describe("IrnRepository", () => {
     const makeTable = (irnTable: Partial<IrnRepositoryTable>): IrnRepositoryTable => {
       const defaultTable = {
         address: "Some Address",
-        county: {
-          countyId: 3,
-          districtId: 2,
-          name: "Some name",
-        },
+        countyId: 20,
         date: new Date("2000-01-01"),
+        districtId: 30,
         locationName: "Some Location Name",
         phone: "some-phone",
         postalCode: "some-code",
-        serviceId: 1,
+        serviceId: 10,
         tableNumber: "1",
-        times: ["12:30"],
+        timeSlots: ["12:30"],
       }
 
       return {
@@ -48,10 +45,7 @@ describe("IrnRepository", () => {
     })
 
     it("filter tables by districtId", async () => {
-      const irnTables = [
-        makeTable({ county: { districtId: 1, countyId: 10, name: "Some Name 1" } }),
-        makeTable({ county: { districtId: 2, countyId: 20, name: "Some Name 2" } }),
-      ]
+      const irnTables = [makeTable({ districtId: 1, countyId: 10 }), makeTable({ districtId: 2, countyId: 20 })]
 
       irnRepository.addIrnTables(irnTables)
 
@@ -64,10 +58,7 @@ describe("IrnRepository", () => {
     })
 
     it("filter tables by countyId", async () => {
-      const irnTables = [
-        makeTable({ county: { districtId: 1, countyId: 10, name: "Some Name 1" } }),
-        makeTable({ county: { districtId: 2, countyId: 20, name: "Some Name 2" } }),
-      ]
+      const irnTables = [makeTable({ districtId: 1, countyId: 10 }), makeTable({ districtId: 2, countyId: 20 })]
 
       irnRepository.addIrnTables(irnTables)
 

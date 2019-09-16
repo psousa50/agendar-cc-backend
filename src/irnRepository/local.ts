@@ -63,8 +63,8 @@ const by = ({ serviceId, districtId, countyId, startDate, endDate }: GetTablePar
   irnTable: IrnRepositoryTable,
 ) =>
   (isNil(serviceId) || irnTable.serviceId === serviceId) &&
-  (isNil(districtId) || irnTable.county.districtId === districtId) &&
-  (isNil(countyId) || irnTable.county.countyId === countyId) &&
+  (isNil(districtId) || irnTable.districtId === districtId) &&
+  (isNil(countyId) || irnTable.countyId === countyId) &&
   (isNil(startDate) || irnTable.date >= startDate) &&
   (isNil(endDate) || irnTable.date <= endDate)
 

@@ -32,34 +32,34 @@ it("parses tok from the home page", () => {
 it("parses tables from irn tables html page", () => {
   const html = fs.readFileSync(path.join(__dirname, "./htmlSamples/step2_page1.html")).toString()
 
-  const serviceId = 1
-  const service = {
-    serviceId,
-  } as any
-  const county = { districtId: 1, countyId: 1, name: "Some Name", gps: [0, 0] as [number, number] }
+  const serviceId = 10
+  const countyId = 20
+  const districtId = 30
 
   const expectedTable1: IrnTable = {
     address: "Palácio da Justiça - Rua Jayme Thompson",
-    county,
+    countyId,
     date: new Date("2019-12-17"),
+    districtId,
     locationName: "Conservatória do Registo Comercial de Cascais",
     phone: "214818630",
     postalCode: "2750-378",
     serviceId,
     tableNumber: "1",
-    times: ["13:45:00", "14:45:00"],
+    timeSlots: ["13:45:00", "14:45:00"],
   }
 
   const expectedTable2: IrnTable = {
     address: "Palácio da Justiça - Rua Jayme Thompson",
-    county,
+    countyId,
     date: new Date("2019-12-17"),
+    districtId,
     locationName: "2ª Conservatória do Registo Predial de Cascais",
     phone: "214843521",
     postalCode: "2750-379",
     serviceId,
     tableNumber: "5",
-    times: [
+    timeSlots: [
       "09:45:00",
       "10:15:00",
       "10:30:00",
@@ -78,7 +78,7 @@ it("parses tables from irn tables html page", () => {
   }
   const expectedTables = [expectedTable1, expectedTable2]
 
-  const tables = parseIrnTables(service, county)(html)
+  const tables = parseIrnTables(serviceId, countyId, districtId)(html)
 
   expect(tables).toEqual(expectedTables)
 })

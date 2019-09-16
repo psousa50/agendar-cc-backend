@@ -51,16 +51,16 @@ const extractCookies = (response: Response) => {
 
 type FormDataParam = [string, string]
 type BuildFormDataParams = (tok: string, params: GetIrnTableParams) => FormDataParam[]
-export const buildFormDataParams: BuildFormDataParams = (tok, { service, county, date }) => [
+export const buildFormDataParams: BuildFormDataParams = (tok, { serviceId, countyId, date, districtId }) => [
   ["tok", tok],
-  ["servico", service.serviceId.toString()],
-  ["distrito", county.districtId.toString()],
-  ["concelho", county.countyId.toString()],
+  ["servico", serviceId.toString()],
+  ["distrito", districtId.toString()],
+  ["concelho", countyId.toString()],
   ["data_tipo", date ? "outra" : "primeira"],
   ["data", date ? date.toISOString().substr(0, 10) : "2000-01-01"],
   ["sabado_show", "0"],
-  ["servico_desc", service.name],
-  ["concelho_desc", county.name],
+  ["servico_desc", ""],
+  ["concelho_desc", ""],
 ]
 
 type BuildFormData = (tok: string, params: GetIrnTableParams) => { data: string; boundary: string }
@@ -111,7 +111,7 @@ export const buildGetIrnTables: BuildGetIrnTables = (
     ask(),
     chain(env => delayedFetch(getHomePage(env.config))),
     chain(fetchIrnTables),
-    chain(toAction(injectedParseIrnTables(params.service, params.county))),
+    chain(toAction(injectedParseIrnTables(params.serviceId, params.countyId, params.districtId))),
   )
 }
 

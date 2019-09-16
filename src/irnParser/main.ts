@@ -1,6 +1,6 @@
 import cheerio from "cheerio"
 import { IrnTable, IrnTables } from "../irnFetch/models"
-import { Counties, County, IrnService } from "../irnRepository/models"
+import { Counties } from "../irnRepository/models"
 import "../utils/strings"
 
 const fix = (s: string) => s.replaceAll('"', "").trim()
@@ -14,8 +14,8 @@ export const parseTok: ParseTok = html => {
   return $(tokInput).attr("value")
 }
 
-export type ParseIrnTables = (service: IrnService, county: County) => (html: string) => IrnTables
-export const parseIrnTables: ParseIrnTables = (serviceId, county) => html => {
+export type ParseIrnTables = (serviceId: number, countyId: number, districtId: number) => (html: string) => IrnTables
+export const parseIrnTables: ParseIrnTables = (serviceId, countyId, districtId) => html => {
   const $ = cheerio.load(html)
 
   const buildTable = (horario: CheerioElement) => {
@@ -35,14 +35,15 @@ export const parseIrnTables: ParseIrnTables = (serviceId, county) => html => {
 
     const table: IrnTable = {
       address: parts[5],
-      county,
+      countyId,
       date: new Date(parts[2]),
+      districtId,
       locationName: parts[3],
       phone: parts[7],
       postalCode: parts[6],
-      serviceId: serviceId.serviceId,
+      serviceId,
       tableNumber: parts[4],
-      times: times.slice(1),
+      timeSlots: times.slice(1),
     }
 
     return table
