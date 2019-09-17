@@ -49,10 +49,10 @@ export interface IrnRepository {
   addCounties: Action<Counties, void>
   addDistricts: Action<Districts, void>
   addIrnServices: Action<IrnServices, void>
-  addIrnTables: Action<IrnRepositoryTables, void>
+  addIrnTablesTemporary: Action<IrnRepositoryTables, void>
   clearAll: Action<void, void>
-  clearAllTables: Action<void, void>
-  end: Action<void, void>
+  clearIrnTablesTemporary: Action<void, void>
+  close: Action<void, void>
   getConfig: Action<void, DbConfig | null>
   getCounties: Action<{ districtId?: number }, Counties>
   getDistricts: Action<void, Districts>

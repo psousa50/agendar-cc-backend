@@ -46,6 +46,14 @@ describe("IrnCrawler", () => {
     }
   }
 
+  const defaultIrnRepository = {
+    addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
+    clearIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
+    getCounties: jest.fn(() => actionOf([])),
+    getIrnServices: jest.fn(() => actionOf([])),
+    switchIrnTables: jest.fn(() => actionOf(undefined)),
+  }
+
   interface GetTablesCalls {
     calledWith: GetIrnTableParams
     returns: IrnTables
@@ -79,7 +87,7 @@ describe("IrnCrawler", () => {
       } as any
 
       const irnRepository = {
-        addIrnTables: jest.fn(() => actionOf(undefined)),
+        ...defaultIrnRepository,
         getCounties: jest.fn(() => actionOf([county])),
         getIrnServices: jest.fn(() => actionOf([service])),
       } as any
@@ -95,7 +103,9 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      expect(irnRepository.addIrnTables).toHaveBeenCalledWith([table])
+      expect(irnRepository.clearIrnTablesTemporary).toHaveBeenCalled()
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([table])
+      expect(irnRepository.switchIrnTables).toHaveBeenCalled()
     })
 
     it("persist a tables from multiple services", async () => {
@@ -136,7 +146,7 @@ describe("IrnCrawler", () => {
       } as any
 
       const irnRepository = {
-        addIrnTables: jest.fn(() => actionOf(undefined)),
+        ...defaultIrnRepository,
         getCounties: jest.fn(() => actionOf([county])),
         getIrnServices: jest.fn(() => actionOf(services)),
       } as any
@@ -152,7 +162,7 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      expect(irnRepository.addIrnTables).toHaveBeenCalledWith([tableService1, tableService2])
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([tableService1, tableService2])
     })
 
     it("crawls for next available dates on a table", async () => {
@@ -190,7 +200,7 @@ describe("IrnCrawler", () => {
       } as any
 
       const irnRepository = {
-        addIrnTables: jest.fn(() => actionOf(undefined)),
+        ...defaultIrnRepository,
         getCounties: jest.fn(() => actionOf([county])),
         getIrnServices: jest.fn(() => actionOf([service])),
       } as any
@@ -207,7 +217,7 @@ describe("IrnCrawler", () => {
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
       const allTables = [table1Date1, table2Date1, table1Date2, table2Date2, table1Date3]
-      expect(irnRepository.addIrnTables).toHaveBeenCalledWith(allTables)
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith(allTables)
     })
 
     it("crawls for next available dates on multiple counties", async () => {
@@ -259,7 +269,7 @@ describe("IrnCrawler", () => {
       } as any
 
       const irnRepository = {
-        addIrnTables: jest.fn(() => actionOf(undefined)),
+        ...defaultIrnRepository,
         getCounties: jest.fn(() => actionOf([county1, county2])),
         getIrnServices: jest.fn(() => actionOf([service])),
       } as any
@@ -276,7 +286,7 @@ describe("IrnCrawler", () => {
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
       const allTables = [tableCounty1Date1, tableCounty1Date2, tableCounty2Date1, tableCounty2Date2]
-      expect(irnRepository.addIrnTables).toHaveBeenCalledWith(allTables)
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith(allTables)
     })
 
     it("stops crawling after the crawl days limit", async () => {
@@ -302,7 +312,7 @@ describe("IrnCrawler", () => {
       } as any
 
       const irnRepository = {
-        addIrnTables: jest.fn(() => actionOf(undefined)),
+        ...defaultIrnRepository,
         getCounties: jest.fn(() => actionOf([county])),
         getIrnServices: jest.fn(() => actionOf([service])),
       } as any
@@ -320,7 +330,7 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      expect(irnRepository.addIrnTables).toHaveBeenCalledWith([table1, table2])
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([table1, table2])
     })
   })
 })

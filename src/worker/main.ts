@@ -5,6 +5,7 @@ import { fold } from "fp-ts/lib/TaskEither"
 import { buildEnvironment, Environment } from "../environment"
 import { irnCrawler } from "../irnCrawler/main"
 import { globalIrnTables } from "../staticData/irnTables"
+import { ask } from "../utils/actions"
 import { ServiceError } from "../utils/audit"
 import { safeConfig } from "../utils/config"
 import { logDebug } from "../utils/debug"
@@ -15,13 +16,13 @@ const exitProcess = (error: ServiceError) => {
   return task.of(undefined)
 }
 
-const addLocalIrntables = (environment: Environment) => environment.irnRepository.addIrnTables(globalIrnTables)
-
-const refreshTables = (environment: Environment) =>
+const addLocalIrntables = () =>
   pipe(
-    irnCrawler.refreshTables({ startDate: new Date(Date.now()) }),
-    chain(() => environment.irnRepository.switchIrnTables()),
+    ask(),
+    chain(env => env.irnRepository.addIrnTablesTemporary(globalIrnTables)),
   )
+
+const refreshTables = () => irnCrawler.refreshTables({ startDate: new Date(Date.now()) })
 
 const start = (environment: Environment) => {
   logDebug("Worker Config =====>\n", safeConfig(environment.config))
@@ -29,11 +30,9 @@ const start = (environment: Environment) => {
     pipe(
       irnCrawler.start(),
       chain(() => environment.irnRepository.updateConfig({ refreshStarted: new Date(Date.now()) })),
-      chain(() =>
-        environment.config.infra.useLocalIrnTables ? addLocalIrntables(environment) : refreshTables(environment),
-      ),
+      chain(() => (environment.config.infra.useLocalIrnTables ? addLocalIrntables() : refreshTables())),
       chain(() => environment.irnRepository.updateConfig({ refreshEnded: new Date(Date.now()) })),
-      chain(() => environment.irnRepository.end()),
+      chain(() => environment.irnRepository.close()),
       mapLeft(e => logDebug("ERROR: ", e)),
     ),
     environment,

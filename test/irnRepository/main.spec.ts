@@ -7,7 +7,7 @@ import { IrnRepositoryTable } from "../../src/irnRepository/models"
 describe("IrnRepository", () => {
   describe("getIrnTables", () => {
     beforeEach(() => {
-      irnRepository.clearAllTables()
+      irnRepository.clearIrnTablesTemporary()
     })
 
     const env = {} as any
@@ -34,7 +34,7 @@ describe("IrnRepository", () => {
     it("filter tables by serviceId", async () => {
       const irnTables = [makeTable({ serviceId: 1 }), makeTable({ serviceId: 2 })]
 
-      irnRepository.addIrnTables(irnTables)
+      irnRepository.addIrnTablesTemporary(irnTables)
 
       const result = await run(irnRepository.getIrnTables({ serviceId: 2 }), env)
 
@@ -47,7 +47,7 @@ describe("IrnRepository", () => {
     it("filter tables by districtId", async () => {
       const irnTables = [makeTable({ districtId: 1, countyId: 10 }), makeTable({ districtId: 2, countyId: 20 })]
 
-      irnRepository.addIrnTables(irnTables)
+      irnRepository.addIrnTablesTemporary(irnTables)
 
       const result = await run(irnRepository.getIrnTables({ districtId: 2 }), env)
 
@@ -60,7 +60,7 @@ describe("IrnRepository", () => {
     it("filter tables by countyId", async () => {
       const irnTables = [makeTable({ districtId: 1, countyId: 10 }), makeTable({ districtId: 2, countyId: 20 })]
 
-      irnRepository.addIrnTables(irnTables)
+      irnRepository.addIrnTablesTemporary(irnTables)
 
       const result = await run(irnRepository.getIrnTables({ countyId: 20 }), env)
 
@@ -77,7 +77,7 @@ describe("IrnRepository", () => {
         makeTable({ date: new Date("2010-01-10") }),
       ]
       it("with no end limit", async () => {
-        irnRepository.addIrnTables(irnTables)
+        irnRepository.addIrnTablesTemporary(irnTables)
 
         const result = await run(irnRepository.getIrnTables({ startDate: new Date("2010-01-05") }), env)
 
@@ -88,7 +88,7 @@ describe("IrnRepository", () => {
       })
 
       it("with no start limit", async () => {
-        irnRepository.addIrnTables(irnTables)
+        irnRepository.addIrnTablesTemporary(irnTables)
 
         const result = await run(irnRepository.getIrnTables({ endDate: new Date("2010-01-05") }), env)
 
@@ -99,7 +99,7 @@ describe("IrnRepository", () => {
       })
 
       it("with start and end limit", async () => {
-        irnRepository.addIrnTables(irnTables)
+        irnRepository.addIrnTablesTemporary(irnTables)
 
         const result = await run(
           irnRepository.getIrnTables({ startDate: new Date("2010-01-04"), endDate: new Date("2010-01-06") }),

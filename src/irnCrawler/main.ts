@@ -105,7 +105,12 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
           rteArraySequence(services.map(service => getTablesForService(service.serviceId, counties))),
         ),
         chain(flattenTables),
-        chain(env.irnRepository.addIrnTables),
+        chain(irnTables => {
+          env.irnRepository.clearIrnTablesTemporary()
+          return actionOf(irnTables)
+        }),
+        chain(env.irnRepository.addIrnTablesTemporary),
+        chain(env.irnRepository.switchIrnTables),
       )
     }),
   )

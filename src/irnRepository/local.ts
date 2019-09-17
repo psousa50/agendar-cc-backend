@@ -5,6 +5,7 @@ import {
   Counties,
   Districts,
   GetTableParams,
+  IrnRepository,
   IrnRepositoryTable,
   IrnRepositoryTables,
   IrnServices,
@@ -29,7 +30,7 @@ const addDistricts: Action<Districts, void> = districts => {
   return actionOf(undefined)
 }
 
-const addIrnTables: Action<IrnRepositoryTables, void> = irnTables => {
+const addIrnTablesTemporary: Action<IrnRepositoryTables, void> = irnTables => {
   Repository.irnTables = [...Repository.irnTables, ...irnTables]
   return actionOf(undefined)
 }
@@ -47,7 +48,7 @@ const clearAll: Action<void, void> = () => {
   return actionOf(undefined)
 }
 
-const clearAllTables: Action<void, void> = () => {
+const clearIrnTablesTemporary: Action<void, void> = () => {
   Repository.irnTables = []
   return actionOf(undefined)
 }
@@ -77,17 +78,17 @@ const updateConfig: Action<DbConfig, void> = dbConfig => {
   return actionOf(undefined)
 }
 
-const end: Action<void, void> = () => actionOf(undefined)
+const close: Action<void, void> = () => actionOf(undefined)
 const switchIrnTables: Action<void, void> = () => actionOf(undefined)
 
-export const irnRepository = {
+export const irnRepository: IrnRepository = {
   addCounties,
   addDistricts,
   addIrnServices,
-  addIrnTables,
+  addIrnTablesTemporary,
   clearAll,
-  clearAllTables,
-  end,
+  clearIrnTablesTemporary,
+  close,
   getConfig,
   getCounties,
   getDistricts,

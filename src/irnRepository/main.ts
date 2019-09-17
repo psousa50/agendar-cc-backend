@@ -1,11 +1,12 @@
 import * as mongoDb from "../mongodb/main"
 import { DbConfig, disconnect } from "../mongodb/main"
 import { Action, fromPromise, fromVoidPromise } from "../utils/actions"
-import { Counties, Districts, GetTableParams, IrnRepositoryTables, IrnServices } from "./models"
+import { Counties, Districts, GetTableParams, IrnRepository, IrnRepositoryTables, IrnServices } from "./models"
 
 const clearAll: Action<void, void> = () => fromVoidPromise(env => mongoDb.clearAll(env.dbClient))
 
-const clearAllTables: Action<void, void> = () => fromVoidPromise(env => mongoDb.clearAllTables(env.dbClient))
+const clearIrnTablesTemporary: Action<void, void> = () =>
+  fromVoidPromise(env => mongoDb.clearAllIrnTablesTemporary(env.dbClient))
 
 const getCounties: Action<{ districtId?: number }, Counties> = ({ districtId }) =>
   fromPromise(env => mongoDb.getCounties(districtId)(env.dbClient))
@@ -23,7 +24,7 @@ const addCounties: Action<Counties, void> = counties =>
 const addDistricts: Action<Districts, void> = districts =>
   fromVoidPromise(env => mongoDb.addDistricts(districts.map(d => ({ _id: d.districtId, ...d })))(env.dbClient))
 
-const addIrnTables: Action<IrnRepositoryTables, void> = irnTables =>
+const addIrnTablesTemporary: Action<IrnRepositoryTables, void> = irnTables =>
   fromVoidPromise(env => mongoDb.addIrnTables(irnTables)(env.dbClient))
 
 const addIrnServices: Action<IrnServices, void> = irnServices =>
@@ -36,16 +37,16 @@ const updateConfig: Action<DbConfig, void> = dbConfig =>
 
 const switchIrnTables: Action<void, void> = () => fromVoidPromise(env => mongoDb.switchIrnTables(env.dbClient))
 
-const end: Action<void, void> = () => fromVoidPromise(env => disconnect(env.dbClient))
+const close: Action<void, void> = () => fromVoidPromise(env => disconnect(env.dbClient))
 
-export const irnRepository = {
+export const irnRepository: IrnRepository = {
   addCounties,
   addDistricts,
   addIrnServices,
-  addIrnTables,
+  addIrnTablesTemporary,
   clearAll,
-  clearAllTables,
-  end,
+  clearIrnTablesTemporary,
+  close,
   getConfig,
   getCounties,
   getDistricts,
