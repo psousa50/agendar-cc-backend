@@ -27,7 +27,7 @@ export type IrnRepositoryTable = {
   serviceId: number
   districtId: number
   countyId: number
-  locationName: string
+  placeName: string
   tableNumber: string
   address: string
   postalCode: string
