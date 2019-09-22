@@ -1,6 +1,5 @@
-import { Counties } from "../irnRepository/models"
+import { Counties, IrnRepositoryTable } from "../irnRepository/models"
 import { Action } from "../utils/actions"
-import { TimeSlot } from "../utils/models"
 
 export type GetIrnTableParams = {
   serviceId: number
@@ -9,18 +8,7 @@ export type GetIrnTableParams = {
   date?: Date
 }
 
-export type IrnTable = {
-  serviceId: number
-  districtId: number
-  countyId: number
-  locationName: string
-  tableNumber: string
-  address: string
-  postalCode: string
-  phone: string
-  date: Date
-  timeSlots: TimeSlot[]
-}
+export type IrnTable = IrnRepositoryTable
 export type IrnTables = IrnTable[]
 
 export interface IrnFetch {

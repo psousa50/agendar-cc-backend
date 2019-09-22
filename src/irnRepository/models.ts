@@ -1,4 +1,3 @@
-import { IrnTable } from "../irnFetch/models"
 import { DbConfig } from "../mongodb/main"
 import { Action } from "../utils/actions"
 import { GpsLocation, TimeSlot } from "../utils/models"
@@ -24,7 +23,19 @@ export type County = {
 }
 export type Counties = County[]
 
-export type IrnRepositoryTable = IrnTable
+export type IrnRepositoryTable = {
+  serviceId: number
+  districtId: number
+  countyId: number
+  locationName: string
+  tableNumber: string
+  address: string
+  postalCode: string
+  phone: string
+  date: Date
+  timeSlots: TimeSlot[]
+}
+
 export type IrnRepositoryTables = IrnRepositoryTable[]
 
 export type GetTableParams = Partial<{
