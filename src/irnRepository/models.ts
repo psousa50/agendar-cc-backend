@@ -23,6 +23,11 @@ export type County = {
 }
 export type Counties = County[]
 
+export type IrnPlace = {
+  name: string
+  gpsLocation?: GpsLocation
+}
+
 export type IrnRepositoryTable = {
   serviceId: number
   districtId: number
@@ -65,12 +70,15 @@ export interface IrnRepository {
   clearIrnTablesTemporary: Action<void, void>
   close: Action<void, void>
   getConfig: Action<void, DbConfig | null>
+  getCounty: Action<{ countyId: number }, County | null>
   getCounties: Action<{ districtId?: number }, Counties>
   getDistricts: Action<void, Districts>
   getIrnServices: Action<void, IrnServices>
   getIrnTables: Action<GetTableParams, IrnRepositoryTables>
   switchIrnTables: Action<void, void>
   updateConfig: Action<DbConfig, void>
+  getIrnPlace: Action<{ placeName: string }, IrnPlace | null>
+  updateIrnPlace: Action<IrnPlace, void>
 }
 
 export const getCountyFromIrnTable = (irnTable: IrnRepositoryTable) => ({

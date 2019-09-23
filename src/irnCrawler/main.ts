@@ -1,15 +1,16 @@
 import { array } from "fp-ts/lib/Array"
 import { pipe } from "fp-ts/lib/pipeable"
-import { chain, map, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
+import { chain, map, orElse, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { IrnTables } from "../irnFetch/models"
-import { Counties } from "../irnRepository/models"
+import { Counties, IrnRepositoryTable } from "../irnRepository/models"
 import { globalCounties } from "../staticData/counties"
 import { globalDistricts } from "../staticData/districts"
 import { globalIrnServices } from "../staticData/services"
 import { Action, actionOf, ask } from "../utils/actions"
 import { flatten } from "../utils/collections"
 import { addDays } from "../utils/dates"
+import { GpsLocation } from "../utils/models"
 import { IrnCrawler, RefreshTablesParams } from "./models"
 
 const rteArraySequence = array.sequence(readerTaskEither)
@@ -115,7 +116,56 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
     }),
   )
 
+const updateIrnPlace: (place: string) => Action<GpsLocation | undefined, void> = irnPlace => location =>
+  pipe(
+    ask(),
+    chain(env =>
+      env.irnRepository.updateIrnPlace({
+        gpsLocation: location,
+        name: irnPlace,
+      }),
+    ),
+  )
+
+const updateIrnTablePlace: Action<IrnRepositoryTable, void> = ({ address, countyId, placeName }) =>
+  pipe(
+    ask(),
+    chain(env =>
+      pipe(
+        env.irnRepository.getIrnPlace({ placeName }),
+        chain(irnPlace => {
+          return irnPlace === null
+            ? pipe(
+                env.irnRepository.getCounty({ countyId }),
+                chain(county => (county ? env.geoCoding.get(`${address}+${county.name}`) : actionOf(undefined))),
+                chain(location => updateIrnPlace(placeName)(location)),
+                orElse(() => updateIrnPlace(placeName)(undefined)),
+              )
+            : actionOf(undefined)
+        }),
+      ),
+    ),
+  )
+
+const updateIrnPlaces: Action<void, void> = () =>
+  pipe(
+    ask(),
+    chain(env => env.irnRepository.getIrnTables({})),
+    chain(irnTables =>
+      irnTables.reduceRight(
+        (acc, irnTable) =>
+          pipe(
+            updateIrnTablePlace(irnTable),
+            chain(() => acc),
+          ),
+        actionOf(undefined),
+      ),
+    ),
+    chain(() => actionOf(undefined)),
+  )
+
 export const irnCrawler: IrnCrawler = {
   refreshTables,
   start,
+  updateIrnPlaces,
 }

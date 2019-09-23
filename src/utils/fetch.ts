@@ -3,7 +3,7 @@ import { chain, fromTaskEither, ReaderTaskEither, swap } from "fp-ts/lib/ReaderT
 import { tryCatch } from "fp-ts/lib/TaskEither"
 import isoFetch from "isomorphic-fetch"
 import { Environment } from "../environment"
-import { actionOf, ActionResult } from "./actions"
+import { actionOf, ActionResult, ask, delay } from "./actions"
 import { ServiceError } from "./audit"
 import { logDebug } from "./debug"
 import * as Errors from "./errors"
@@ -68,3 +68,12 @@ export const fetchAction = (input: Request | string, init?: RequestInit): Action
 
 export const extractText = (response: Response): ActionResult<string> =>
   fromTaskEither(tryCatch(() => response.text(), e => new Errors.BadResponseError((e as Error).message)))
+
+export const extractJson = (response: Response): ActionResult<any> =>
+  fromTaskEither(tryCatch(() => response.json(), e => new Errors.BadResponseError((e as Error).message)))
+
+export const delayedFetch = (delayMs: number) => (url: string, options?: RequestInit): ActionResult<Response> =>
+  pipe(
+    ask(),
+    chain(env => delay<Environment, ServiceError, Response>(env)(delayMs)(env.fetch(url, options))),
+  )

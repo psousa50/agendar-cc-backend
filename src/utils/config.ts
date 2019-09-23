@@ -3,6 +3,10 @@ import convict from "convict"
 export interface AppConfig {
   crawlDaysLimit: number
   fetchDelay: number
+  geoCoding: {
+    url: string
+    key: string
+  }
   infra: {
     useMemoryRepository: boolean
     useLocalIrnTables: boolean
@@ -17,7 +21,7 @@ export interface AppConfig {
 
 export const config = convict<AppConfig>({
   crawlDaysLimit: {
-    default: 10,
+    default: 2,
     doc: "",
     env: "CRAWL_DAYS_LIMIT",
     format: "int",
@@ -27,6 +31,20 @@ export const config = convict<AppConfig>({
     doc: "",
     env: "FETCH_DELAY",
     format: "int",
+  },
+  geoCoding: {
+    key: {
+      default: "",
+      doc: "",
+      env: "GEO_CODING_KEY",
+      format: "url",
+    },
+    url: {
+      default: "https://maps.googleapis.com/maps/api/geocode/json",
+      doc: "",
+      env: "GEO_CODING_URL",
+      format: "url",
+    },
   },
   infra: {
     useLocalIrnTables: {

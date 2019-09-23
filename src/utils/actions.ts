@@ -52,7 +52,10 @@ export const delay = <E, A, R>(env: E) => (
   return fromTaskEither(tryCatch(() => promiseDelay, e => e as A))
 }
 
-export const actionOf = <T>(v: T): ActionResult<T> => fromEither(right(v))
+export const actionOf = <R>(v: R): ActionResult<R> => fromEither(right(v))
+export function actionErrorOf<R>(error: ServiceError): ActionResult<R> {
+  return fromEither(left<ServiceError, R>(error))
+}
 
 export const toAction = <I, R>(f: (i: I) => R): ((i: I) => ActionResult<R>) => i => {
   try {

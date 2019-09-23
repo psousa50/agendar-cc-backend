@@ -3,7 +3,8 @@ import { equals } from "ramda"
 import { irnCrawler } from "../../src/irnCrawler/main"
 import { GetIrnTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
 import { County } from "../../src/irnRepository/models"
-import { actionOf } from "../../src/utils/actions"
+import { actionErrorOf, actionOf } from "../../src/utils/actions"
+import { ServiceError } from "../../src/utils/audit"
 import { logDebug } from "../../src/utils/debug"
 import { TimeSlot } from "../../src/utils/models"
 import { rndTo } from "../helpers"
@@ -21,6 +22,7 @@ describe("IrnCrawler", () => {
   const county = {
     countyId,
     districtId,
+    name: "Some County name",
   }
   const service = {
     serviceId,
@@ -50,6 +52,7 @@ describe("IrnCrawler", () => {
     addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
     clearIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
     getCounties: jest.fn(() => actionOf([])),
+    getIrnPlace: jest.fn(() => actionOf(null)),
     getIrnServices: jest.fn(() => actionOf([])),
     switchIrnTables: jest.fn(() => actionOf(undefined)),
   }
@@ -63,7 +66,7 @@ describe("IrnCrawler", () => {
     return call ? actionOf(call.returns) : (logDebug("Call Not Found:", params), actionOf([]))
   }
 
-  describe("start", () => {
+  describe("refreshTables", () => {
     const defaultCrawlerParams = {
       startDate: new Date("2000-01-01"),
     }
@@ -331,6 +334,101 @@ describe("IrnCrawler", () => {
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
       expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([table1, table2])
+    })
+  })
+
+  describe("updatePlaces", () => {
+    it("creates new places for each irn table", async () => {
+      const placeName = "Some place"
+      const latitude = 10
+      const longitude = 20
+      const geoCoding = {
+        latitude,
+        longitude,
+      }
+      const table = makeTable({ placeName })
+      const irnRepository = {
+        ...defaultIrnRepository,
+        getCounty: jest.fn(() => actionOf(county)),
+        getIrnPlace: jest.fn(() => actionOf(null)),
+        getIrnTables: jest.fn(() => actionOf([table])),
+        updateIrnPlace: jest.fn(() => actionOf(undefined)),
+      } as any
+
+      const environment = {
+        ...defaultEnvironment,
+        geoCoding: {
+          get: jest.fn(() => actionOf(geoCoding)),
+        },
+        irnRepository,
+      } as any
+
+      await run(irnCrawler.updateIrnPlaces(), environment)
+
+      const irnPlace = {
+        gpsLocation: {
+          latitude,
+          longitude,
+        },
+        name: placeName,
+      }
+      expect(irnRepository.getIrnPlace).toHaveBeenCalledWith({ placeName })
+      expect(environment.geoCoding.get).toHaveBeenCalledWith(`${table.address}+${county.name}`)
+      expect(irnRepository.updateIrnPlace).toHaveBeenCalledWith(irnPlace)
+    })
+
+    it("do nothing if place already exists", async () => {
+      const placeName = "Some place"
+      const table = makeTable({ placeName })
+      const irnRepository = {
+        ...defaultIrnRepository,
+        getCounty: jest.fn(),
+        getIrnPlace: jest.fn(() => actionOf({ some: "place" })),
+        getIrnTables: jest.fn(() => actionOf([table])),
+        updateIrnPlace: jest.fn(),
+      } as any
+
+      const environment = {
+        ...defaultEnvironment,
+        geoCoding: {
+          get: jest.fn(),
+        },
+        irnRepository,
+      } as any
+
+      await run(irnCrawler.updateIrnPlaces(), environment)
+
+      expect(environment.geoCoding.get).not.toHaveBeenCalled()
+      expect(irnRepository.updateIrnPlace).not.toHaveBeenCalled()
+      expect(irnRepository.getIrnPlace).toHaveBeenCalledWith({ placeName })
+    })
+
+    it("creates a new place with undefined location on gps error", async () => {
+      const placeName = "Some place"
+      const table = makeTable({ placeName })
+      const irnRepository = {
+        ...defaultIrnRepository,
+        getCounty: jest.fn(() => actionOf(county)),
+        getIrnTables: jest.fn(() => actionOf([table])),
+        updateIrnPlace: jest.fn(() => actionOf(undefined)),
+      } as any
+
+      const environment = {
+        ...defaultEnvironment,
+        geoCoding: {
+          get: jest.fn(() => actionErrorOf(new ServiceError("some error"))),
+        },
+        irnRepository,
+      } as any
+
+      await run(irnCrawler.updateIrnPlaces(), environment)
+
+      const place = {
+        gpsLocation: undefined,
+        name: placeName,
+      }
+      expect(environment.geoCoding.get).toHaveBeenCalledWith(`${table.address}+${county.name}`)
+      expect(irnRepository.updateIrnPlace).toHaveBeenCalledWith(place)
     })
   })
 })

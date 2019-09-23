@@ -1,9 +1,19 @@
 import { TaskEither, tryCatch } from "fp-ts/lib/TaskEither"
 import { FilterQuery, InsertWriteOpResult, MongoClient } from "mongodb"
 import { isNil } from "ramda"
-import { Counties, Districts, GetTableParams, IrnRepositoryTables, IrnServices } from "../irnRepository/models"
+import {
+  Counties,
+  County,
+  District,
+  Districts,
+  GetTableParams,
+  IrnPlace,
+  IrnRepositoryTable,
+  IrnRepositoryTables,
+  IrnService,
+  IrnServices,
+} from "../irnRepository/models"
 import { ServiceError } from "../utils/audit"
-import { logDebug } from "../utils/debug"
 
 const DB_CONFIG = "_dbConfig"
 const IRN_SERVICES = "IrnServices"
@@ -11,6 +21,7 @@ const DISTRICTS = "Districts"
 const COUNTIES = "Counties"
 const IRN_TABLES_TEMPORARY = "_IrnTablesTemporary"
 const IRN_TABLES = "IrnTables"
+const IRN_PLACES = "IrnPlaces"
 
 export interface DbConfig {
   staticDataAdded?: boolean
@@ -29,19 +40,28 @@ export const disconnect = (client: MongoClient) => client.close()
 export const clearAll = (client: MongoClient) => client.db().dropDatabase()
 export const clearAllIrnTablesTemporary = (client: MongoClient) => client.db().dropCollection(IRN_TABLES_TEMPORARY)
 
-const get = (collection: string) => (query: FilterQuery<any> = {}) => (client: MongoClient) => {
-  logDebug(collection, query)
-  return client
-    .db()
-    .collection(collection)
-    .find(query)
-    .toArray()
+function getById<T>(collection: string) {
+  return (id: any) => (client: MongoClient) =>
+    client
+      .db()
+      .collection<T>(collection)
+      .findOne({ _id: id })
 }
-export const getIrnServices = get(IRN_SERVICES)()
+function get<T>(collection: string) {
+  return (query: FilterQuery<any> = {}) => (client: MongoClient) =>
+    client
+      .db()
+      .collection<T>(collection)
+      .find(query)
+      .toArray()
+}
+export const getIrnServices = get<IrnService>(IRN_SERVICES)()
 
-export const getDistricts = get(DISTRICTS)()
+export const getDistricts = get<District>(DISTRICTS)()
 
-export const getCounties = (districtId?: number) => get(COUNTIES)({ ...(districtId ? { districtId } : {}) })
+export const getCounty = (countyId?: number) => getById<County>(COUNTIES)(countyId)
+
+export const getCounties = (districtId?: number) => get<County>(COUNTIES)({ ...(districtId ? { districtId } : {}) })
 
 const buildGetIrnTablesQuery = ({ serviceId, districtId, countyId, startDate, endDate }: GetTableParams) => ({
   ...(isNil(serviceId) ? {} : { serviceId }),
@@ -51,7 +71,8 @@ const buildGetIrnTablesQuery = ({ serviceId, districtId, countyId, startDate, en
     ? {}
     : { date: { ...(isNil(startDate) ? {} : { $gte: startDate }), ...(isNil(endDate) ? {} : { $lte: endDate }) } }),
 })
-export const getIrnTables = (params: GetTableParams) => get(IRN_TABLES)(buildGetIrnTablesQuery(params))
+export const getIrnTables = (params: GetTableParams) =>
+  get<IrnRepositoryTable>(IRN_TABLES)(buildGetIrnTablesQuery(params))
 
 const insertMany = <T>(collection: string) => (data: T[]) => (client: MongoClient) =>
   data.length > 0
@@ -69,17 +90,21 @@ export const addCounties = (counties: Counties) => insertMany(COUNTIES)(counties
 
 export const addIrnTables = (irnTables: IrnRepositoryTables) => insertMany(IRN_TABLES_TEMPORARY)(irnTables)
 
-export const getConfig = (client: MongoClient): Promise<DbConfig | null> =>
-  client
-    .db()
-    .collection(DB_CONFIG)
-    .findOne({ _id: 1 })
+export const getConfig = getById<DbConfig>(DB_CONFIG)(1)
 
 export const updateConfig = (dbConfig: DbConfig) => (client: MongoClient) =>
   client
     .db()
     .collection(DB_CONFIG)
     .updateOne({ _id: 1 }, { $set: { _id: 1, ...dbConfig } }, { upsert: true })
+
+export const getIrnPlace = (placeName: string) => getById<IrnPlace>(IRN_PLACES)(placeName)
+
+export const updateIrnPlace = (irnPlace: IrnPlace) => (client: MongoClient) =>
+  client
+    .db()
+    .collection(IRN_PLACES)
+    .updateOne({ _id: irnPlace.name }, { $set: { _id: irnPlace.name, ...irnPlace } }, { upsert: true })
 
 export const switchIrnTables = (client: MongoClient) =>
   client

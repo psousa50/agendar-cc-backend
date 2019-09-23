@@ -1,3 +1,4 @@
+import * as dotenv from "dotenv"
 import { pipe } from "fp-ts/lib/pipeable"
 import { run } from "fp-ts/lib/ReaderTaskEither"
 import { task } from "fp-ts/lib/Task"
@@ -8,6 +9,8 @@ import { ServiceError } from "./utils/audit"
 import { safeConfig } from "./utils/config"
 import { logDebug } from "./utils/debug"
 import { startWorker } from "./worker/main"
+
+dotenv.config()
 
 const exitProcess = (error: ServiceError) => {
   logDebug("Shutting down app", error.message)

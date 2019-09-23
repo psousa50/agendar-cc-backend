@@ -1,6 +1,8 @@
 import { pipe } from "fp-ts/lib/pipeable"
 import { map } from "fp-ts/lib/TaskEither"
 import { MongoClient } from "mongodb"
+import { get as getGeoCoding } from "./geoCoding/main"
+import { GeoCoding } from "./geoCoding/models"
 import { irnFetch as irnFetchLocal } from "./irnFetch/local"
 import { irnFetch } from "./irnFetch/main"
 import { IrnFetch } from "./irnFetch/models"
@@ -18,6 +20,7 @@ export type Environment = {
   irnFetch: IrnFetch
   irnRepository: IrnRepository
   dbClient: MongoClient
+  geoCoding: GeoCoding
 }
 
 export const buildEnvironment = () => {
@@ -30,6 +33,9 @@ export const buildEnvironment = () => {
       config,
       dbClient: mongoClient,
       fetch: fetchAction,
+      geoCoding: {
+        get: getGeoCoding,
+      },
       irnFetch: config.infra.useLocalIrnTables ? irnFetchLocal : irnFetch,
       irnRepository: config.infra.useMemoryRepository ? irnRepositoryLocal : irnRepository,
     })),

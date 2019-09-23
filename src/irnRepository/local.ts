@@ -3,8 +3,10 @@ import { DbConfig } from "../mongodb/main"
 import { Action, actionOf } from "../utils/actions"
 import {
   Counties,
+  County,
   Districts,
   GetTableParams,
+  IrnPlace,
   IrnRepository,
   IrnRepositoryTable,
   IrnRepositoryTables,
@@ -53,6 +55,8 @@ const clearIrnTablesTemporary: Action<void, void> = () => {
   return actionOf(undefined)
 }
 
+const getCounty: Action<{ countyId: number }, County> = () => actionOf(undefined as any)
+
 const getCounties: Action<{ districtId?: number }, Counties> = ({ districtId }) =>
   actionOf(Repository.counties.filter(c => isNil(districtId) || c.districtId === districtId))
 
@@ -81,6 +85,10 @@ const updateConfig: Action<DbConfig, void> = dbConfig => {
 const close: Action<void, void> = () => actionOf(undefined)
 const switchIrnTables: Action<void, void> = () => actionOf(undefined)
 
+const getIrnPlace: Action<{ placeName: string }, IrnPlace> = () => actionOf(undefined as any)
+
+const updateIrnPlace: Action<IrnPlace, void> = (_: IrnPlace) => actionOf(undefined)
+
 export const irnRepository: IrnRepository = {
   addCounties,
   addDistricts,
@@ -91,9 +99,12 @@ export const irnRepository: IrnRepository = {
   close,
   getConfig,
   getCounties,
+  getCounty,
   getDistricts,
+  getIrnPlace,
   getIrnServices,
   getIrnTables,
   switchIrnTables,
   updateConfig,
+  updateIrnPlace,
 }

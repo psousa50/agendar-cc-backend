@@ -32,6 +32,7 @@ const start = (environment: Environment) => {
       chain(() => environment.irnRepository.updateConfig({ refreshStarted: new Date(Date.now()) })),
       chain(() => (environment.config.infra.useLocalIrnTables ? addLocalIrntables() : refreshTables())),
       chain(() => environment.irnRepository.updateConfig({ refreshEnded: new Date(Date.now()) })),
+      chain(() => irnCrawler.updateIrnPlaces()),
       chain(() => environment.irnRepository.close()),
       mapLeft(e => logDebug("ERROR: ", e)),
     ),

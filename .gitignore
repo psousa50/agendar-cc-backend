@@ -1,6 +1,5 @@
 ### Runtime stuff: ###
 
-
 ##### Misterious files popping up during our builds!!!!! #####
 *.json.gzip
 
@@ -20,6 +19,8 @@ pids
 *.pid
 *.seed
 
+data
+.env
 
 ### Build and test stuff: ###
 
@@ -60,7 +61,6 @@ scripts/events.json
 .fuse_hidden*
 .directory
 .Trash-*
-
 
 ### IDE stuff ###
 

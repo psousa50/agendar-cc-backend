@@ -1,12 +1,24 @@
 import * as mongoDb from "../mongodb/main"
 import { DbConfig, disconnect } from "../mongodb/main"
 import { Action, fromPromise, fromVoidPromise } from "../utils/actions"
-import { Counties, Districts, GetTableParams, IrnRepository, IrnRepositoryTables, IrnServices } from "./models"
+import {
+  Counties,
+  County,
+  Districts,
+  GetTableParams,
+  IrnPlace,
+  IrnRepository,
+  IrnRepositoryTables,
+  IrnServices,
+} from "./models"
 
 const clearAll: Action<void, void> = () => fromVoidPromise(env => mongoDb.clearAll(env.dbClient))
 
 const clearIrnTablesTemporary: Action<void, void> = () =>
   fromVoidPromise(env => mongoDb.clearAllIrnTablesTemporary(env.dbClient))
+
+const getCounty: Action<{ countyId: number }, County | null> = ({ countyId }) =>
+  fromPromise(env => mongoDb.getCounty(countyId)(env.dbClient))
 
 const getCounties: Action<{ districtId?: number }, Counties> = ({ districtId }) =>
   fromPromise(env => mongoDb.getCounties(districtId)(env.dbClient))
@@ -39,6 +51,12 @@ const switchIrnTables: Action<void, void> = () => fromVoidPromise(env => mongoDb
 
 const close: Action<void, void> = () => fromVoidPromise(env => disconnect(env.dbClient))
 
+const getIrnPlace: Action<{ placeName: string }, IrnPlace | null> = ({ placeName }) =>
+  fromPromise(env => mongoDb.getIrnPlace(placeName)(env.dbClient))
+
+const updateIrnPlace: Action<IrnPlace, void> = (irnPlace: IrnPlace) =>
+  fromVoidPromise(env => mongoDb.updateIrnPlace(irnPlace)(env.dbClient))
+
 export const irnRepository: IrnRepository = {
   addCounties,
   addDistricts,
@@ -49,9 +67,12 @@ export const irnRepository: IrnRepository = {
   close,
   getConfig,
   getCounties,
+  getCounty,
   getDistricts,
+  getIrnPlace,
   getIrnServices,
   getIrnTables,
   switchIrnTables,
   updateConfig,
+  updateIrnPlace,
 }
