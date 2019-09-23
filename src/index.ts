@@ -6,7 +6,7 @@ import { fold } from "fp-ts/lib/TaskEither"
 import { expressApp } from "./app/main"
 import { buildEnvironment } from "./environment"
 import { ServiceError } from "./utils/audit"
-import { safeConfig } from "./utils/config"
+import { isDev } from "./utils/config"
 import { logDebug } from "./utils/debug"
 import { startWorker } from "./worker/main"
 
@@ -23,7 +23,9 @@ const startApplication = async () => {
     fold(
       e => task.of(exitProcess(e)),
       environment => {
-        logDebug("App Config =====>\n", safeConfig(environment.config))
+        if (isDev(environment.config)) {
+          logDebug("App Config =====>\n", environment.config)
+        }
 
         if (environment.config.infra.useMemoryRepository) {
           logDebug("Starting worker locally...")

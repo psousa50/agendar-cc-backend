@@ -7,7 +7,7 @@ import { irnCrawler } from "../irnCrawler/main"
 import { globalIrnTables } from "../staticData/irnTables"
 import { ask } from "../utils/actions"
 import { ServiceError } from "../utils/audit"
-import { safeConfig } from "../utils/config"
+import { isDev } from "../utils/config"
 import { logDebug } from "../utils/debug"
 
 const exitProcess = (error: ServiceError) => {
@@ -25,7 +25,9 @@ const addLocalIrntables = () =>
 const refreshTables = () => irnCrawler.refreshTables({ startDate: new Date(Date.now()) })
 
 const start = (environment: Environment) => {
-  logDebug("Worker Config =====>\n", safeConfig(environment.config))
+  if (isDev(environment.config)) {
+    logDebug("App Config =====>\n", environment.config)
+  }
   run(
     pipe(
       irnCrawler.start(),
