@@ -6,7 +6,6 @@ import { GeoCoding } from "./geoCoding/models"
 import { irnFetch as irnFetchLocal } from "./irnFetch/local"
 import { irnFetch } from "./irnFetch/main"
 import { IrnFetch } from "./irnFetch/models"
-import { irnRepository as irnRepositoryLocal } from "./irnRepository/local"
 import { irnRepository } from "./irnRepository/main"
 import { IrnRepository } from "./irnRepository/models"
 import { connect } from "./mongodb/main"
@@ -37,7 +36,7 @@ export const buildEnvironment = () => {
         get: getGeoCoding,
       },
       irnFetch: config.infra.useLocalIrnTables ? irnFetchLocal : irnFetch,
-      irnRepository: config.infra.useMemoryRepository ? irnRepositoryLocal : irnRepository,
+      irnRepository,
     })),
   )
 }

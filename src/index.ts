@@ -8,7 +8,6 @@ import { buildEnvironment } from "./environment"
 import { ServiceError } from "./utils/audit"
 import { isDev } from "./utils/config"
 import { logDebug } from "./utils/debug"
-import { startWorker } from "./worker/main"
 
 dotenv.config()
 
@@ -25,11 +24,6 @@ const startApplication = async () => {
       environment => {
         if (isDev(environment.config)) {
           logDebug("App Config =====>\n", environment.config)
-        }
-
-        if (environment.config.infra.useMemoryRepository) {
-          logDebug("Starting worker locally...")
-          startWorker()
         }
 
         run(expressApp(), environment)

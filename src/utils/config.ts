@@ -8,7 +8,6 @@ export interface AppConfig {
     key: string
   }
   infra: {
-    useMemoryRepository: boolean
     useLocalIrnTables: boolean
   }
   irnUrlLocations: { homePage: string; irnUrl: string; countiesPage: string; irnTablesPage: string }
@@ -51,12 +50,6 @@ export const config = convict<AppConfig>({
       default: false,
       doc: "",
       env: "USE_LOCAL_IRN_TABLES",
-      format: "Boolean",
-    },
-    useMemoryRepository: {
-      default: false,
-      doc: "",
-      env: "USE_MEMORY_REPOSITORY",
       format: "Boolean",
     },
   },

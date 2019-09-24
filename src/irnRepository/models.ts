@@ -56,14 +56,6 @@ export type GetTableParams = Partial<{
   endTime: TimeSlot
 }>
 
-export interface Repository {
-  dbConfig: DbConfig
-  counties: Counties
-  districts: Districts
-  irnServices: IrnServices
-  irnTables: IrnRepositoryTables
-}
-
 export interface IrnRepository {
   addCounties: Action<Counties, void>
   addDistricts: Action<Districts, void>
