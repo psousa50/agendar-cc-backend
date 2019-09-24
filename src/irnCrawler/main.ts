@@ -116,18 +116,24 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
     }),
   )
 
-const updateIrnPlace: (place: string) => Action<GpsLocation | undefined, void> = irnPlace => location =>
+const updateIrnPlace = (
+  countyId: number,
+  districtId: number,
+  irnPlace: string,
+): Action<GpsLocation | undefined, void> => location =>
   pipe(
     ask(),
     chain(env =>
       env.irnRepository.updateIrnPlace({
+        countyId,
+        districtId,
         gpsLocation: location,
         name: irnPlace,
       }),
     ),
   )
 
-const updateIrnTablePlace: Action<IrnRepositoryTable, void> = ({ address, countyId, placeName }) =>
+const updateIrnTablePlace: Action<IrnRepositoryTable, void> = ({ address, countyId, districtId, placeName }) =>
   pipe(
     ask(),
     chain(env =>
@@ -138,8 +144,8 @@ const updateIrnTablePlace: Action<IrnRepositoryTable, void> = ({ address, county
             ? pipe(
                 env.irnRepository.getCounty({ countyId }),
                 chain(county => (county ? env.geoCoding.get(`${address}+${county.name}`) : actionOf(undefined))),
-                chain(location => updateIrnPlace(placeName)(location)),
-                orElse(() => updateIrnPlace(placeName)(undefined)),
+                chain(location => updateIrnPlace(countyId, districtId, placeName)(location)),
+                orElse(() => updateIrnPlace(countyId, districtId, placeName)(undefined)),
               )
             : actionOf(undefined)
         }),

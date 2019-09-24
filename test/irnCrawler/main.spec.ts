@@ -366,6 +366,8 @@ describe("IrnCrawler", () => {
       await run(irnCrawler.updateIrnPlaces(), environment)
 
       const irnPlace = {
+        countyId,
+        districtId,
         gpsLocation: {
           latitude,
           longitude,
@@ -424,6 +426,8 @@ describe("IrnCrawler", () => {
       await run(irnCrawler.updateIrnPlaces(), environment)
 
       const place = {
+        countyId,
+        districtId,
         gpsLocation: undefined,
         name: placeName,
       }

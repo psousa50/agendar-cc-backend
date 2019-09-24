@@ -24,9 +24,12 @@ export type County = {
 export type Counties = County[]
 
 export type IrnPlace = {
+  districtId: number
+  countyId: number
   name: string
   gpsLocation?: GpsLocation
 }
+export type IrnPlaces = IrnPlace[]
 
 export type IrnRepositoryTable = {
   serviceId: number
