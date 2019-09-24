@@ -4,7 +4,7 @@ import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
 import { Environment } from "../../../environment"
 import { ErrorCodes, ServiceError } from "../../../utils/audit"
 import { logDebug } from "../../../utils/debug"
-import { getCounties, getDistricts, getIrnTables } from "./domain"
+import { getCounties, getDistricts, getIrnPlaces, getIrnTables } from "./domain"
 
 const errorHandler = (res: Response) => (error: ServiceError) => {
   res.sendStatus(error.dependencyError ? (error.errorCode === ErrorCodes.NOT_FOUND ? 404 : 502) : 400)
@@ -33,6 +33,17 @@ export const router = (env: Environment) =>
       await run(
         pipe(
           getCounties({ districtId: req.query.districtId }),
+          bimap(errorHandler(res), okHandler(res)),
+        ),
+        env,
+      )
+    })
+    .get("/irnPlaces", async (req, res) => {
+      logDebug("GET irnPlaces=====>\n", req.query)
+      const { districtId, countyId } = req.query
+      await run(
+        pipe(
+          getIrnPlaces({ districtId, countyId }),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,

@@ -6,7 +6,8 @@ import {
   County,
   District,
   Districts,
-  GetTableParams,
+  GetIrnPlacesParams,
+  GetIrnRepositoryTablesParams,
   IrnPlace,
   IrnRepositoryTable,
   IrnRepositoryTables,
@@ -63,7 +64,13 @@ export const getCounty = (countyId?: number) => getById<County>(COUNTIES)(county
 
 export const getCounties = (districtId?: number) => get<County>(COUNTIES)({ ...(districtId ? { districtId } : {}) })
 
-const buildGetIrnTablesQuery = ({ serviceId, districtId, countyId, startDate, endDate }: GetTableParams) => ({
+const buildGetIrnTablesQuery = ({
+  serviceId,
+  districtId,
+  countyId,
+  startDate,
+  endDate,
+}: GetIrnRepositoryTablesParams) => ({
   ...(isNil(serviceId) ? {} : { serviceId }),
   ...(isNil(districtId) ? {} : { districtId }),
   ...(isNil(countyId) ? {} : { countyId }),
@@ -71,7 +78,7 @@ const buildGetIrnTablesQuery = ({ serviceId, districtId, countyId, startDate, en
     ? {}
     : { date: { ...(isNil(startDate) ? {} : { $gte: startDate }), ...(isNil(endDate) ? {} : { $lte: endDate }) } }),
 })
-export const getIrnTables = (params: GetTableParams) =>
+export const getIrnTables = (params: GetIrnRepositoryTablesParams) =>
   get<IrnRepositoryTable>(IRN_TABLES)(buildGetIrnTablesQuery(params))
 
 const insertMany = <T>(collection: string) => (data: T[]) => (client: MongoClient) =>
@@ -99,6 +106,12 @@ export const updateConfig = (dbConfig: DbConfig) => (client: MongoClient) =>
     .updateOne({ _id: 1 }, { $set: { _id: 1, ...dbConfig } }, { upsert: true })
 
 export const getIrnPlace = (placeName: string) => getById<IrnPlace>(IRN_PLACES)(placeName)
+
+const buildGetIrnPlacesQuery = ({ districtId, countyId }: GetIrnRepositoryTablesParams) => ({
+  ...(isNil(districtId) ? {} : { districtId }),
+  ...(isNil(countyId) ? {} : { countyId }),
+})
+export const getIrnPlaces = (params: GetIrnPlacesParams) => get<IrnPlace>(IRN_PLACES)(buildGetIrnPlacesQuery(params))
 
 export const updateIrnPlace = (irnPlace: IrnPlace) => (client: MongoClient) =>
   client

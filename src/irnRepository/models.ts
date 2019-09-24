@@ -46,7 +46,12 @@ export type IrnRepositoryTable = {
 
 export type IrnRepositoryTables = IrnRepositoryTable[]
 
-export type GetTableParams = Partial<{
+export type GetIrnPlacesParams = Partial<{
+  districtId: number
+  countyId: number
+}>
+
+export type GetIrnRepositoryTablesParams = Partial<{
   serviceId: number
   districtId: number
   countyId: number
@@ -69,10 +74,11 @@ export interface IrnRepository {
   getCounties: Action<{ districtId?: number }, Counties>
   getDistricts: Action<void, Districts>
   getIrnServices: Action<void, IrnServices>
-  getIrnTables: Action<GetTableParams, IrnRepositoryTables>
+  getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables>
   switchIrnTables: Action<void, void>
   updateConfig: Action<DbConfig, void>
   getIrnPlace: Action<{ placeName: string }, IrnPlace | null>
+  getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces>
   updateIrnPlace: Action<IrnPlace, void>
 }
 
