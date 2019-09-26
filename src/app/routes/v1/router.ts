@@ -32,7 +32,7 @@ export const router = (env: Environment) =>
       logDebug("GET counties=====>\n", req.query)
       await run(
         pipe(
-          getCounties({ districtId: req.query.districtId }),
+          getCounties(req.query),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,
@@ -40,10 +40,9 @@ export const router = (env: Environment) =>
     })
     .get("/irnPlaces", async (req, res) => {
       logDebug("GET irnPlaces=====>\n", req.query)
-      const { districtId, countyId } = req.query
       await run(
         pipe(
-          getIrnPlaces({ districtId, countyId }),
+          getIrnPlaces(req.query),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,
@@ -51,10 +50,9 @@ export const router = (env: Environment) =>
     })
     .get("/irnTables", async (req, res) => {
       logDebug("GET irnTables=====>\n", req.query)
-      const { serviceId, districtId, countyId, startDate, endDate } = req.query
       await run(
         pipe(
-          getIrnTables({ serviceId, districtId, countyId, startDate, endDate }),
+          getIrnTables(req.query),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,

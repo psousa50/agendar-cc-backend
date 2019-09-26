@@ -55,6 +55,7 @@ export type GetIrnRepositoryTablesParams = Partial<{
   serviceId: number
   districtId: number
   countyId: number
+  placeName: string
   startDate: Date
   endDate: Date
   startTime: TimeSlot

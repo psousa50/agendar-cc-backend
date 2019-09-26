@@ -17,7 +17,7 @@ export const getDistricts: Action<void, Districts> = () =>
 export interface GetCountiesParams {
   districtId?: string
 }
-export const getCounties: Action<GetCountiesParams, Districts> = params =>
+export const getCounties: Action<any, Districts> = params =>
   pipe(
     ask(),
     chain(env => env.irnRepository.getCounties({ districtId: toNumber(params.districtId) })),
@@ -42,6 +42,7 @@ interface GetIrnTablesParams {
   serviceId?: string
   districtId?: string
   countyId?: string
+  placeName?: string
   startDate?: string
   endDate?: string
 }
@@ -53,6 +54,7 @@ export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = par
         countyId: toNumber(params.countyId),
         districtId: toNumber(params.districtId),
         endDate: toDate(params.endDate),
+        placeName: params.placeName,
         serviceId: toNumber(params.serviceId),
         startDate: toDate(params.startDate),
       }),
