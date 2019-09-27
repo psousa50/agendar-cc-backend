@@ -19,6 +19,6 @@ export const globalDistricts: Districts = [
   { districtId: 16, name: "Santarém", gpsLocation: { latitude: 39.2363637, longitude: -8.6867081 } },
   { districtId: 17, name: "Setúbal", gpsLocation: { latitude: 38.5173637, longitude: -8.8963407 } },
   { districtId: 18, name: "Viana do Castelo", gpsLocation: { latitude: 41.694867, longitude: -8.831088 } },
-  { districtId: 19, name: "Vila Real", gpsLocation: { latitude: 39.9372616, longitude: -0.1004465 } },
+  { districtId: 19, name: "Vila Real", gpsLocation: { latitude: 41.2967, longitude: -7.746779999999944 } },
   { districtId: 20, name: "Viseu", gpsLocation: { latitude: 40.6574713, longitude: -7.9138664 } },
 ]
