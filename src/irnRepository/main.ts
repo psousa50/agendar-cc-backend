@@ -42,7 +42,7 @@ const addIrnTablesTemporary: Action<IrnRepositoryTables, void> = irnTables =>
   fromVoidPromise(env => mongoDb.addIrnTables(irnTables)(env.dbClient))
 
 const addIrnServices: Action<IrnServices, void> = irnServices =>
-  fromVoidPromise(env => mongoDb.addRIrnServices(irnServices)(env.dbClient))
+  fromVoidPromise(env => mongoDb.addIrnServices(irnServices)(env.dbClient))
 
 const getConfig: Action<void, DbConfig | null> = () => fromPromise(env => mongoDb.getConfig(env.dbClient))
 

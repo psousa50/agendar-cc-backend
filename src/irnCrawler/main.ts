@@ -60,17 +60,11 @@ const addStaticData: Action<void, void> = () =>
         env.irnRepository.addIrnServices(globalIrnServices),
         chain(() => env.irnRepository.addDistricts(globalDistricts)),
         chain(() => env.irnRepository.addCounties(globalCounties)),
-        chain(() => env.irnRepository.updateConfig({ staticDataAdded: true })),
       ),
     ),
   )
 
-const start = () =>
-  pipe(
-    ask(),
-    chain(env => env.irnRepository.getConfig()),
-    chain(dbConfig => (dbConfig && dbConfig.staticDataAdded ? actionOf(undefined) : addStaticData())),
-  )
+const start = () => addStaticData()
 
 const refreshTables: Action<RefreshTablesParams, void> = params =>
   pipe(

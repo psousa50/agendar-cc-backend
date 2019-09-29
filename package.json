@@ -11,6 +11,7 @@
     "lint": "tslint --project tsconfig.json",
     "worker:dev": "nodemon --exec 'ts-node --files' ./src/worker/index.ts",
     "dev": "nodemon --exec 'ts-node --files' ./src/index.ts",
+    "start-mongo": "docker run -d -p 27017:27017 -v ~/Work/Projects/agendar-cc/agendar-cc-backend/data/mongo:/data/db mongo",
     "start": "NODE_ENV=production node dist/index.js",
     "start-worker": "NODE_ENV=production node dist/worker/index.js",
     "start-worker:dev": "node dist/worker/index.js",

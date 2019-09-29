@@ -25,7 +25,6 @@ const IRN_TABLES = "IrnTables"
 const IRN_PLACES = "IrnPlaces"
 
 export interface DbConfig {
-  staticDataAdded?: boolean
   refreshStarted?: Date
   refreshEnded?: Date
 }
@@ -85,6 +84,16 @@ const buildGetIrnTablesQuery = ({
 export const getIrnTables = (params: GetIrnRepositoryTablesParams) =>
   get<IrnRepositoryTable>(IRN_TABLES)(buildGetIrnTablesQuery(params))
 
+const updateMany = <T extends { _id: string }>(collection: string) => (data: T[]) => (client: MongoClient) =>
+  Promise.all(
+    data.map(item =>
+      client
+        .db()
+        .collection(collection)
+        .updateOne({ _id: item._id }, { $set: item }, { upsert: true }),
+    ),
+  )
+
 const insertMany = <T>(collection: string) => (data: T[]) => (client: MongoClient) =>
   data.length > 0
     ? client
@@ -93,11 +102,14 @@ const insertMany = <T>(collection: string) => (data: T[]) => (client: MongoClien
         .insertMany(data)
     : Promise.resolve({} as InsertWriteOpResult)
 
-export const addRIrnServices = (services: IrnServices) => insertMany(IRN_SERVICES)(services)
+export const addIrnServices = (services: IrnServices) =>
+  updateMany(IRN_SERVICES)(services.map(s => ({ ...s, _id: s.serviceId.toString() })))
 
-export const addDistricts = (districts: Districts) => insertMany(DISTRICTS)(districts)
+export const addDistricts = (districts: Districts) =>
+  updateMany(DISTRICTS)(districts.map(d => ({ ...d, _id: d.districtId.toString() })))
 
-export const addCounties = (counties: Counties) => insertMany(COUNTIES)(counties)
+export const addCounties = (counties: Counties) =>
+  updateMany(COUNTIES)(counties.map(c => ({ ...c, _id: c.countyId.toString() })))
 
 export const addIrnTables = (irnTables: IrnRepositoryTables) => insertMany(IRN_TABLES_TEMPORARY)(irnTables)
 
