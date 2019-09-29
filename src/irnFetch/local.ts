@@ -48,9 +48,9 @@ const getCounties: Action<{ districtId: number }, Counties> = ({ districtId }) =
 
 const getDistricts: Action<void, Districts> = () =>
   actionOf([
-    { districtId: 1, name: "District 1", gpsLocation },
-    { districtId: 2, name: "District 2", gpsLocation },
-    { districtId: 3, name: "District 3", gpsLocation },
+    { districtId: 1, region: "Continente", name: "District 1", gpsLocation },
+    { districtId: 2, region: "Continente", name: "District 2", gpsLocation },
+    { districtId: 3, region: "Continente", name: "District 3", gpsLocation },
   ])
 
 const getIrnServices: Action<void, IrnServices> = () => actionOf([{ serviceId: 1, name: "Service 1" }])

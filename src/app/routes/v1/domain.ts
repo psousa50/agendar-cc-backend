@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain } from "fp-ts/lib/ReaderTaskEither"
 import { isNil } from "ramda"
-import { Districts, IrnPlaces, IrnRepositoryTables, IrnServices } from "../../../irnRepository/models"
+import { Counties, Districts, IrnPlaces, IrnRepositoryTables, IrnServices } from "../../../irnRepository/models"
 import { Action, ask } from "../../../utils/actions"
 
 const toNumber = (value: string | undefined) => (isNil(value) ? undefined : Number.parseInt(value, 10))
@@ -23,7 +23,7 @@ export const getDistricts: Action<void, Districts> = () =>
 export interface GetCountiesParams {
   districtId?: string
 }
-export const getCounties: Action<any, Districts> = params =>
+export const getCounties: Action<any, Counties> = params =>
   pipe(
     ask(),
     chain(env => env.irnRepository.getCounties({ districtId: toNumber(params.districtId) })),

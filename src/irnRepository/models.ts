@@ -8,8 +8,11 @@ export type IrnService = {
 }
 export type IrnServices = IrnService[]
 
+export type Region = "Acores" | "Continente" | "Madeira"
+
 export type District = {
   districtId: number
+  region: Region
   name: string
   gpsLocation?: GpsLocation
 }
