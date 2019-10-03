@@ -4,11 +4,10 @@ import { isNil } from "ramda"
 import { Counties, Districts, IrnPlaces, IrnRepositoryTables, IrnServices } from "../../../irnRepository/models"
 import { Action, ask } from "../../../utils/actions"
 
-const toNumber = (value: string | undefined) => (isNil(value) ? undefined : Number.parseInt(value, 10))
-
-const toDate = (value: string | undefined) => (isNil(value) ? undefined : new Date(Date.parse(value)))
-
-const toBoolean = (value: string | undefined) => !isNil(value) && value.toUpperCase().substr(0, 1) === "Y"
+const toNumber = (value?: string) => (isNil(value) ? undefined : Number.parseInt(value, 10))
+const toDate = (value?: string) => (isNil(value) ? undefined : new Date(Date.parse(value)))
+const toTimeSlot = (value?: string) => value
+const toBoolean = (value?: string) => !isNil(value) && value.toUpperCase().substr(0, 1) === "Y"
 
 export const getServices: Action<void, IrnServices> = () =>
   pipe(
@@ -65,9 +64,9 @@ export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = par
         countyId: toNumber(params.countyId),
         districtId: toNumber(params.districtId),
         endDate: toDate(params.endDate),
-        endTime: params.endTime,
+        endTime: toTimeSlot(params.endTime),
         onlyOnSaturdays: toBoolean(params.onlyOnSaturdays),
-        placeName: params.placeName,
+        placeName: toTimeSlot(params.placeName),
         serviceId: toNumber(params.serviceId),
         startDate: toDate(params.startDate),
         startTime: params.startTime,
