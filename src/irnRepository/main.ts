@@ -1,3 +1,5 @@
+import { pipe } from "fp-ts/lib/pipeable"
+import { map } from "fp-ts/lib/ReaderTaskEither"
 import * as mongoDb from "../mongodb/main"
 import { DbConfig, disconnect } from "../mongodb/main"
 import { Action, fromPromise, fromVoidPromise } from "../utils/actions"
@@ -30,7 +32,10 @@ const getDistricts: Action<void, Districts> = () => fromPromise(env => mongoDb.g
 const getIrnServices: Action<void, IrnServices> = () => fromPromise(env => mongoDb.getIrnServices(env.dbClient))
 
 const getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables> = params =>
-  fromPromise(env => mongoDb.getIrnTables(params)(env.dbClient))
+  pipe(
+    fromPromise(env => mongoDb.getIrnTables(params)(env.dbClient)),
+    map(irnTables => (params.onlyOnSaturdays ? irnTables.filter(t => t.date.getDay() === 6) : irnTables)),
+  )
 
 const addCounties: Action<Counties, void> = counties =>
   fromVoidPromise(env => mongoDb.addCounties(counties.map(c => ({ _id: c.countyId, ...c })))(env.dbClient))

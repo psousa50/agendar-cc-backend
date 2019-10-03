@@ -8,6 +8,8 @@ const toNumber = (value: string | undefined) => (isNil(value) ? undefined : Numb
 
 const toDate = (value: string | undefined) => (isNil(value) ? undefined : new Date(Date.parse(value)))
 
+const toBoolean = (value: string | undefined) => !isNil(value) && value.toUpperCase().substr(0, 1) === "Y"
+
 export const getServices: Action<void, IrnServices> = () =>
   pipe(
     ask(),
@@ -51,6 +53,9 @@ interface GetIrnTablesParams {
   placeName?: string
   startDate?: string
   endDate?: string
+  startTime?: string
+  endTime?: string
+  onlyOnSaturdays?: string
 }
 export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = params =>
   pipe(
@@ -60,9 +65,12 @@ export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = par
         countyId: toNumber(params.countyId),
         districtId: toNumber(params.districtId),
         endDate: toDate(params.endDate),
+        endTime: params.endTime,
+        onlyOnSaturdays: toBoolean(params.onlyOnSaturdays),
         placeName: params.placeName,
         serviceId: toNumber(params.serviceId),
         startDate: toDate(params.startDate),
+        startTime: params.startTime,
       }),
     ),
   )

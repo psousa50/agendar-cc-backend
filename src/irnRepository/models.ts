@@ -63,6 +63,7 @@ export type GetIrnRepositoryTablesParams = Partial<{
   endDate: Date
   startTime: TimeSlot
   endTime: TimeSlot
+  onlyOnSaturdays: boolean
 }>
 
 export interface IrnRepository {

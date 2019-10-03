@@ -49,7 +49,6 @@ function getById<T>(collection: string) {
 }
 function get<T>(collection: string) {
   return (query: FilterQuery<any> = {}) => (client: MongoClient) => {
-    console.log("QUERY=====>\n", query)
     return client
       .db()
       .collection<T>(collection)
@@ -72,6 +71,8 @@ const buildGetIrnTablesQuery = ({
   placeName,
   startDate,
   endDate,
+  startTime,
+  endTime,
 }: GetIrnRepositoryTablesParams) => ({
   ...(isNil(serviceId) ? {} : { serviceId }),
   ...(isNil(districtId) ? {} : { districtId }),
@@ -80,6 +81,16 @@ const buildGetIrnTablesQuery = ({
   ...(isNil(startDate) && isNil(endDate)
     ? {}
     : { date: { ...(isNil(startDate) ? {} : { $gte: startDate }), ...(isNil(endDate) ? {} : { $lte: endDate }) } }),
+  ...(isNil(startTime) && isNil(endTime)
+    ? {}
+    : {
+        timeSlots: {
+          $elemMatch: {
+            ...(isNil(startTime) ? {} : { $gte: startTime }),
+            ...(isNil(endTime) ? {} : { $lte: endTime }),
+          },
+        },
+      }),
 })
 export const getIrnTables = (params: GetIrnRepositoryTablesParams) =>
   get<IrnRepositoryTable>(IRN_TABLES)(buildGetIrnTablesQuery(params))
