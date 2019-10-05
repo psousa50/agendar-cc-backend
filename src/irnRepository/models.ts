@@ -27,23 +27,24 @@ export type County = {
 export type Counties = County[]
 
 export type IrnPlace = {
-  districtId: number
+  address: string
   countyId: number
-  name: string
+  districtId: number
   gpsLocation?: GpsLocation
+  name: string
+  phone: string
+  postalCode: string
 }
 export type IrnPlaces = IrnPlace[]
 
 export type IrnRepositoryTable = {
-  serviceId: number
-  districtId: number
   countyId: number
-  placeName: string
-  tableNumber: string
-  address: string
-  postalCode: string
-  phone: string
   date: Date
+  districtId: number
+  placeName: string
+  region: string
+  serviceId: number
+  tableNumber: string
   timeSlots: TimeSlot[]
 }
 
@@ -55,15 +56,16 @@ export type GetIrnPlacesParams = Partial<{
 }>
 
 export type GetIrnRepositoryTablesParams = Partial<{
-  serviceId: number
-  districtId: number
   countyId: number
-  placeName: string
-  startDate: Date
+  districtId: number
   endDate: Date
-  startTime: TimeSlot
   endTime: TimeSlot
   onlyOnSaturdays: boolean
+  placeName: string
+  region: string
+  serviceId: number
+  startDate: Date
+  startTime: TimeSlot
 }>
 
 export interface IrnRepository {
@@ -77,6 +79,7 @@ export interface IrnRepository {
   getConfig: Action<void, DbConfig | null>
   getCounty: Action<{ countyId: number }, County | null>
   getCounties: Action<{ districtId?: number }, Counties>
+  getDistrictRegion: Action<number, Region>
   getDistricts: Action<void, Districts>
   getIrnServices: Action<void, IrnServices>
   getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables>
@@ -84,7 +87,7 @@ export interface IrnRepository {
   updateConfig: Action<DbConfig, void>
   getIrnPlace: Action<{ placeName: string }, IrnPlace | null>
   getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces>
-  updateIrnPlace: Action<IrnPlace, void>
+  upsertIrnPlace: Action<Partial<IrnPlace>, void>
 }
 
 export const getCountyFromIrnTable = (irnTable: IrnRepositoryTable) => ({

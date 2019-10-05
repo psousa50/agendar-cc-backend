@@ -2,7 +2,8 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { map } from "fp-ts/lib/ReaderTaskEither"
 import * as mongoDb from "../mongodb/main"
 import { DbConfig, disconnect } from "../mongodb/main"
-import { Action, fromPromise, fromVoidPromise } from "../utils/actions"
+import { globalDistricts } from "../staticData/districts"
+import { Action, actionOf, fromPromise, fromVoidPromise } from "../utils/actions"
 import {
   Counties,
   County,
@@ -14,6 +15,7 @@ import {
   IrnRepository,
   IrnRepositoryTables,
   IrnServices,
+  Region,
 } from "./models"
 
 const clearAll: Action<void, void> = () => fromVoidPromise(env => mongoDb.clearAll(env.dbClient))
@@ -64,8 +66,11 @@ const getIrnPlace: Action<{ placeName: string }, IrnPlace | null> = ({ placeName
 const getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces> = params =>
   fromPromise(env => mongoDb.getIrnPlaces(params)(env.dbClient))
 
-const updateIrnPlace: Action<IrnPlace, void> = (irnPlace: IrnPlace) =>
+const upsertIrnPlace: Action<Partial<IrnPlace>, void> = irnPlace =>
   fromVoidPromise(env => mongoDb.updateIrnPlace(irnPlace)(env.dbClient))
+
+const getDistrictRegion: Action<number, Region> = districtId =>
+  actionOf(globalDistricts.find(d => d.districtId === districtId)!.region)
 
 export const irnRepository: IrnRepository = {
   addCounties,
@@ -78,6 +83,7 @@ export const irnRepository: IrnRepository = {
   getConfig,
   getCounties,
   getCounty,
+  getDistrictRegion,
   getDistricts,
   getIrnPlace,
   getIrnPlaces,
@@ -85,5 +91,5 @@ export const irnRepository: IrnRepository = {
   getIrnTables,
   switchIrnTables,
   updateConfig,
-  updateIrnPlace,
+  upsertIrnPlace,
 }

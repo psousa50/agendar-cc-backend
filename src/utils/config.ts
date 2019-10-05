@@ -7,9 +7,6 @@ export interface AppConfig {
     url: string
     key: string
   }
-  infra: {
-    useLocalIrnTables: boolean
-  }
   irnUrlLocations: { homePage: string; irnUrl: string; countiesPage: string; irnTablesPage: string }
   mongodb: {
     uri: string
@@ -43,14 +40,6 @@ export const config = convict<AppConfig>({
       doc: "",
       env: "GEO_CODING_URL",
       format: "url",
-    },
-  },
-  infra: {
-    useLocalIrnTables: {
-      default: false,
-      doc: "",
-      env: "USE_LOCAL_IRN_TABLES",
-      format: "Boolean",
     },
   },
   irnUrlLocations: {

@@ -1,7 +1,7 @@
 import { map } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/pipeable"
 import { run } from "fp-ts/lib/ReaderTaskEither"
-import { buildFormDataParams, buildGetCounties, buildGetIrnTables, delayedFetch } from "../../src/irnFetch/main"
+import { buildFormDataParams, buildGetCounties, buildGetIrnTables, fetchIrnPage } from "../../src/irnFetch/main"
 import { actionOf } from "../../src/utils/actions"
 import { timingFn } from "../../src/utils/timing"
 
@@ -179,7 +179,7 @@ describe("delayedFetch", () => {
 
   it("call fetch on Irn site", async () => {
     const options = { some: "options" } as any
-    const result = await run(delayedFetch("some-page", options), environment)
+    const result = await run(fetchIrnPage("some-page", options), environment)
 
     expect(fetch).toHaveBeenCalledWith("some-url/some-page", options)
 
@@ -191,7 +191,7 @@ describe("delayedFetch", () => {
 
   it("adds a delay before each fetch", async () => {
     const start = timingFn()
-    await run(delayedFetch("some-page"), environment)
+    await run(fetchIrnPage("some-page"), environment)
 
     expect(start.endTimer().inMillis).toBeGreaterThan(fetchDelay - 5)
   })

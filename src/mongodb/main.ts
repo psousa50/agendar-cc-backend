@@ -38,14 +38,25 @@ export const connect = (mongoDbUri: string): TaskEither<ServiceError, MongoClien
 export const disconnect = (client: MongoClient) => client.close()
 
 export const clearAll = (client: MongoClient) => client.db().dropDatabase()
-export const clearAllIrnTablesTemporary = (client: MongoClient) => client.db().dropCollection(IRN_TABLES_TEMPORARY)
+export const clearAllIrnTablesTemporary = async (client: MongoClient) => {
+  const cols = await client
+    .db()
+    .listCollections()
+    .toArray()
+  if (cols.includes(IRN_TABLES_TEMPORARY)) {
+    client
+      .db()
+      .collection(IRN_TABLES_TEMPORARY)
+      .drop()
+  }
+}
 
 function getById<T>(collection: string) {
   return (id: any) => (client: MongoClient) =>
     client
       .db()
       .collection<T>(collection)
-      .findOne({ _id: id })
+      .findOne({ _id: id.toString() })
 }
 function get<T>(collection: string) {
   return (query: FilterQuery<any> = {}) => (client: MongoClient) => {
@@ -66,6 +77,7 @@ export const getCounties = (districtId?: number) => get<County>(COUNTIES)({ ...(
 
 const buildGetIrnTablesQuery = ({
   serviceId,
+  region,
   districtId,
   countyId,
   placeName,
@@ -75,6 +87,7 @@ const buildGetIrnTablesQuery = ({
   endTime,
 }: GetIrnRepositoryTablesParams) => ({
   ...(isNil(serviceId) ? {} : { serviceId }),
+  ...(isNil(region) ? {} : { region }),
   ...(isNil(districtId) ? {} : { districtId }),
   ...(isNil(countyId) ? {} : { countyId }),
   ...(isNil(placeName) ? {} : { placeName }),
@@ -140,7 +153,7 @@ const buildGetIrnPlacesQuery = ({ districtId, countyId }: GetIrnRepositoryTables
 })
 export const getIrnPlaces = (params: GetIrnPlacesParams) => get<IrnPlace>(IRN_PLACES)(buildGetIrnPlacesQuery(params))
 
-export const updateIrnPlace = (irnPlace: IrnPlace) => (client: MongoClient) =>
+export const updateIrnPlace = (irnPlace: Partial<IrnPlace>) => (client: MongoClient) =>
   client
     .db()
     .collection(IRN_PLACES)

@@ -2,12 +2,10 @@ import { run } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { irnCrawler } from "../../src/irnCrawler/main"
 import { GetIrnTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
-import { County } from "../../src/irnRepository/models"
+import { IrnPlace } from "../../src/irnRepository/models"
 import { actionErrorOf, actionOf } from "../../src/utils/actions"
 import { ServiceError } from "../../src/utils/audit"
 import { logDebug } from "../../src/utils/debug"
-import { TimeSlot } from "../../src/utils/models"
-import { rndTo } from "../helpers"
 
 describe("IrnCrawler", () => {
   const defaultEnvironment = {
@@ -17,6 +15,7 @@ describe("IrnCrawler", () => {
   }
 
   const serviceId = 10
+  const region = "some region"
   const countyId = 20
   const districtId = 30
   const county = {
@@ -48,13 +47,31 @@ describe("IrnCrawler", () => {
     }
   }
 
+  const makeIrnPlace = (irnPlace: Partial<IrnPlace>): IrnPlace => {
+    const defaultIrnPlace = {
+      address: "some address",
+      countyId,
+      districtId,
+      name: "Some place name",
+      phone: "spme phone",
+      postalCode: "some postal code",
+    }
+
+    return {
+      ...defaultIrnPlace,
+      ...irnPlace,
+    }
+  }
+
   const defaultIrnRepository = {
     addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
     clearIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
     getCounties: jest.fn(() => actionOf([])),
+    getDistrictRegion: jest.fn(() => actionOf(region)),
     getIrnPlace: jest.fn(() => actionOf(null)),
     getIrnServices: jest.fn(() => actionOf([])),
     switchIrnTables: jest.fn(() => actionOf(undefined)),
+    upsertIrnPlace: jest.fn(() => actionOf(undefined)),
   }
 
   interface GetTablesCalls {
@@ -65,6 +82,17 @@ describe("IrnCrawler", () => {
     const call = getTablesCalls.find(c => equals(c.calledWith, params))
     return call ? actionOf(call.returns) : (logDebug("Call Not Found:", params), actionOf([]))
   }
+
+  const extractIrnRepositoryTable = (irnTable: IrnTable) => ({
+    countyId: irnTable.countyId,
+    date: irnTable.date,
+    districtId: irnTable.districtId,
+    placeName: irnTable.placeName,
+    region,
+    serviceId: irnTable.serviceId,
+    tableNumber: irnTable.tableNumber,
+    timeSlots: irnTable.timeSlots,
+  })
 
   describe("refreshTables", () => {
     const defaultCrawlerParams = {
@@ -92,6 +120,7 @@ describe("IrnCrawler", () => {
       const irnRepository = {
         ...defaultIrnRepository,
         getCounties: jest.fn(() => actionOf([county])),
+        getDistrictRegion: jest.fn(() => actionOf(region)),
         getIrnServices: jest.fn(() => actionOf([service])),
       } as any
 
@@ -101,14 +130,26 @@ describe("IrnCrawler", () => {
         irnRepository,
       } as any
 
+      const newIrnPlace = {
+        address: table.address,
+        countyId: table.countyId,
+        districtId: table.districtId,
+        gpsLocation: undefined,
+        name: table.placeName,
+        phone: table.phone,
+        postalCode: table.postalCode,
+      }
+
       await run(irnCrawler.refreshTables(defaultCrawlerParams), environment)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
       expect(irnRepository.clearIrnTablesTemporary).toHaveBeenCalled()
-      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([table])
+      expect(irnRepository.getDistrictRegion).toHaveBeenCalledWith(districtId)
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([table].map(extractIrnRepositoryTable))
       expect(irnRepository.switchIrnTables).toHaveBeenCalled()
+      expect(irnRepository.upsertIrnPlace).toHaveBeenCalledWith(newIrnPlace)
     })
 
     it("persist a tables from multiple services", async () => {
@@ -165,7 +206,9 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([tableService1, tableService2])
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith(
+        [tableService1, tableService2].map(extractIrnRepositoryTable),
+      )
     })
 
     it("crawls for next available dates on a table", async () => {
@@ -219,7 +262,7 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      const allTables = [table1Date1, table2Date1, table1Date2, table2Date2, table1Date3]
+      const allTables = [table1Date1, table2Date1, table1Date2, table2Date2, table1Date3].map(extractIrnRepositoryTable)
       expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith(allTables)
     })
 
@@ -288,7 +331,9 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      const allTables = [tableCounty1Date1, tableCounty1Date2, tableCounty2Date1, tableCounty2Date2]
+      const allTables = [tableCounty1Date1, tableCounty1Date2, tableCounty2Date1, tableCounty2Date2].map(
+        extractIrnRepositoryTable,
+      )
       expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith(allTables)
     })
 
@@ -333,26 +378,23 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([table1, table2])
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([table1, table2].map(extractIrnRepositoryTable))
     })
   })
 
-  describe("updatePlaces", () => {
-    it("creates new places for each irn table", async () => {
-      const placeName = "Some place"
-      const latitude = 10
-      const longitude = 20
+  describe("updateIrnPlaces", () => {
+    it("updates gpsLocation for each irnPlace that doesn't have it", async () => {
       const geoCoding = {
-        latitude,
-        longitude,
+        latitude: 10,
+        longitude: 20,
       }
-      const table = makeTable({ placeName })
+      const irnPlace1 = makeIrnPlace({ countyId, gpsLocation: undefined })
+      const irnPlace2 = makeIrnPlace({ gpsLocation: { latitude: 1, longitude: 2 } })
       const irnRepository = {
         ...defaultIrnRepository,
         getCounty: jest.fn(() => actionOf(county)),
-        getIrnPlace: jest.fn(() => actionOf(null)),
-        getIrnTables: jest.fn(() => actionOf([table])),
-        updateIrnPlace: jest.fn(() => actionOf(undefined)),
+        getIrnPlaces: jest.fn(() => actionOf([irnPlace1, irnPlace2])),
+        upsertIrnPlace: jest.fn(() => actionOf(undefined)),
       } as any
 
       const environment = {
@@ -365,54 +407,22 @@ describe("IrnCrawler", () => {
 
       await run(irnCrawler.updateIrnPlaces(), environment)
 
-      const irnPlace = {
-        countyId,
-        districtId,
-        gpsLocation: {
-          latitude,
-          longitude,
-        },
-        name: placeName,
+      const newIrnPlace1 = {
+        ...irnPlace1,
+        gpsLocation: geoCoding,
       }
-      expect(irnRepository.getIrnPlace).toHaveBeenCalledWith({ placeName })
-      expect(environment.geoCoding.get).toHaveBeenCalledWith(`${table.address}+${county.name}`)
-      expect(irnRepository.updateIrnPlace).toHaveBeenCalledWith(irnPlace)
+      expect(environment.geoCoding.get).toHaveBeenLastCalledWith(`${irnPlace1.address}+${county.name}`)
+      expect(irnRepository.upsertIrnPlace).toHaveBeenLastCalledWith(newIrnPlace1)
     })
 
-    it("do nothing if place already exists", async () => {
-      const placeName = "Some place"
-      const table = makeTable({ placeName })
-      const irnRepository = {
-        ...defaultIrnRepository,
-        getCounty: jest.fn(),
-        getIrnPlace: jest.fn(() => actionOf({ some: "place" })),
-        getIrnTables: jest.fn(() => actionOf([table])),
-        updateIrnPlace: jest.fn(),
-      } as any
-
-      const environment = {
-        ...defaultEnvironment,
-        geoCoding: {
-          get: jest.fn(),
-        },
-        irnRepository,
-      } as any
-
-      await run(irnCrawler.updateIrnPlaces(), environment)
-
-      expect(environment.geoCoding.get).not.toHaveBeenCalled()
-      expect(irnRepository.updateIrnPlace).not.toHaveBeenCalled()
-      expect(irnRepository.getIrnPlace).toHaveBeenCalledWith({ placeName })
-    })
-
-    it("creates a new place with undefined location on gps error", async () => {
-      const placeName = "Some place"
-      const table = makeTable({ placeName })
+    it("do nothing on gps error", async () => {
+      const irnPlace1 = makeIrnPlace({ countyId, gpsLocation: undefined })
+      const irnPlace2 = makeIrnPlace({ gpsLocation: { latitude: 1, longitude: 2 } })
       const irnRepository = {
         ...defaultIrnRepository,
         getCounty: jest.fn(() => actionOf(county)),
-        getIrnTables: jest.fn(() => actionOf([table])),
-        updateIrnPlace: jest.fn(() => actionOf(undefined)),
+        getIrnPlaces: jest.fn(() => actionOf([irnPlace1, irnPlace2])),
+        upsertIrnPlace: jest.fn(() => actionOf(undefined)),
       } as any
 
       const environment = {
@@ -425,14 +435,7 @@ describe("IrnCrawler", () => {
 
       await run(irnCrawler.updateIrnPlaces(), environment)
 
-      const place = {
-        countyId,
-        districtId,
-        gpsLocation: undefined,
-        name: placeName,
-      }
-      expect(environment.geoCoding.get).toHaveBeenCalledWith(`${table.address}+${county.name}`)
-      expect(irnRepository.updateIrnPlace).toHaveBeenCalledWith(place)
+      expect(irnRepository.upsertIrnPlace).not.toHaveBeenCalled()
     })
   })
 })

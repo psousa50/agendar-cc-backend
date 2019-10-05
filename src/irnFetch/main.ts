@@ -1,23 +1,17 @@
 import FormData from "form-data"
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain } from "fp-ts/lib/ReaderTaskEither"
-import { Environment } from "../environment"
 import { ParseCounties, parseCounties, parseIrnTables, ParseIrnTables, ParseTok, parseTok } from "../irnParser/main"
 import { Counties } from "../irnRepository/models"
-import { Action, ActionResult, ask, delay, toAction } from "../utils/actions"
-import { ServiceError } from "../utils/audit"
+import { Action, ActionResult, ask, toAction } from "../utils/actions"
 import { AppConfig } from "../utils/config"
-import { extractText } from "../utils/fetch"
+import { delayedFetch, extractText } from "../utils/fetch"
 import { GetIrnTableParams, IrnTables } from "./models"
 
-export const delayedFetch = (page: string, options?: RequestInit): ActionResult<Response> =>
+export const fetchIrnPage = (page: string, options?: RequestInit) =>
   pipe(
     ask(),
-    chain(env =>
-      delay<Environment, ServiceError, Response>(env)(env.config.fetchDelay)(
-        env.fetch(`${env.config.irnUrlLocations.irnUrl}/${page}`, options),
-      ),
-    ),
+    chain(env => delayedFetch(env.config.fetchDelay)(`${env.config.irnUrlLocations.irnUrl}/${page}`, options)),
   )
 
 const getCountiesUrl = (config: AppConfig, districtId: number) =>
@@ -28,7 +22,7 @@ export const buildGetCounties: (
 ) => Action<{ districtId: number }, Counties> = injectedParseCounties => ({ districtId }) =>
   pipe(
     ask(),
-    chain(env => delayedFetch(getCountiesUrl(env.config, districtId))),
+    chain(env => fetchIrnPage(getCountiesUrl(env.config, districtId))),
     chain(extractText),
     chain(toAction(injectedParseCounties(districtId))),
   )
@@ -95,7 +89,7 @@ export const buildGetIrnTables: BuildGetIrnTables = (
 
     return pipe(
       ask(),
-      chain(env => delayedFetch(getIrnTablesPage(env.config), options)),
+      chain(env => fetchIrnPage(getIrnTablesPage(env.config), options)),
       chain(extractText),
     )
   }
@@ -109,7 +103,7 @@ export const buildGetIrnTables: BuildGetIrnTables = (
   }
   return pipe(
     ask(),
-    chain(env => delayedFetch(getHomePage(env.config))),
+    chain(env => fetchIrnPage(getHomePage(env.config))),
     chain(fetchIrnTables),
     chain(toAction(injectedParseIrnTables(params.serviceId, params.countyId, params.districtId))),
   )

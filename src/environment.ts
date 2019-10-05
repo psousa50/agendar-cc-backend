@@ -3,7 +3,6 @@ import { map } from "fp-ts/lib/TaskEither"
 import { MongoClient } from "mongodb"
 import { get as getGeoCoding } from "./geoCoding/main"
 import { GeoCoding } from "./geoCoding/models"
-import { irnFetch as irnFetchLocal } from "./irnFetch/local"
 import { irnFetch } from "./irnFetch/main"
 import { IrnFetch } from "./irnFetch/models"
 import { irnRepository } from "./irnRepository/main"
@@ -35,7 +34,7 @@ export const buildEnvironment = () => {
       geoCoding: {
         get: getGeoCoding,
       },
-      irnFetch: config.infra.useLocalIrnTables ? irnFetchLocal : irnFetch,
+      irnFetch,
       irnRepository,
     })),
   )

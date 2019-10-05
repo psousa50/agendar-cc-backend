@@ -14,7 +14,7 @@
     "start-mongo": "docker run -d -p 27017:27017 -v ~/Work/Projects/agendar-cc/agendar-cc-backend/data/mongo:/data/db mongo",
     "start": "NODE_ENV=production node dist/index.js",
     "start-worker": "NODE_ENV=production node dist/worker/index.js",
-    "start-worker:dev": "node dist/worker/index.js",
+    "start-worker:dev": "ts-node ./src/worker/index.ts",
     "start:dev": "node dist/index.js",
     "test": "jest --testPathPattern=test/.+\\.spec\\.ts",
     "test:watch": "npm test -- --watch",

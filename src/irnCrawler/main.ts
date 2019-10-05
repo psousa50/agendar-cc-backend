@@ -1,16 +1,15 @@
 import { array } from "fp-ts/lib/Array"
 import { pipe } from "fp-ts/lib/pipeable"
-import { chain, map, orElse, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
+import { chain, map, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
-import { IrnTables } from "../irnFetch/models"
-import { Counties, IrnRepositoryTable } from "../irnRepository/models"
+import { IrnTable, IrnTables } from "../irnFetch/models"
+import { Counties, IrnPlace, IrnRepositoryTables, Region } from "../irnRepository/models"
 import { globalCounties } from "../staticData/counties"
 import { globalDistricts } from "../staticData/districts"
 import { globalIrnServices } from "../staticData/irnServices"
 import { Action, actionOf, ask } from "../utils/actions"
 import { flatten } from "../utils/collections"
 import { addDays } from "../utils/dates"
-import { GpsLocation } from "../utils/models"
 import { IrnCrawler, RefreshTablesParams } from "./models"
 
 const rteArraySequence = array.sequence(readerTaskEither)
@@ -66,6 +65,69 @@ const addStaticData: Action<void, void> = () =>
 
 const start = () => addStaticData()
 
+const extractIrnRepositoryTable = (irnTable: IrnTable, region: Region) => ({
+  countyId: irnTable.countyId,
+  date: irnTable.date,
+  districtId: irnTable.districtId,
+  placeName: irnTable.placeName,
+  region,
+  serviceId: irnTable.serviceId,
+  tableNumber: irnTable.tableNumber,
+  timeSlots: irnTable.timeSlots,
+})
+
+const extractIrnRepositoryTables: Action<IrnTables, IrnRepositoryTables> = irnTables =>
+  pipe(
+    ask(),
+    chain(env =>
+      rteArraySequence(
+        irnTables.map(irnTable =>
+          pipe(
+            env.irnRepository.getDistrictRegion(irnTable.districtId),
+            map(region => extractIrnRepositoryTable(irnTable, region)),
+          ),
+        ),
+      ),
+    ),
+  )
+
+const extractIrnPlace = (irnTable: IrnTable) => ({
+  address: irnTable.address,
+  countyId: irnTable.countyId,
+  districtId: irnTable.districtId,
+  name: irnTable.placeName,
+  phone: irnTable.phone,
+  postalCode: irnTable.postalCode,
+})
+
+const upsertIrnPlaces: Action<IrnTables, void> = irnTables =>
+  pipe(
+    ask(),
+    chain(env =>
+      irnTables.reduceRight(
+        (acc, irnTable) =>
+          pipe(
+            env.irnRepository.upsertIrnPlace(extractIrnPlace(irnTable)),
+            chain(() => acc),
+          ),
+        actionOf(undefined),
+      ),
+    ),
+  )
+
+const addIrnTables: Action<IrnTables, void> = irnTables =>
+  pipe(
+    ask(),
+    chain(env =>
+      pipe(
+        env.irnRepository.clearIrnTablesTemporary(),
+        chain(_ => extractIrnRepositoryTables(irnTables)),
+        chain(env.irnRepository.addIrnTablesTemporary),
+        chain(env.irnRepository.switchIrnTables),
+      ),
+    ),
+  )
+
 const refreshTables: Action<RefreshTablesParams, void> = params =>
   pipe(
     ask(),
@@ -100,49 +162,26 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
           rteArraySequence(services.map(service => getTablesForService(service.serviceId, counties))),
         ),
         chain(flattenTables),
-        chain(irnTables => {
-          env.irnRepository.clearIrnTablesTemporary()
-          return actionOf(irnTables)
-        }),
-        chain(env.irnRepository.addIrnTablesTemporary),
-        chain(env.irnRepository.switchIrnTables),
+        chain(irnTables =>
+          pipe(
+            addIrnTables(irnTables),
+            chain(_ => upsertIrnPlaces(irnTables)),
+          ),
+        ),
       )
     }),
   )
 
-const updateIrnPlace = (
-  countyId: number,
-  districtId: number,
-  irnPlace: string,
-): Action<GpsLocation | undefined, void> => location =>
-  pipe(
-    ask(),
-    chain(env =>
-      env.irnRepository.updateIrnPlace({
-        countyId,
-        districtId,
-        gpsLocation: location,
-        name: irnPlace,
-      }),
-    ),
-  )
-
-const updateIrnTablePlace: Action<IrnRepositoryTable, void> = ({ address, countyId, districtId, placeName }) =>
+const updateIrnPlace: Action<IrnPlace, void> = irnPlace =>
   pipe(
     ask(),
     chain(env =>
       pipe(
-        env.irnRepository.getIrnPlace({ placeName }),
-        chain(irnPlace => {
-          return irnPlace === null
-            ? pipe(
-                env.irnRepository.getCounty({ countyId }),
-                chain(county => (county ? env.geoCoding.get(`${address}+${county.name}`) : actionOf(undefined))),
-                chain(location => updateIrnPlace(countyId, districtId, placeName)(location)),
-                orElse(() => updateIrnPlace(countyId, districtId, placeName)(undefined)),
-              )
-            : actionOf(undefined)
-        }),
+        env.irnRepository.getCounty({ countyId: irnPlace.countyId }),
+        chain(county => (county ? env.geoCoding.get(`${irnPlace.address}+${county.name}`) : actionOf(undefined))),
+        chain(gpsLocation =>
+          gpsLocation ? env.irnRepository.upsertIrnPlace({ ...irnPlace, gpsLocation }) : actionOf(undefined),
+        ),
       ),
     ),
   )
@@ -150,16 +189,18 @@ const updateIrnTablePlace: Action<IrnRepositoryTable, void> = ({ address, county
 const updateIrnPlaces: Action<void, void> = () =>
   pipe(
     ask(),
-    chain(env => env.irnRepository.getIrnTables({})),
-    chain(irnTables =>
-      irnTables.reduceRight(
-        (acc, irnTable) =>
-          pipe(
-            updateIrnTablePlace(irnTable),
-            chain(() => acc),
-          ),
-        actionOf(undefined),
-      ),
+    chain(env => env.irnRepository.getIrnPlaces({})),
+    chain(irnPlaces =>
+      irnPlaces
+        .filter(p => p.gpsLocation === undefined)
+        .reduceRight(
+          (acc, irnPlace) =>
+            pipe(
+              updateIrnPlace(irnPlace),
+              chain(() => acc),
+            ),
+          actionOf(undefined),
+        ),
     ),
     chain(() => actionOf(undefined)),
   )

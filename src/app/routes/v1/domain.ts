@@ -46,6 +46,7 @@ export const getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces> = params =>
   )
 
 interface GetIrnTablesParams {
+  region?: string
   serviceId?: string
   districtId?: string
   countyId?: string
@@ -67,6 +68,7 @@ export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = par
         endTime: toTimeSlot(params.endTime),
         onlyOnSaturdays: toBoolean(params.onlyOnSaturdays),
         placeName: toTimeSlot(params.placeName),
+        region: params.region,
         serviceId: toNumber(params.serviceId),
         startDate: toDate(params.startDate),
         startTime: params.startTime,
