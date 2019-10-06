@@ -4,9 +4,10 @@
   "description": "An App to help Portuguese citizens to schedule an appointment to get their Citizen Card",
   "main": "dist/index.js",
   "scripts": {
-    "prebuild": "npm run clean && npm run lint && npm test",
-    "tsc": "tsc --project tsconfig.dist.json",
+    "prebuild": "npm run clean && npm run lint",
+    "postbuild": "npm test",
     "build": "npm run tsc",
+    "tsc": "tsc --project tsconfig.dist.json",
     "clean": "rm -rf dist",
     "lint": "tslint --project tsconfig.json",
     "worker:dev": "nodemon --exec 'ts-node --files' ./src/worker/index.ts",

@@ -1,8 +1,8 @@
 import { run } from "fp-ts/lib/ReaderTaskEither"
-import { equals } from "ramda"
+import { equals, sort } from "ramda"
 import { irnCrawler } from "../../src/irnCrawler/main"
 import { GetIrnTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
-import { IrnPlace } from "../../src/irnRepository/models"
+import { IrnPlace, IrnRepositoryTables } from "../../src/irnRepository/models"
 import { actionErrorOf, actionOf } from "../../src/utils/actions"
 import { ServiceError } from "../../src/utils/audit"
 import { logDebug } from "../../src/utils/debug"
@@ -27,6 +27,7 @@ describe("IrnCrawler", () => {
     serviceId,
   }
 
+  const sortIrnTables = (irnTables: IrnRepositoryTables) => sort((t1, t2) => t1.countyId - t2.countyId, irnTables)
   const makeTable = (irnTable: Partial<IrnTable>): IrnTable => {
     const defaultIrnTable = {
       address: "some address",
@@ -115,20 +116,24 @@ describe("IrnCrawler", () => {
 
       const irnFetch = {
         getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
-      } as any
+      }
 
       const irnRepository = {
         ...defaultIrnRepository,
+        addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
+        clearIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
         getCounties: jest.fn(() => actionOf([county])),
         getDistrictRegion: jest.fn(() => actionOf(region)),
         getIrnServices: jest.fn(() => actionOf([service])),
-      } as any
+        switchIrnTables: jest.fn(() => actionOf(undefined)),
+        upsertIrnPlace: jest.fn(() => actionOf(undefined)),
+      }
 
       const environment = {
         ...defaultEnvironment,
         irnFetch,
         irnRepository,
-      } as any
+      }
 
       const newIrnPlace = {
         address: table.address,
@@ -140,7 +145,7 @@ describe("IrnCrawler", () => {
         postalCode: table.postalCode,
       }
 
-      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment)
+      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment as any)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
@@ -187,21 +192,22 @@ describe("IrnCrawler", () => {
 
       const irnFetch = {
         getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
-      } as any
+      }
 
       const irnRepository = {
         ...defaultIrnRepository,
+        addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
         getCounties: jest.fn(() => actionOf([county])),
         getIrnServices: jest.fn(() => actionOf(services)),
-      } as any
+      }
 
       const environment = {
         ...defaultEnvironment,
         irnFetch,
         irnRepository,
-      } as any
+      }
 
-      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment)
+      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment as any)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
@@ -243,21 +249,22 @@ describe("IrnCrawler", () => {
 
       const irnFetch = {
         getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
-      } as any
+      }
 
       const irnRepository = {
         ...defaultIrnRepository,
+        addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
         getCounties: jest.fn(() => actionOf([county])),
         getIrnServices: jest.fn(() => actionOf([service])),
-      } as any
+      }
 
       const environment = {
         ...defaultEnvironment,
         irnFetch,
         irnRepository,
-      } as any
+      }
 
-      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment)
+      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment as any)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
@@ -312,29 +319,32 @@ describe("IrnCrawler", () => {
 
       const irnFetch = {
         getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
-      } as any
+      }
 
       const irnRepository = {
         ...defaultIrnRepository,
+        addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
         getCounties: jest.fn(() => actionOf([county1, county2])),
         getIrnServices: jest.fn(() => actionOf([service])),
-      } as any
+      }
 
       const environment = {
         ...defaultEnvironment,
         irnFetch,
         irnRepository,
-      } as any
+      }
 
-      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment)
+      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment as any)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      const allTables = [tableCounty2Date1, tableCounty2Date2, tableCounty1Date1, tableCounty1Date2].map(
+      const expectedTablesAdded = [tableCounty2Date1, tableCounty2Date2, tableCounty1Date1, tableCounty1Date2].map(
         extractIrnRepositoryTable,
       )
-      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith(allTables)
+      const actualTablesAdded = (irnRepository.addIrnTablesTemporary.mock.calls[0] as any)[0] as IrnRepositoryTables
+
+      expect(sortIrnTables(actualTablesAdded)).toEqual(sortIrnTables(expectedTablesAdded))
     })
 
     it("stops crawling after the crawl days limit", async () => {
@@ -357,13 +367,14 @@ describe("IrnCrawler", () => {
 
       const irnFetch = {
         getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
-      } as any
+      }
 
       const irnRepository = {
         ...defaultIrnRepository,
+        addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
         getCounties: jest.fn(() => actionOf([county])),
         getIrnServices: jest.fn(() => actionOf([service])),
-      } as any
+      }
 
       const environment = {
         config: {
@@ -371,9 +382,9 @@ describe("IrnCrawler", () => {
         },
         irnFetch,
         irnRepository,
-      } as any
+      }
 
-      await run(irnCrawler.refreshTables({ startDate }), environment)
+      await run(irnCrawler.refreshTables({ startDate }), environment as any)
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
@@ -395,7 +406,7 @@ describe("IrnCrawler", () => {
         getCounty: jest.fn(() => actionOf(county)),
         getIrnPlaces: jest.fn(() => actionOf([irnPlace1, irnPlace2])),
         upsertIrnPlace: jest.fn(() => actionOf(undefined)),
-      } as any
+      }
 
       const environment = {
         ...defaultEnvironment,
@@ -403,9 +414,9 @@ describe("IrnCrawler", () => {
           get: jest.fn(() => actionOf(geoCoding)),
         },
         irnRepository,
-      } as any
+      }
 
-      await run(irnCrawler.updateIrnPlaces(), environment)
+      await run(irnCrawler.updateIrnPlaces(), environment as any)
 
       const newIrnPlace1 = {
         ...irnPlace1,
@@ -423,7 +434,7 @@ describe("IrnCrawler", () => {
         getCounty: jest.fn(() => actionOf(county)),
         getIrnPlaces: jest.fn(() => actionOf([irnPlace1, irnPlace2])),
         upsertIrnPlace: jest.fn(() => actionOf(undefined)),
-      } as any
+      }
 
       const environment = {
         ...defaultEnvironment,
@@ -431,9 +442,9 @@ describe("IrnCrawler", () => {
           get: jest.fn(() => actionErrorOf(new ServiceError("some error"))),
         },
         irnRepository,
-      } as any
+      }
 
-      await run(irnCrawler.updateIrnPlaces(), environment)
+      await run(irnCrawler.updateIrnPlaces(), environment as any)
 
       expect(irnRepository.upsertIrnPlace).not.toHaveBeenCalled()
     })
