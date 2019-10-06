@@ -331,7 +331,7 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      const allTables = [tableCounty1Date1, tableCounty1Date2, tableCounty2Date1, tableCounty2Date2].map(
+      const allTables = [tableCounty2Date1, tableCounty2Date2, tableCounty1Date1, tableCounty1Date2].map(
         extractIrnRepositoryTable,
       )
       expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith(allTables)
