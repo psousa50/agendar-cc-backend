@@ -3,11 +3,11 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { chain, map, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
 import { equals } from "ramda"
 import { IrnTable, IrnTables } from "../irnFetch/models"
-import { Counties, IrnPlace, IrnRepositoryTables, Region } from "../irnRepository/models"
+import { Counties, County, IrnPlace, IrnRepositoryTables, IrnService, Region } from "../irnRepository/models"
 import { globalCounties } from "../staticData/counties"
 import { globalDistricts } from "../staticData/districts"
 import { globalIrnServices } from "../staticData/irnServices"
-import { Action, actionOf, ask } from "../utils/actions"
+import { Action, actionOf, ask, mapActionsInSequence, pipeActionsInSequence } from "../utils/actions"
 import { flatten } from "../utils/collections"
 import { addDays } from "../utils/dates"
 import { IrnCrawler, RefreshTablesParams } from "./models"
@@ -143,12 +143,13 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
           ),
         )
 
-      const getTablesForService = (serviceId: number, counties: Counties) =>
+      const getTablesForService: Action<{ serviceId: number; counties: Counties }, IrnTables> = ({
+        serviceId,
+        counties,
+      }) =>
         pipe(
-          rteArraySequence(
-            counties.map(county =>
-              env.irnFetch.getIrnTables({ serviceId, countyId: county.countyId, districtId: county.districtId }),
-            ),
+          mapActionsInSequence<County, IrnTable[]>(counties)(county =>
+            env.irnFetch.getIrnTables({ serviceId, countyId: county.countyId, districtId: county.districtId }),
           ),
           chain(irnTablesPerCounty => rteArraySequence(irnTablesPerCounty.map(crawlTableDates(serviceId, dateLimit)))),
           chain(flattenTables),
@@ -159,7 +160,9 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
       return pipe(
         getServicesAndCounties(),
         chain(({ services, counties }) =>
-          rteArraySequence(services.map(service => getTablesForService(service.serviceId, counties))),
+          mapActionsInSequence<IrnService, IrnTables>(services)(service =>
+            getTablesForService({ serviceId: service.serviceId, counties }),
+          ),
         ),
         chain(flattenTables),
         chain(irnTables =>
@@ -190,18 +193,7 @@ const updateIrnPlaces: Action<void, void> = () =>
   pipe(
     ask(),
     chain(env => env.irnRepository.getIrnPlaces({})),
-    chain(irnPlaces =>
-      irnPlaces
-        .filter(p => p.gpsLocation === undefined)
-        .reduceRight(
-          (acc, irnPlace) =>
-            pipe(
-              updateIrnPlace(irnPlace),
-              chain(() => acc),
-            ),
-          actionOf(undefined),
-        ),
-    ),
+    chain(irnPlaces => pipeActionsInSequence(irnPlaces.filter(p => p.gpsLocation === undefined))(updateIrnPlace)),
     chain(() => actionOf(undefined)),
   )
 

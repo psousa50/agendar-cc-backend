@@ -23,7 +23,7 @@ export const config = convict<AppConfig>({
     format: "int",
   },
   fetchDelay: {
-    default: 500,
+    default: 200,
     doc: "",
     env: "FETCH_DELAY",
     format: "int",

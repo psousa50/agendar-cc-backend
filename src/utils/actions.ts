@@ -6,6 +6,7 @@ import {
   chain,
   fromEither,
   fromTaskEither,
+  map,
   ReaderTaskEither,
   readerTaskEither as RTE,
   rightReader,
@@ -86,3 +87,30 @@ export const fromVoidPromise = <T>(promise: (env: Environment) => Promise<T>) =>
     fromPromise(env => promise(env)),
     chain(() => actionOf(undefined)),
   )
+
+export const pipeActionsInSequence = <T>(collection: T[]) => (action: Action<T, void>) =>
+  collection.reduceRight(
+    (acc, cur) =>
+      pipe(
+        action(cur),
+        chain(() => acc),
+      ),
+    actionOf(undefined),
+  )
+
+export function mapActionsInSequence<T, R>(collection: T[]) {
+  return (action: Action<T, R>) =>
+    collection.reduceRight(
+      (acc, cur) =>
+        pipe(
+          action(cur),
+          chain(value =>
+            pipe(
+              acc,
+              map(values => [...values, value]),
+            ),
+          ),
+        ),
+      actionOf([] as R[]),
+    )
+}
