@@ -3,6 +3,8 @@ import convict from "convict"
 export interface AppConfig {
   crawlDaysLimit: number
   fetchDelay: number
+  retryCount: number
+  retryDelay: number
   geoCoding: {
     url: string
     key: string
@@ -87,6 +89,18 @@ export const config = convict<AppConfig>({
     doc: "",
     env: "PORT",
     format: "port",
+  },
+  retryCount: {
+    default: 3,
+    doc: "",
+    env: "RETRY_COUNT",
+    format: "int",
+  },
+  retryDelay: {
+    default: 5000,
+    doc: "",
+    env: "RETRY_DELAY",
+    format: "int",
   },
 })
 

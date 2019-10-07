@@ -14,8 +14,6 @@ const exitProcess = (error: ServiceError) => {
   return task.of(undefined)
 }
 
-const refreshTables = () => irnCrawler.refreshTables({ startDate: new Date(Date.now()) })
-
 const start = (environment: Environment) => {
   if (isDev(environment.config)) {
     logDebug("App Config =====>\n", environment.config)
@@ -24,7 +22,7 @@ const start = (environment: Environment) => {
     pipe(
       irnCrawler.start(),
       chain(() => environment.irnRepository.updateConfig({ refreshStarted: new Date(Date.now()) })),
-      chain(() => refreshTables()),
+      chain(() => irnCrawler.refreshTables({ startDate: new Date(Date.now()) })),
       chain(() => environment.irnRepository.updateConfig({ refreshEnded: new Date(Date.now()) })),
       chain(() => irnCrawler.updateIrnPlaces()),
       chain(() => environment.irnRepository.close()),

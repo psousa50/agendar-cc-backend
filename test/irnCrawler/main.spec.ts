@@ -5,6 +5,7 @@ import { GetIrnTableParams, IrnTable, IrnTables } from "../../src/irnFetch/model
 import { IrnPlace, IrnRepositoryTables } from "../../src/irnRepository/models"
 import { actionErrorOf, actionOf } from "../../src/utils/actions"
 import { ServiceError } from "../../src/utils/audit"
+import { addDays } from "../../src/utils/dates"
 import { logDebug } from "../../src/utils/debug"
 
 describe("IrnCrawler", () => {
@@ -391,6 +392,46 @@ describe("IrnCrawler", () => {
 
       expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([table1, table2].map(extractIrnRepositoryTable))
     })
+
+    it.skip("copes with large table data", async () => {
+      const irnRepository = {
+        ...defaultIrnRepository,
+        addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
+        clearIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
+        getCounties: jest.fn(() => actionOf([county])),
+        getDistrictRegion: jest.fn(() => actionOf(region)),
+        getIrnServices: jest.fn(() => actionOf([service])),
+        switchIrnTables: jest.fn(() => actionOf(undefined)),
+        upsertIrnPlace: jest.fn(() => actionOf(undefined)),
+      }
+
+      const manyTables = (params: GetIrnTableParams) => {
+        const date = params.date || new Date(Date.now())
+        const irnTable = makeTable({ ...params, date: addDays(date, 1) })
+        return actionOf([irnTable])
+      }
+
+      const irnFetch = {
+        getIrnTables: jest.fn(manyTables),
+      }
+
+      const environment = {
+        ...defaultEnvironment,
+        config: {
+          crawlDaysLimit: 5000,
+        },
+        irnFetch,
+        irnRepository,
+      }
+
+      const crawlerParams = {
+        startDate: new Date(Date.now()),
+      }
+      await run(irnCrawler.refreshTables(crawlerParams), environment as any)
+
+      const a = (irnRepository.addIrnTablesTemporary.mock.calls[0] as any)[0] as IrnTables
+      console.log("=====>\n", a.length)
+    })
   })
 
   describe("updateIrnPlaces", () => {
@@ -422,6 +463,8 @@ describe("IrnCrawler", () => {
         ...irnPlace1,
         gpsLocation: geoCoding,
       }
+
+      expect(environment.geoCoding.get).toHaveBeenCalledTimes(1)
       expect(environment.geoCoding.get).toHaveBeenLastCalledWith(`${irnPlace1.address}+${county.name}`)
       expect(irnRepository.upsertIrnPlace).toHaveBeenLastCalledWith(newIrnPlace1)
     })

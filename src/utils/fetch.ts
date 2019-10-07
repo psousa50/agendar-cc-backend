@@ -1,23 +1,45 @@
 import { pipe } from "fp-ts/lib/pipeable"
-import { chain, fromTaskEither, ReaderTaskEither, swap } from "fp-ts/lib/ReaderTaskEither"
+import { chain, fold, fromTaskEither, ReaderTaskEither, swap } from "fp-ts/lib/ReaderTaskEither"
 import { tryCatch } from "fp-ts/lib/TaskEither"
 import isoFetch from "isomorphic-fetch"
 import { Environment } from "../environment"
-import { actionOf, ActionResult, ask, delay } from "./actions"
+import { actionErrorOf, actionOf, ActionResult, ask, delay } from "./actions"
 import { ServiceError } from "./audit"
 import { logDebug } from "./debug"
 import * as Errors from "./errors"
 
-export type FetchFn = (input: Request | string, init?: RequestInit) => Promise<Response>
+export type FetchPromise = (input: Request | string, init?: RequestInit) => Promise<Response>
 export type FetchAction = (
   input: Request | string,
   init?: RequestInit,
 ) => ReaderTaskEither<Environment, ServiceError, Response>
 
-export const fetchAction = (input: Request | string, init?: RequestInit): ActionResult<Response> => {
-  function coreFetch(): ActionResult<Response> {
-    logDebug("Fetching... =====>", input, new Date(Date.now()))
-    return fromTaskEither(tryCatch(() => isoFetch(input, init), error => new ServiceError((error as Error).message)))
+export const buildFetchAction = (fetch: FetchPromise) => (
+  input: Request | string,
+  init?: RequestInit,
+): ActionResult<Response> => {
+  const coreFetch: () => ActionResult<Response> = () =>
+    fromTaskEither(tryCatch(() => fetch(input, init), error => new ServiceError((error as Error).message)))
+
+  const fetchRetry = (nTries: number = 1): ActionResult<Response> => {
+    logDebug(`Fetching... ( Tries: ${nTries})`, input, new Date(Date.now()))
+    return pipe(
+      ask(),
+      chain(env =>
+        pipe(
+          coreFetch(),
+          fold(
+            e => {
+              logDebug(`Error Fetching ${e.message}. ${nTries < env.config.retryCount ? "Retrying..." : ""}`)
+              return nTries < env.config.retryCount
+                ? delay<Environment, ServiceError, Response>(env)(env.config.retryDelay)(fetchRetry(nTries + 1))
+                : actionErrorOf(e)
+            },
+            r => actionOf(r),
+          ),
+        ),
+      ),
+    )
   }
 
   function defaultErrorHandler(response: Response, message?: string): ServiceError {
@@ -61,7 +83,7 @@ export const fetchAction = (input: Request | string, init?: RequestInit): Action
   }
 
   return pipe(
-    coreFetch(),
+    fetchRetry(),
     chain(responseMapper),
   )
 }
@@ -77,3 +99,5 @@ export const delayedFetch = (delayMs: number) => (url: string, options?: Request
     ask(),
     chain(env => delay<Environment, ServiceError, Response>(env)(delayMs)(env.fetch(url, options))),
   )
+
+export const fetchAction = buildFetchAction(isoFetch)

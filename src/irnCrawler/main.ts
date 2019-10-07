@@ -159,7 +159,7 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
       return pipe(
         getServicesAndCounties(),
         chain(({ services, counties }) =>
-          rteActionsSequence<IrnTables>(services.map(service => getTablesForService(service.serviceId, counties))),
+          rteArraySequence(services.map(service => getTablesForService(service.serviceId, counties))),
         ),
         chain(flattenTables),
         chain(irnTables =>
@@ -190,6 +190,7 @@ const updateIrnPlaces: Action<void, void> = () =>
   pipe(
     ask(),
     chain(env => env.irnRepository.getIrnPlaces({})),
+    map(irnPlaces => irnPlaces.filter(p => !p.gpsLocation)),
     chain(irnPlaces => rteActionsSequence(irnPlaces.map(updateIrnPlace))),
     chain(() => actionOf(undefined)),
   )

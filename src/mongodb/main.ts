@@ -135,7 +135,7 @@ export const addDistricts = (districts: Districts) =>
 export const addCounties = (counties: Counties) =>
   updateMany(COUNTIES)(counties.map(c => ({ ...c, _id: c.countyId.toString() })))
 
-export const addIrnTables = (irnTables: IrnRepositoryTables) => insertMany(IRN_TABLES_TEMPORARY)(irnTables)
+export const addIrnTablesTemporary = (irnTables: IrnRepositoryTables) => insertMany(IRN_TABLES_TEMPORARY)(irnTables)
 
 export const getConfig = getById<DbConfig>(DB_CONFIG)(1)
 

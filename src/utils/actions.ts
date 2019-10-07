@@ -66,13 +66,13 @@ export const toAction = <I, R>(f: (i: I) => R): ((i: I) => ActionResult<R>) => i
   }
 }
 
-export const fromPromise = <T>(promise: (env: Environment) => Promise<T>) =>
+export const fromPromise = <T>(lazyPromise: (env: Environment) => Promise<T>) =>
   pipe(
     ask(),
     chain(env =>
       fromTaskEither(
         tryCatch(
-          () => promise(env),
+          () => lazyPromise(env),
           e => {
             logDebug(`ERROR: ${(e as Error).message}`)
             return new ServiceError((e as Error).message)
@@ -82,9 +82,9 @@ export const fromPromise = <T>(promise: (env: Environment) => Promise<T>) =>
     ),
   )
 
-export const fromVoidPromise = <T>(promise: (env: Environment) => Promise<T>) =>
+export const fromVoidPromise = <T>(lazyPromise: (env: Environment) => Promise<T>) =>
   pipe(
-    fromPromise(env => promise(env)),
+    fromPromise(lazyPromise),
     chain(() => actionOf(undefined)),
   )
 

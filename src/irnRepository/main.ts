@@ -46,7 +46,7 @@ const addDistricts: Action<Districts, void> = districts =>
   fromVoidPromise(env => mongoDb.addDistricts(districts.map(d => ({ _id: d.districtId, ...d })))(env.dbClient))
 
 const addIrnTablesTemporary: Action<IrnRepositoryTables, void> = irnTables =>
-  fromVoidPromise(env => mongoDb.addIrnTables(irnTables)(env.dbClient))
+  fromVoidPromise(env => mongoDb.addIrnTablesTemporary(irnTables)(env.dbClient))
 
 const addIrnServices: Action<IrnServices, void> = irnServices =>
   fromVoidPromise(env => mongoDb.addIrnServices(irnServices)(env.dbClient))
