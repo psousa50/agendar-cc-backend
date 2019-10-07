@@ -24,7 +24,7 @@ const start = (environment: Environment) => {
       chain(() => environment.irnRepository.updateConfig({ refreshStarted: new Date(Date.now()) })),
       chain(() => irnCrawler.refreshTables({ startDate: new Date(Date.now()) })),
       chain(() => environment.irnRepository.updateConfig({ refreshEnded: new Date(Date.now()) })),
-      chain(() => irnCrawler.updateIrnPlaces()),
+      chain(() => irnCrawler.updateIrnPlacesLocation()),
       chain(() => environment.irnRepository.close()),
       mapLeft(e => logDebug("ERROR: ", e)),
     ),

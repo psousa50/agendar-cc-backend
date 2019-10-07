@@ -1,11 +1,10 @@
 import { run } from "fp-ts/lib/ReaderTaskEither"
-import { equals, sort } from "ramda"
+import { equals, flatten, sort } from "ramda"
 import { irnCrawler } from "../../src/irnCrawler/main"
 import { GetIrnTableParams, IrnTable, IrnTables } from "../../src/irnFetch/models"
 import { IrnPlace, IrnRepositoryTables } from "../../src/irnRepository/models"
 import { actionErrorOf, actionOf } from "../../src/utils/actions"
 import { ServiceError } from "../../src/utils/audit"
-import { addDays } from "../../src/utils/dates"
 import { logDebug } from "../../src/utils/debug"
 
 describe("IrnCrawler", () => {
@@ -158,7 +157,7 @@ describe("IrnCrawler", () => {
       expect(irnRepository.upsertIrnPlace).toHaveBeenCalledWith(newIrnPlace)
     })
 
-    it("persist a tables from multiple services", async () => {
+    it("persist tables from multiple services", async () => {
       const serviceId1 = 1
       const service1 = {
         serviceId: serviceId1,
@@ -213,9 +212,8 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith(
-        [tableService1, tableService2].map(extractIrnRepositoryTable),
-      )
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([tableService1].map(extractIrnRepositoryTable))
+      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([tableService2].map(extractIrnRepositoryTable))
     })
 
     it("crawls for next available dates on a table", async () => {
@@ -270,8 +268,18 @@ describe("IrnCrawler", () => {
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
 
-      const allTables = [table1Date1, table2Date1, table1Date2, table2Date2, table1Date3].map(extractIrnRepositoryTable)
-      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith(allTables)
+      const expectedTablesAdded = [
+        table1Date1,
+        table2Date1,
+        table1Date2,
+        table2Date1,
+        table1Date2,
+        table2Date2,
+        table1Date3,
+      ].map(extractIrnRepositoryTable)
+      const actualTablesAdded = flatten(irnRepository.addIrnTablesTemporary.mock.calls.map(a => (a as any)[0]))
+
+      expect(sortIrnTables(actualTablesAdded)).toEqual(sortIrnTables(expectedTablesAdded))
     })
 
     it("crawls for next available dates on multiple counties", async () => {
@@ -343,7 +351,7 @@ describe("IrnCrawler", () => {
       const expectedTablesAdded = [tableCounty2Date1, tableCounty2Date2, tableCounty1Date1, tableCounty1Date2].map(
         extractIrnRepositoryTable,
       )
-      const actualTablesAdded = (irnRepository.addIrnTablesTemporary.mock.calls[0] as any)[0] as IrnRepositoryTables
+      const actualTablesAdded = flatten(irnRepository.addIrnTablesTemporary.mock.calls.map(a => (a as any)[0]))
 
       expect(sortIrnTables(actualTablesAdded)).toEqual(sortIrnTables(expectedTablesAdded))
     })
@@ -389,52 +397,10 @@ describe("IrnCrawler", () => {
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
-
-      expect(irnRepository.addIrnTablesTemporary).toHaveBeenCalledWith([table1, table2].map(extractIrnRepositoryTable))
-    })
-
-    it.skip("copes with large table data", async () => {
-      const irnRepository = {
-        ...defaultIrnRepository,
-        addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
-        clearIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
-        getCounties: jest.fn(() => actionOf([county])),
-        getDistrictRegion: jest.fn(() => actionOf(region)),
-        getIrnServices: jest.fn(() => actionOf([service])),
-        switchIrnTables: jest.fn(() => actionOf(undefined)),
-        upsertIrnPlace: jest.fn(() => actionOf(undefined)),
-      }
-
-      const manyTables = (params: GetIrnTableParams) => {
-        const date = params.date || new Date(Date.now())
-        const irnTable = makeTable({ ...params, date: addDays(date, 1) })
-        return actionOf([irnTable])
-      }
-
-      const irnFetch = {
-        getIrnTables: jest.fn(manyTables),
-      }
-
-      const environment = {
-        ...defaultEnvironment,
-        config: {
-          crawlDaysLimit: 5000,
-        },
-        irnFetch,
-        irnRepository,
-      }
-
-      const crawlerParams = {
-        startDate: new Date(Date.now()),
-      }
-      await run(irnCrawler.refreshTables(crawlerParams), environment as any)
-
-      const a = (irnRepository.addIrnTablesTemporary.mock.calls[0] as any)[0] as IrnTables
-      console.log("=====>\n", a.length)
     })
   })
 
-  describe("updateIrnPlaces", () => {
+  describe("updateIrnPlacesLocation", () => {
     it("updates gpsLocation for each irnPlace that doesn't have it", async () => {
       const geoCoding = {
         latitude: 10,
@@ -457,7 +423,7 @@ describe("IrnCrawler", () => {
         irnRepository,
       }
 
-      await run(irnCrawler.updateIrnPlaces(), environment as any)
+      await run(irnCrawler.updateIrnPlacesLocation(), environment as any)
 
       const newIrnPlace1 = {
         ...irnPlace1,
@@ -487,7 +453,7 @@ describe("IrnCrawler", () => {
         irnRepository,
       }
 
-      await run(irnCrawler.updateIrnPlaces(), environment as any)
+      await run(irnCrawler.updateIrnPlacesLocation(), environment as any)
 
       expect(irnRepository.upsertIrnPlace).not.toHaveBeenCalled()
     })

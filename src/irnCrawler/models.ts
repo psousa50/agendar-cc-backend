@@ -6,5 +6,5 @@ export interface RefreshTablesParams {
 export interface IrnCrawler {
   start: Action<void, void>
   refreshTables: Action<RefreshTablesParams, void>
-  updateIrnPlaces: Action<void, void>
+  updateIrnPlacesLocation: Action<void, void>
 }

@@ -1,33 +1,26 @@
 import { array } from "fp-ts/lib/Array"
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain, map, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
-import { equals } from "ramda"
 import { IrnTable, IrnTables } from "../irnFetch/models"
 import { Counties, IrnPlace, IrnRepositoryTables, Region } from "../irnRepository/models"
 import { globalCounties } from "../staticData/counties"
 import { globalDistricts } from "../staticData/districts"
 import { globalIrnServices } from "../staticData/irnServices"
 import { Action, actionOf, ask, rteActionsSequence } from "../utils/actions"
-import { flatten } from "../utils/collections"
 import { addDays } from "../utils/dates"
 import { IrnCrawler, RefreshTablesParams } from "./models"
 
 const rteArraySequence = array.sequence(readerTaskEither)
 
-const merge = (irnTables: IrnTables, toMerge: IrnTables) =>
-  toMerge.reduce((acc, table) => (acc.findIndex(t => equals(t, table)) < 0 ? [...acc, table] : acc), irnTables)
-
-const flattenTables: Action<IrnTables[], IrnTables> = irnTablesArray => actionOf(flatten(irnTablesArray))
-
 const findTableWithLowestDate = (irnTables: IrnTables) =>
   irnTables.reduce((acc, t) => (acc && acc.date <= t.date ? acc : t), irnTables[0] || undefined)
 
-const crawlTableDates = (
+const addTablesAndCrawlNextDates = (
   serviceId: number,
   dateLimit: Date,
   nextDate: Date = new Date(0),
-): Action<IrnTables, IrnTables> => irnTables => {
-  const fetchNextTables = (countyId: number, districtId: number, fromDate: Date): Action<void, IrnTables> => () =>
+): Action<IrnTables, void> => irnTables => {
+  const fetchNextTables = (countyId: number, districtId: number, fromDate: Date): Action<void, void> => () =>
     pipe(
       ask(),
       chain(env =>
@@ -40,15 +33,21 @@ const crawlTableDates = (
       ),
       chain(newIrnTables =>
         newIrnTables.length > 0
-          ? crawlTableDates(serviceId, dateLimit, fromDate)(merge(irnTables, newIrnTables))
-          : actionOf(irnTables),
+          ? addTablesAndCrawlNextDates(serviceId, dateLimit, fromDate)(newIrnTables)
+          : actionOf(undefined),
       ),
     )
+
   const nextTableToCrawl = findTableWithLowestDate(irnTables.filter(t => t.date >= nextDate))
 
-  return nextTableToCrawl && nextTableToCrawl.date <= dateLimit
-    ? fetchNextTables(nextTableToCrawl.countyId, nextTableToCrawl.districtId, addDays(nextTableToCrawl.date, 1))()
-    : actionOf(irnTables)
+  return pipe(
+    addIrnRepositoryTables(irnTables),
+    chain(_ =>
+      nextTableToCrawl && nextTableToCrawl.date <= dateLimit
+        ? fetchNextTables(nextTableToCrawl.countyId, nextTableToCrawl.districtId, addDays(nextTableToCrawl.date, 1))()
+        : actionOf(undefined),
+    ),
+  )
 }
 
 const addStaticData: Action<void, void> = () =>
@@ -115,15 +114,14 @@ const upsertIrnPlaces: Action<IrnTables, void> = irnTables =>
     ),
   )
 
-const addIrnTables: Action<IrnTables, void> = irnTables =>
+const addIrnRepositoryTables: Action<IrnTables, void> = irnTables =>
   pipe(
     ask(),
     chain(env =>
       pipe(
-        env.irnRepository.clearIrnTablesTemporary(),
-        chain(_ => extractIrnRepositoryTables(irnTables)),
+        extractIrnRepositoryTables(irnTables),
         chain(env.irnRepository.addIrnTablesTemporary),
-        chain(env.irnRepository.switchIrnTables),
+        chain(_ => upsertIrnPlaces(irnTables)),
       ),
     ),
   )
@@ -143,36 +141,32 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
           ),
         )
 
-      const getTablesForService = (serviceId: number, counties: Counties) =>
+      const addTablesForService = (serviceId: number, counties: Counties) =>
         pipe(
           rteArraySequence(
             counties.map(county =>
               env.irnFetch.getIrnTables({ serviceId, countyId: county.countyId, districtId: county.districtId }),
             ),
           ),
-          chain(irnTablesPerCounty => rteArraySequence(irnTablesPerCounty.map(crawlTableDates(serviceId, dateLimit)))),
-          chain(flattenTables),
+          chain(irnTablesPerCounty =>
+            rteArraySequence(irnTablesPerCounty.map(addTablesAndCrawlNextDates(serviceId, dateLimit))),
+          ),
         )
 
       const dateLimit = addDays(params.startDate, env.config.crawlDaysLimit)
 
       return pipe(
-        getServicesAndCounties(),
+        env.irnRepository.clearIrnTablesTemporary(),
+        chain(_ => getServicesAndCounties()),
         chain(({ services, counties }) =>
-          rteArraySequence(services.map(service => getTablesForService(service.serviceId, counties))),
+          rteArraySequence(services.map(service => addTablesForService(service.serviceId, counties))),
         ),
-        chain(flattenTables),
-        chain(irnTables =>
-          pipe(
-            addIrnTables(irnTables),
-            chain(_ => upsertIrnPlaces(irnTables)),
-          ),
-        ),
+        chain(_ => env.irnRepository.switchIrnTables()),
       )
     }),
   )
 
-const updateIrnPlace: Action<IrnPlace, void> = irnPlace =>
+const updateIrnPlaceLocation: Action<IrnPlace, void> = irnPlace =>
   pipe(
     ask(),
     chain(env =>
@@ -186,17 +180,17 @@ const updateIrnPlace: Action<IrnPlace, void> = irnPlace =>
     ),
   )
 
-const updateIrnPlaces: Action<void, void> = () =>
+const updateIrnPlacesLocation: Action<void, void> = () =>
   pipe(
     ask(),
     chain(env => env.irnRepository.getIrnPlaces({})),
     map(irnPlaces => irnPlaces.filter(p => !p.gpsLocation)),
-    chain(irnPlaces => rteActionsSequence(irnPlaces.map(updateIrnPlace))),
+    chain(irnPlaces => rteActionsSequence(irnPlaces.map(updateIrnPlaceLocation))),
     chain(() => actionOf(undefined)),
   )
 
 export const irnCrawler: IrnCrawler = {
   refreshTables,
   start,
-  updateIrnPlaces,
+  updateIrnPlacesLocation,
 }

@@ -1,5 +1,5 @@
 import { TaskEither, tryCatch } from "fp-ts/lib/TaskEither"
-import { FilterQuery, InsertWriteOpResult, MongoClient } from "mongodb"
+import { FilterQuery, MongoClient } from "mongodb"
 import { isNil } from "ramda"
 import {
   Counties,
@@ -108,34 +108,31 @@ const buildGetIrnTablesQuery = ({
 export const getIrnTables = (params: GetIrnRepositoryTablesParams) =>
   get<IrnRepositoryTable>(IRN_TABLES)(buildGetIrnTablesQuery(params))
 
-const updateMany = <T extends { _id: string }>(collection: string) => (data: T[]) => (client: MongoClient) =>
+const upsertManyById = <T extends { _id: string }>(collection: string) => (data: T[]) =>
+  upsertMany(collection)(data, (item: T) => ({ _id: item._id }))
+
+const upsertMany = (collection: string) => <T>(data: T[], filter: (item: T) => {} = item => item) => (
+  client: MongoClient,
+) =>
   Promise.all(
     data.map(item =>
       client
         .db()
         .collection(collection)
-        .updateOne({ _id: item._id }, { $set: item }, { upsert: true }),
+        .updateOne(filter(item), { $set: item }, { upsert: true }),
     ),
   )
 
-const insertMany = <T>(collection: string) => (data: T[]) => (client: MongoClient) =>
-  data.length > 0
-    ? client
-        .db()
-        .collection(collection)
-        .insertMany(data)
-    : Promise.resolve({} as InsertWriteOpResult)
-
 export const addIrnServices = (services: IrnServices) =>
-  updateMany(IRN_SERVICES)(services.map(s => ({ ...s, _id: s.serviceId.toString() })))
+  upsertManyById(IRN_SERVICES)(services.map(s => ({ ...s, _id: s.serviceId.toString() })))
 
 export const addDistricts = (districts: Districts) =>
-  updateMany(DISTRICTS)(districts.map(d => ({ ...d, _id: d.districtId.toString() })))
+  upsertManyById(DISTRICTS)(districts.map(d => ({ ...d, _id: d.districtId.toString() })))
 
 export const addCounties = (counties: Counties) =>
-  updateMany(COUNTIES)(counties.map(c => ({ ...c, _id: c.countyId.toString() })))
+  upsertManyById(COUNTIES)(counties.map(c => ({ ...c, _id: c.countyId.toString() })))
 
-export const addIrnTablesTemporary = (irnTables: IrnRepositoryTables) => insertMany(IRN_TABLES_TEMPORARY)(irnTables)
+export const addIrnTablesTemporary = (irnTables: IrnRepositoryTables) => upsertMany(IRN_TABLES_TEMPORARY)(irnTables)
 
 export const getConfig = getById<DbConfig>(DB_CONFIG)(1)
 
