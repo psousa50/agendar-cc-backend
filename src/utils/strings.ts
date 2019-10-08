@@ -1,8 +1,7 @@
-interface String {
-  replaceAll(searchValue: string, replaceValue: string): string
-}
-
-String.prototype.replaceAll = function(searchValue: string, replaceValue: string): string {
-  const newString = this.replace(searchValue, replaceValue)
-  return newString === this ? newString : newString.replaceAll(searchValue, replaceValue)
-}
+export const properCase = (s: string) =>
+  s
+    .trim()
+    .toLowerCase()
+    .split(" ")
+    .map(w => `${w[0].toUpperCase()}${w.substring(1)}`)
+    .join(" ")

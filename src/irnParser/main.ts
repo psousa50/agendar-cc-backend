@@ -1,7 +1,7 @@
 import cheerio from "cheerio"
 import { IrnTable, IrnTables } from "../irnFetch/models"
 import { Counties } from "../irnRepository/models"
-import "../utils/strings"
+import "../utils/String"
 
 const fix = (s: string) => s.replaceAll('"', "").trim()
 
