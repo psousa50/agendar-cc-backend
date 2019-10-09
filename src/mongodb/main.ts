@@ -105,8 +105,10 @@ const buildGetIrnTablesQuery = ({
         },
       }),
 })
-export const getIrnTables = (params: GetIrnRepositoryTablesParams) =>
-  get<IrnRepositoryTable>(IRN_TABLES)(buildGetIrnTablesQuery(params))
+export const getIrnTables = (params: GetIrnRepositoryTablesParams) => {
+  const query = buildGetIrnTablesQuery(params)
+  return get<IrnRepositoryTable>(IRN_TABLES)(query)
+}
 
 const upsertManyById = <T extends { _id: string }>(collection: string) => (data: T[]) =>
   upsertMany(collection)(data, (item: T) => ({ _id: item._id }))
