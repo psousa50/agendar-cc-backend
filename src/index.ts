@@ -36,4 +36,4 @@ const startApplication = async () => {
   await process()
 }
 
-startApplication().then(() => logDebug("App Terminated"), e => logDebug(`Error: ${e.message}`))
+startApplication().then(() => logDebug("App Started"), e => logDebug(`Error: ${e.message}`))

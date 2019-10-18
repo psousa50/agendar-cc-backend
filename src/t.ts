@@ -1,23 +1,23 @@
-import { sort, uniq } from "ramda"
-import { globalCounties } from "./staticData/counties"
-import { globalDistricts } from "./staticData/districts"
-import { globalIrnPlaces } from "./staticData/irnPlaces"
-import { logDebug } from "./utils/debug"
+import moment from "moment"
 
-const allDistricts = globalCounties.map(c => {
-  const d = globalDistricts.find(dd => dd.districtId === c.districtId)!
-  return `${d.name} - ${c.name}`
-})
+type DateOnlyBrand = { DateOnly: "" }
 
-sort((d1, d2) => d1.localeCompare(d2), allDistricts).map(c => logDebug(c))
+export type DateOnly = string & DateOnlyBrand
 
-const uniqD = sort((d1, d2) => d1 - d2, uniq(globalIrnPlaces.map(p => p.districtId)))
+function validDateOnly(d: string): d is DateOnly {
+  return moment(d, "YYYY-MM-DD", true).isValid()
+}
 
-console.log("=====>\n", uniqD)
+export const toDateOnly = (d: Date | string): DateOnly | undefined =>
+  typeof d === "string" ? (validDateOnly(d) ? d : undefined) : (d.toISOString().substr(0, 10) as DateOnly)
+export const toDate = (d: DateOnly) => new Date(d)
 
-const dWithPlaces = globalDistricts.map(d => ({
-  ...d,
-  countPlaces: globalIrnPlaces.filter(p => p.districtId === d.districtId).length,
-}))
+const date: Date = new Date("2019-10-08T12:34:56.000Z")
 
-console.log("=====>\n", dWithPlaces)
+const d1 = toDateOnly(date)!
+const d2 = toDate(d1)
+
+console.log("=====>\n", d1)
+
+console.log("=====>\n", d2)
+console.log("=====>\n", d2.getDay())

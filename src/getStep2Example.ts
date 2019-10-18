@@ -40,9 +40,7 @@ fetch("https://agendamento.irn.mj.pt/steps/step1.php").then(r =>
     }
 
     setTimeout(() => {
-      fetch("https://agendamento.irn.mj.pt/steps/step2.php", init).then(res =>
-        res.text().then(h => logDebug("=====>\n", h)),
-      )
+      fetch("https://agendamento.irn.mj.pt/steps/step2.php", init).then(res => res.text().then(h => logDebug(h)))
     }, 500)
   }),
 )
