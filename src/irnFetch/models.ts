@@ -2,7 +2,7 @@ import { Counties } from "../irnRepository/models"
 import { Action } from "../utils/actions"
 import { TimeSlot } from "../utils/models"
 
-export type GetIrnTableParams = {
+export type GetIrnTablesParams = {
   serviceId: number
   districtId: number
   countyId: number
@@ -24,6 +24,6 @@ export type IrnTable = {
 export type IrnTables = IrnTable[]
 
 export interface IrnFetch {
-  getIrnTables: Action<GetIrnTableParams, IrnTables>
+  getIrnTables: Action<GetIrnTablesParams, IrnTables>
   getCounties: Action<{ districtId: number }, Counties>
 }

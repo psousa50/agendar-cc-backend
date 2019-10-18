@@ -1,13 +1,17 @@
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain } from "fp-ts/lib/ReaderTaskEither"
 import { isNil } from "ramda"
+import { getIrnTablesHtml } from "../../../irnFetch/main"
 import { Counties, Districts, IrnPlaces, IrnRepositoryTables, IrnServices } from "../../../irnRepository/models"
-import { Action, ask } from "../../../utils/actions"
+import { Action, actionErrorOf, ask } from "../../../utils/actions"
+import { ServiceError } from "../../../utils/audit"
 
 const toNumber = (value?: string) => (isNil(value) ? undefined : Number.parseInt(value, 10))
 const toDate = (value?: string) => (isNil(value) ? undefined : new Date(Date.parse(value)))
 const toTimeSlot = (value?: string) => value
 const toBoolean = (value?: string) => !isNil(value) && value.toUpperCase().substr(0, 1) === "Y"
+const toExistingNumber = (value: string) => Number.parseInt(value, 10)
+const toExistingDate = (value: string) => new Date(Date.parse(value))
 
 export const getServices: Action<void, IrnServices> = () =>
   pipe(
@@ -75,3 +79,20 @@ export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = par
       }),
     ),
   )
+
+interface GetIrnTableScheduleHtmlParams {
+  serviceId?: string
+  districtId?: string
+  countyId?: string
+  date?: string
+}
+
+export const getIrnTableScheduleHtml: Action<GetIrnTableScheduleHtmlParams, string> = params =>
+  params.serviceId && params.districtId && params.countyId && params.date
+    ? getIrnTablesHtml({
+        countyId: toExistingNumber(params.countyId),
+        date: toExistingDate(params.date),
+        districtId: toExistingNumber(params.districtId),
+        serviceId: toExistingNumber(params.serviceId),
+      })
+    : actionErrorOf(new ServiceError("Invalid params"))
