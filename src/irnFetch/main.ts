@@ -6,7 +6,7 @@ import { Counties } from "../irnRepository/models"
 import { Action, actionOf, ask, toAction } from "../utils/actions"
 import { AppConfig } from "../utils/config"
 import { delayedFetch, extractText } from "../utils/fetch"
-import { GetIrnTablesParams, IrnTables } from "./models"
+import { FetchIrnTablesParams, IrnTables } from "./models"
 
 export const fetchIrnPage = (page: string, options?: RequestInit) =>
   pipe(
@@ -44,8 +44,20 @@ const extractCookies = (response: Response) => {
 }
 
 type FormDataParam = [string, string]
-type BuildFormDataParams = (tok: string, params: GetIrnTablesParams) => FormDataParam[]
-export const buildFormDataParams: BuildFormDataParams = (tok, { serviceId, countyId, date, districtId }) => [
+interface BuildFormDataParamsDescriptions {
+  county?: string
+  irnService?: string
+}
+type BuildFormDataParams = (
+  tok: string,
+  params: FetchIrnTablesParams,
+  descriptions: BuildFormDataParamsDescriptions,
+) => FormDataParam[]
+export const buildFormDataParams: BuildFormDataParams = (
+  tok,
+  { serviceId, countyId, date, districtId },
+  { county, irnService },
+) => [
   ["tok", tok],
   ["servico", serviceId.toString()],
   ["distrito", districtId.toString()],
@@ -53,13 +65,17 @@ export const buildFormDataParams: BuildFormDataParams = (tok, { serviceId, count
   ["data_tipo", date ? "outra" : "primeira"],
   ["data", date ? date.toISOString().substr(0, 10) : "2000-01-01"],
   ["sabado_show", "0"],
-  ["servico_desc", ""],
-  ["concelho_desc", ""],
+  ["servico_desc", irnService || ""],
+  ["concelho_desc", county || ""],
 ]
 
-type BuildFormData = (tok: string, params: GetIrnTablesParams) => { data: string; boundary: string }
-const buildFormData: (_: BuildFormDataParams) => BuildFormData = buildParams => (tok, params) => {
-  const data = buildParams(tok, params)
+type BuildFormData = (
+  tok: string,
+  params: FetchIrnTablesParams,
+  descriptions: BuildFormDataParamsDescriptions,
+) => { data: string; boundary: string }
+const buildFormData: (_: BuildFormDataParams) => BuildFormData = buildParams => (tok, params, descriptions) => {
+  const data = buildParams(tok, params, descriptions)
 
   const formData = new FormData()
   data.forEach(d => formData.append(d[0], d[1]))
@@ -76,10 +92,17 @@ interface FetchIrnTablesOptions {
   method: string
 }
 
-type BuildGetIrnTablesHtml = (_: ParseTok, ___: BuildFormData) => Action<GetIrnTablesParams, string>
-export const buildGetIrnTablesHtml: BuildGetIrnTablesHtml = (injectedParseTok, injectedBuildFormData) => params => {
+interface BuildGetIrnTablesHtmlParams {
+  params: FetchIrnTablesParams
+  descriptions: BuildFormDataParamsDescriptions
+}
+type BuildGetIrnTablesHtml = (_: ParseTok, __: BuildFormData) => Action<BuildGetIrnTablesHtmlParams, string>
+export const buildGetIrnTablesHtml: BuildGetIrnTablesHtml = (injectedParseTok, injectedBuildFormData) => ({
+  params,
+  descriptions,
+}) => {
   const buildOptions = (cookies: string[]) => (tok: string) => {
-    const formData = injectedBuildFormData(tok, params)
+    const formData = injectedBuildFormData(tok, params, descriptions)
     const options = {
       body: formData.data,
       headers: {
@@ -115,14 +138,18 @@ export const buildGetIrnTablesHtml: BuildGetIrnTablesHtml = (injectedParseTok, i
   )
 }
 
-type BuildGetIrnTables = (_: ParseTok, __: BuildFormData, ___: ParseIrnTables) => Action<GetIrnTablesParams, IrnTables>
+type BuildGetIrnTables = (
+  _: ParseTok,
+  __: BuildFormData,
+  ___: ParseIrnTables,
+) => Action<FetchIrnTablesParams, IrnTables>
 export const buildGetIrnTables: BuildGetIrnTables = (
   injectedParseTok,
   injectedBuildFormData,
   injectedParseIrnTables,
 ) => params =>
   pipe(
-    buildGetIrnTablesHtml(injectedParseTok, injectedBuildFormData)(params),
+    buildGetIrnTablesHtml(injectedParseTok, injectedBuildFormData)({ params, descriptions: {} }),
     chain(toAction(injectedParseIrnTables(params.serviceId, params.countyId, params.districtId))),
   )
 

@@ -39,8 +39,9 @@ describe("IrnFetch", () => {
       )
     })
   })
+
   describe("getIrnTables", () => {
-    it("fetches the irn tables for a specifice service, county and date", async () => {
+    it("fetches the irn tables for a specific service, county and date", async () => {
       const serviceId = 5
       const countyId = 10
       const districtId = 20
@@ -103,7 +104,7 @@ describe("IrnFetch", () => {
       expect(fetch).toHaveBeenCalledWith("some-url/some-home-page", undefined)
       expect(parseTok).toHaveBeenCalledWith(homeHtml)
 
-      expect(buildFormData).toHaveBeenCalledWith(tok, params)
+      expect(buildFormData).toHaveBeenCalledWith(tok, params, {})
 
       expect(fetch).toHaveBeenCalledWith("some-url/some-tables-page", options)
       expect(parseIrnTablesBuilder).toHaveBeenCalledWith(serviceId, countyId, districtId)
@@ -141,12 +142,16 @@ describe("buildFormDataParams generates params for a fetch irnTable", () => {
       ["concelho_desc", ""],
     ]
 
-    expect(buildFormDataParams("some-tok", params)).toEqual(expectedParams)
+    expect(buildFormDataParams("some-tok", params, {})).toEqual(expectedParams)
   })
 
   it("when a date is present", () => {
     const params = { ...defaultParams, date: new Date("2019-01-02") }
 
+    const descriptions = {
+      county: "County description",
+      irnService: "Service description",
+    }
     const expectedParams = [
       ["tok", "some-tok"],
       ["servico", "20"],
@@ -155,11 +160,11 @@ describe("buildFormDataParams generates params for a fetch irnTable", () => {
       ["data_tipo", "outra"],
       ["data", "2019-01-02"],
       ["sabado_show", "0"],
-      ["servico_desc", ""],
-      ["concelho_desc", ""],
+      ["servico_desc", descriptions.irnService],
+      ["concelho_desc", descriptions.county],
     ]
 
-    expect(buildFormDataParams("some-tok", params)).toEqual(expectedParams)
+    expect(buildFormDataParams("some-tok", params, descriptions)).toEqual(expectedParams)
   })
 })
 

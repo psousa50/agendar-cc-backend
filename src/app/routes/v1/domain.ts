@@ -1,9 +1,10 @@
 import { pipe } from "fp-ts/lib/pipeable"
-import { chain } from "fp-ts/lib/ReaderTaskEither"
+import { chain, map } from "fp-ts/lib/ReaderTaskEither"
 import { isNil } from "ramda"
 import { getIrnTablesHtml } from "../../../irnFetch/main"
+import { FetchIrnTablesParams } from "../../../irnFetch/models"
 import { Counties, Districts, IrnPlaces, IrnRepositoryTables, IrnServices } from "../../../irnRepository/models"
-import { Action, actionErrorOf, ask } from "../../../utils/actions"
+import { Action, actionErrorOf, actionOf, ask } from "../../../utils/actions"
 import { ServiceError } from "../../../utils/audit"
 
 const toNumber = (value?: string) => (isNil(value) ? undefined : Number.parseInt(value, 10))
@@ -87,12 +88,42 @@ interface GetIrnTableScheduleHtmlParams {
   date?: string
 }
 
-export const getIrnTableScheduleHtml: Action<GetIrnTableScheduleHtmlParams, string> = params =>
-  params.serviceId && params.districtId && params.countyId && params.date
-    ? getIrnTablesHtml({
-        countyId: toExistingNumber(params.countyId),
-        date: toExistingDate(params.date),
-        districtId: toExistingNumber(params.districtId),
-        serviceId: toExistingNumber(params.serviceId),
-      })
+const addDescriptionAndGetHtml: Action<FetchIrnTablesParams, string> = params => {
+  const { serviceId, countyId } = params
+  return pipe(
+    ask(),
+    chain(env =>
+      pipe(
+        env.irnRepository.getIrnService({ serviceId }),
+        chain(irnService =>
+          pipe(
+            env.irnRepository.getCounty({ countyId }),
+            map(county => ({
+              county: county ? county.name : undefined,
+              irnService: irnService ? irnService.name : undefined,
+            })),
+          ),
+        ),
+        chain(descriptions => getIrnTablesHtml({ params, descriptions })),
+      ),
+    ),
+  )
+}
+
+export const getIrnTableScheduleHtml: Action<GetIrnTableScheduleHtmlParams, string> = ({
+  serviceId,
+  districtId,
+  countyId,
+  date,
+}) =>
+  serviceId && districtId && countyId && date
+    ? pipe(
+        actionOf({
+          countyId: toExistingNumber(countyId),
+          date: toExistingDate(date),
+          districtId: toExistingNumber(districtId),
+          serviceId: toExistingNumber(serviceId),
+        }),
+        chain(addDescriptionAndGetHtml),
+      )
     : actionErrorOf(new ServiceError("Invalid params"))

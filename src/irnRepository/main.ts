@@ -7,6 +7,7 @@ import { Action, actionOf, fromPromise, fromVoidPromise } from "../utils/actions
 import {
   Counties,
   County,
+  District,
   Districts,
   GetIrnPlacesParams,
   GetIrnRepositoryTablesParams,
@@ -14,6 +15,7 @@ import {
   IrnPlaces,
   IrnRepository,
   IrnRepositoryTables,
+  IrnService,
   IrnServices,
   Region,
 } from "./models"
@@ -29,8 +31,12 @@ const getCounty: Action<{ countyId: number }, County | null> = ({ countyId }) =>
 const getCounties: Action<{ districtId?: number }, Counties> = ({ districtId }) =>
   fromPromise(env => mongoDb.getCounties(districtId)(env.dbClient))
 
+const getDistrict: Action<{ districtId: number }, District | null> = ({ districtId }) =>
+  fromPromise(env => mongoDb.getDistrict(districtId)(env.dbClient))
 const getDistricts: Action<void, Districts> = () => fromPromise(env => mongoDb.getDistricts(env.dbClient))
 
+const getIrnService: Action<{ serviceId: number }, IrnService | null> = ({ serviceId }) =>
+  fromPromise(env => mongoDb.getIrnService(serviceId)(env.dbClient))
 const getIrnServices: Action<void, IrnServices> = () => fromPromise(env => mongoDb.getIrnServices(env.dbClient))
 
 const getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables> = params =>
@@ -83,10 +89,12 @@ export const irnRepository: IrnRepository = {
   getConfig,
   getCounties,
   getCounty,
+  getDistrict,
   getDistrictRegion,
   getDistricts,
   getIrnPlace,
   getIrnPlaces,
+  getIrnService,
   getIrnServices,
   getIrnTables,
   switchIrnTables,

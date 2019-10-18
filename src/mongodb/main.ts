@@ -67,12 +67,13 @@ function get<T>(collection: string) {
       .toArray()
   }
 }
+export const getIrnService = (serviceId: number) => getById<IrnService>(IRN_SERVICES)(serviceId)
 export const getIrnServices = get<IrnService>(IRN_SERVICES)()
 
+export const getDistrict = (districtId: number) => getById<District>(DISTRICTS)(districtId)
 export const getDistricts = get<District>(DISTRICTS)()
 
-export const getCounty = (countyId?: number) => getById<County>(COUNTIES)(countyId)
-
+export const getCounty = (countyId: number) => getById<County>(COUNTIES)(countyId)
 export const getCounties = (districtId?: number) => get<County>(COUNTIES)({ ...(districtId ? { districtId } : {}) })
 
 const buildGetIrnTablesQuery = ({

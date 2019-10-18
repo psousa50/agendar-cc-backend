@@ -80,7 +80,9 @@ export interface IrnRepository {
   getCounty: Action<{ countyId: number }, County | null>
   getCounties: Action<{ districtId?: number }, Counties>
   getDistrictRegion: Action<number, Region>
+  getDistrict: Action<{ districtId: number }, District | null>
   getDistricts: Action<void, Districts>
+  getIrnService: Action<{ serviceId: number }, IrnService | null>
   getIrnServices: Action<void, IrnServices>
   getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables>
   switchIrnTables: Action<void, void>
