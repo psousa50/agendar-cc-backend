@@ -89,7 +89,7 @@ describe("IrnFetch", () => {
       } as any
 
       const params = { serviceId, countyId, date, districtId }
-      const result = await run(buildGetIrnTables(parseTok, parseIrnTablesBuilder, buildFormData)(params), environment)
+      const result = await run(buildGetIrnTables(parseTok, buildFormData, parseIrnTablesBuilder)(params), environment)
 
       const options = {
         body: formData.data,
