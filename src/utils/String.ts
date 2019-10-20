@@ -3,6 +3,10 @@ interface String {
 }
 
 String.prototype.replaceAll = function(searchValue: string, replaceValue: string): string {
-  const newString = this.replace(searchValue, replaceValue)
-  return newString === this ? newString : newString.replaceAll(searchValue, replaceValue)
+  return replaceAll(this.valueOf(), searchValue, replaceValue)
+}
+
+function replaceAll(s: string, searchValue: string, replaceValue: string): string {
+  const newString = s.replace(searchValue, replaceValue)
+  return newString === s ? newString : replaceAll(newString, searchValue, replaceValue)
 }
