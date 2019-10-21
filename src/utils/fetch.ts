@@ -22,7 +22,7 @@ export const buildFetchAction = (fetch: FetchPromise) => (
     fromTaskEither(tryCatch(() => fetch(input, init), error => new ServiceError((error as Error).message)))
 
   const fetchRetry = (nTries: number = 1): ActionResult<Response> => {
-    logDebug(`Fetching... ( Tries: ${nTries})`, input, new Date(Date.now()))
+    // logDebug(`Fetching... ( Tries: ${nTries})`, input, new Date(Date.now()))
     return pipe(
       ask(),
       chain(env =>

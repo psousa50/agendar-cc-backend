@@ -2,6 +2,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { IrnTable } from "../../src/irnFetch/models"
 import { parseCounties, parseIrnTables, parseTok } from "../../src/irnParser/main"
+import { toExistingDateString } from "../../src/utils/dates"
 
 it("parses counties from get_concelhos html", () => {
   const html = fs.readFileSync(path.join(__dirname, "./htmlSamples/counties.html")).toString()
@@ -39,7 +40,7 @@ it("parses tables from irn tables html page", () => {
   const expectedTable1: IrnTable = {
     address: "Palácio da Justiça - Rua Jayme Thompson",
     countyId,
-    date: new Date("2019-12-17"),
+    date: toExistingDateString("2019-12-17"),
     districtId,
     phone: "214818630",
     placeName: "Conservatória do Registo Comercial de Cascais",
@@ -52,7 +53,7 @@ it("parses tables from irn tables html page", () => {
   const expectedTable2: IrnTable = {
     address: "Palácio da Justiça - Rua Jayme Thompson",
     countyId,
-    date: new Date("2019-12-17"),
+    date: toExistingDateString("2019-12-17"),
     districtId,
     phone: "214843521",
     placeName: "2ª Conservatória do Registo Predial de Cascais",

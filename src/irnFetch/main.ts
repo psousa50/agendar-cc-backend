@@ -63,7 +63,7 @@ export const buildFormDataParams: BuildFormDataParams = (
   ["distrito", districtId.toString()],
   ["concelho", countyId.toString()],
   ["data_tipo", date ? "outra" : "primeira"],
-  ["data", date ? date.toISOString().substr(0, 10) : "2000-01-01"],
+  ["data", date ? date : "2000-01-01"],
   ["sabado_show", "0"],
   ["servico_desc", irnService || ""],
   ["concelho_desc", county || ""],

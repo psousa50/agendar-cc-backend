@@ -4,6 +4,7 @@ import * as mongoDb from "../mongodb/main"
 import { DbConfig, disconnect } from "../mongodb/main"
 import { globalDistricts } from "../staticData/districts"
 import { Action, actionOf, fromPromise, fromVoidPromise } from "../utils/actions"
+import { toUtcDate } from "../utils/dates"
 import {
   Counties,
   County,
@@ -42,7 +43,7 @@ const getIrnServices: Action<void, IrnServices> = () => fromPromise(env => mongo
 const getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables> = params =>
   pipe(
     fromPromise(env => mongoDb.getIrnTables(params)(env.dbClient)),
-    map(irnTables => (params.onlyOnSaturdays ? irnTables.filter(t => t.date.getDay() === 6) : irnTables)),
+    map(irnTables => (params.onlyOnSaturdays ? irnTables.filter(t => toUtcDate(t.date).getDay() === 6) : irnTables)),
   )
 
 const addCounties: Action<Counties, void> = counties =>

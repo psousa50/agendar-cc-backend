@@ -6,13 +6,14 @@ import { FetchIrnTablesParams } from "../../../irnFetch/models"
 import { Counties, Districts, IrnPlaces, IrnRepositoryTables, IrnServices } from "../../../irnRepository/models"
 import { Action, actionErrorOf, actionOf, ask } from "../../../utils/actions"
 import { ServiceError } from "../../../utils/audit"
+import { toDateString, toExistingDateString } from "../../../utils/dates"
 
 const toNumber = (value?: string) => (isNil(value) ? undefined : Number.parseInt(value, 10))
-const toDate = (value?: string) => (isNil(value) ? undefined : new Date(Date.parse(value)))
+const toDate = (value?: string) => toDateString(value)
 const toTimeSlot = (value?: string) => value
 const toBoolean = (value?: string) => !isNil(value) && value.toUpperCase().substr(0, 1) === "Y"
 const toExistingNumber = (value: string) => Number.parseInt(value, 10)
-const toExistingDate = (value: string) => new Date(Date.parse(value))
+const toExistingDate = (value: string) => toExistingDateString(value)
 
 export const getServices: Action<void, IrnServices> = () =>
   pipe(

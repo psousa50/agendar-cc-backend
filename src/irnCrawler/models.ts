@@ -1,7 +1,8 @@
 import { Action } from "../utils/actions"
+import { DateString } from "../utils/dates"
 
 export interface RefreshTablesParams {
-  startDate: Date
+  startDate: DateString
 }
 export interface IrnCrawler {
   start: Action<void, void>

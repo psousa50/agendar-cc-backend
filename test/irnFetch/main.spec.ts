@@ -3,6 +3,7 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { run } from "fp-ts/lib/ReaderTaskEither"
 import { buildFormDataParams, buildGetCounties, buildGetIrnTables, fetchIrnPage } from "../../src/irnFetch/main"
 import { actionOf } from "../../src/utils/actions"
+import { toExistingDateString } from "../../src/utils/dates"
 import { timingFn } from "../../src/utils/timing"
 
 describe("IrnFetch", () => {
@@ -46,7 +47,7 @@ describe("IrnFetch", () => {
       const countyId = 10
       const districtId = 20
       const dateStr = "2010-02-28"
-      const date = new Date(dateStr)
+      const date = toExistingDateString(dateStr)
 
       const homeHtml = "htyml from home page"
       const tok = "some-tok-value"
@@ -146,7 +147,7 @@ describe("buildFormDataParams generates params for a fetch irnTable", () => {
   })
 
   it("when a date is present", () => {
-    const params = { ...defaultParams, date: new Date("2019-01-02") }
+    const params = { ...defaultParams, date: toExistingDateString("2019-01-02") }
 
     const descriptions = {
       county: "County description",

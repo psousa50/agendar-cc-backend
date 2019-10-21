@@ -1,6 +1,7 @@
 import cheerio from "cheerio"
 import { IrnTable, IrnTables } from "../irnFetch/models"
 import { Counties } from "../irnRepository/models"
+import { toExistingDateString } from "../utils/dates"
 import "../utils/String"
 
 const fix = (s: string) => s.replaceAll('"', "").trim()
@@ -36,7 +37,7 @@ export const parseIrnTables: ParseIrnTables = (serviceId, countyId, districtId) 
     const table: IrnTable = {
       address: parts[5],
       countyId,
-      date: new Date(parts[2]),
+      date: toExistingDateString(parts[2]),
       districtId,
       phone: parts[7],
       placeName: parts[3],

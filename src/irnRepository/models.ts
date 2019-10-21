@@ -1,5 +1,6 @@
 import { DbConfig } from "../mongodb/main"
 import { Action } from "../utils/actions"
+import { DateString } from "../utils/dates"
 import { GpsLocation, TimeSlot } from "../utils/models"
 
 export type IrnService = {
@@ -39,7 +40,7 @@ export type IrnPlaces = IrnPlace[]
 
 export type IrnRepositoryTable = {
   countyId: number
-  date: Date
+  date: DateString
   districtId: number
   placeName: string
   region: string
@@ -58,13 +59,13 @@ export type GetIrnPlacesParams = Partial<{
 export type GetIrnRepositoryTablesParams = Partial<{
   countyId: number
   districtId: number
-  endDate: Date
+  endDate: DateString
   endTime: TimeSlot
   onlyOnSaturdays: boolean
   placeName: string
   region: string
   serviceId: number
-  startDate: Date
+  startDate: DateString
   startTime: TimeSlot
 }>
 

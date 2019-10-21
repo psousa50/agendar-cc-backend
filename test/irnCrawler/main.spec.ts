@@ -5,6 +5,7 @@ import { FetchIrnTablesParams, IrnTable, IrnTables } from "../../src/irnFetch/mo
 import { IrnPlace, IrnRepositoryTables } from "../../src/irnRepository/models"
 import { actionErrorOf, actionOf } from "../../src/utils/actions"
 import { ServiceError } from "../../src/utils/audit"
+import { toDateString, toExistingDateString } from "../../src/utils/dates"
 import { logDebug } from "../../src/utils/debug"
 
 describe("IrnCrawler", () => {
@@ -32,7 +33,7 @@ describe("IrnCrawler", () => {
     const defaultIrnTable = {
       address: "some address",
       countyId,
-      date: new Date("2000-01-01"),
+      date: toExistingDateString("2000-01-01"),
       districtId,
       phone: "",
       placeName: "Some place name",
@@ -97,11 +98,11 @@ describe("IrnCrawler", () => {
 
   describe("refreshTables", () => {
     const defaultCrawlerParams = {
-      startDate: new Date("2000-01-01"),
+      startDate: toExistingDateString("2000-01-01"),
     }
 
     it("persist a single IrnTable", async () => {
-      const table = makeTable({ date: new Date("2000-01-01") })
+      const table = makeTable({ date: toExistingDateString("2000-01-01") })
 
       const getTablesCalls = [
         {
@@ -109,7 +110,7 @@ describe("IrnCrawler", () => {
           returns: [table],
         },
         {
-          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-02") },
+          calledWith: { serviceId, countyId, districtId, date: toExistingDateString("2000-01-02") },
           returns: [],
         },
       ]
@@ -166,8 +167,8 @@ describe("IrnCrawler", () => {
       const service2 = {
         serviceId: serviceId2,
       }
-      const tableService1 = makeTable({ serviceId: serviceId1, date: new Date("2000-01-01") })
-      const tableService2 = makeTable({ serviceId: serviceId1, date: new Date("2000-01-01") })
+      const tableService1 = makeTable({ serviceId: serviceId1, date: toExistingDateString("2000-01-01") })
+      const tableService2 = makeTable({ serviceId: serviceId1, date: toExistingDateString("2000-01-01") })
 
       const services = [service1, service2]
 
@@ -177,7 +178,7 @@ describe("IrnCrawler", () => {
           returns: [tableService1],
         },
         {
-          calledWith: { serviceId: serviceId1, countyId, districtId, date: new Date("2000-01-02") },
+          calledWith: { serviceId: serviceId1, countyId, districtId, date: toExistingDateString("2000-01-02") },
           returns: [],
         },
         {
@@ -185,7 +186,7 @@ describe("IrnCrawler", () => {
           returns: [tableService2],
         },
         {
-          calledWith: { serviceId: serviceId2, countyId, districtId, date: new Date("2000-01-02") },
+          calledWith: { serviceId: serviceId2, countyId, districtId, date: toExistingDateString("2000-01-02") },
           returns: [],
         },
       ]
@@ -217,11 +218,11 @@ describe("IrnCrawler", () => {
     })
 
     it("crawls for next available dates on a table", async () => {
-      const table1Date1 = makeTable({ tableNumber: "1", date: new Date("2000-01-01") })
-      const table1Date2 = makeTable({ tableNumber: "1", date: new Date("2000-01-10") })
-      const table1Date3 = makeTable({ tableNumber: "1", date: new Date("2000-01-20") })
-      const table2Date1 = makeTable({ tableNumber: "2", date: new Date("2000-01-02") })
-      const table2Date2 = makeTable({ tableNumber: "2", date: new Date("2000-01-10") })
+      const table1Date1 = makeTable({ tableNumber: "1", date: toExistingDateString("2000-01-01") })
+      const table1Date2 = makeTable({ tableNumber: "1", date: toExistingDateString("2000-01-10") })
+      const table1Date3 = makeTable({ tableNumber: "1", date: toExistingDateString("2000-01-20") })
+      const table2Date1 = makeTable({ tableNumber: "2", date: toExistingDateString("2000-01-02") })
+      const table2Date2 = makeTable({ tableNumber: "2", date: toExistingDateString("2000-01-10") })
 
       const getTablesCalls = [
         {
@@ -229,19 +230,19 @@ describe("IrnCrawler", () => {
           returns: [table1Date1, table2Date1],
         },
         {
-          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-02") },
+          calledWith: { serviceId, countyId, districtId, date: toExistingDateString("2000-01-02") },
           returns: [table1Date2, table2Date1],
         },
         {
-          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-03") },
+          calledWith: { serviceId, countyId, districtId, date: toExistingDateString("2000-01-03") },
           returns: [table1Date2, table2Date2],
         },
         {
-          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-11") },
+          calledWith: { serviceId, countyId, districtId, date: toExistingDateString("2000-01-11") },
           returns: [table1Date3],
         },
         {
-          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-21") },
+          calledWith: { serviceId, countyId, districtId, date: toExistingDateString("2000-01-21") },
           returns: [],
         },
       ]
@@ -294,10 +295,10 @@ describe("IrnCrawler", () => {
         districtId,
       }
 
-      const tableCounty1Date1 = makeTable({ countyId: countyId1, date: new Date("2000-01-01") })
-      const tableCounty1Date2 = makeTable({ countyId: countyId1, date: new Date("2000-01-11") })
-      const tableCounty2Date1 = makeTable({ countyId: countyId2, date: new Date("2000-01-02") })
-      const tableCounty2Date2 = makeTable({ countyId: countyId2, date: new Date("2000-01-12") })
+      const tableCounty1Date1 = makeTable({ countyId: countyId1, date: toExistingDateString("2000-01-01") })
+      const tableCounty1Date2 = makeTable({ countyId: countyId1, date: toExistingDateString("2000-01-11") })
+      const tableCounty2Date1 = makeTable({ countyId: countyId2, date: toExistingDateString("2000-01-02") })
+      const tableCounty2Date2 = makeTable({ countyId: countyId2, date: toExistingDateString("2000-01-12") })
 
       const getTablesCalls = [
         {
@@ -305,11 +306,11 @@ describe("IrnCrawler", () => {
           returns: [tableCounty1Date1],
         },
         {
-          calledWith: { serviceId, countyId: countyId1, districtId, date: new Date("2000-01-02") },
+          calledWith: { serviceId, countyId: countyId1, districtId, date: toExistingDateString("2000-01-02") },
           returns: [tableCounty1Date2],
         },
         {
-          calledWith: { serviceId, countyId: countyId1, districtId, date: new Date("2000-01-12") },
+          calledWith: { serviceId, countyId: countyId1, districtId, date: toExistingDateString("2000-01-12") },
           returns: [],
         },
         {
@@ -317,11 +318,11 @@ describe("IrnCrawler", () => {
           returns: [tableCounty2Date1],
         },
         {
-          calledWith: { serviceId, countyId: countyId2, districtId, date: new Date("2000-01-03") },
+          calledWith: { serviceId, countyId: countyId2, districtId, date: toExistingDateString("2000-01-03") },
           returns: [tableCounty2Date2],
         },
         {
-          calledWith: { serviceId, countyId: countyId2, districtId, date: new Date("2000-01-13") },
+          calledWith: { serviceId, countyId: countyId2, districtId, date: toExistingDateString("2000-01-13") },
           returns: [],
         },
       ]
@@ -357,10 +358,10 @@ describe("IrnCrawler", () => {
     })
 
     it("stops crawling after the crawl days limit", async () => {
-      const startDate = new Date("2000-01-01")
-      const table1 = makeTable({ date: new Date("2000-01-01") })
+      const startDate = toExistingDateString("2000-01-01")
+      const table1 = makeTable({ date: toExistingDateString("2000-01-01") })
       const crawlDaysLimit = 10
-      const dateAfterDateLimit = new Date("2000-01-12")
+      const dateAfterDateLimit = toExistingDateString("2000-01-12")
       const table2 = makeTable({ date: dateAfterDateLimit })
 
       const getTablesCalls = [
@@ -369,7 +370,7 @@ describe("IrnCrawler", () => {
           returns: [table1],
         },
         {
-          calledWith: { serviceId, countyId, districtId, date: new Date("2000-01-02") },
+          calledWith: { serviceId, countyId, districtId, date: toExistingDateString("2000-01-02") },
           returns: [table2],
         },
       ]

@@ -7,7 +7,7 @@ import { globalCounties } from "../staticData/counties"
 import { globalDistricts } from "../staticData/districts"
 import { globalIrnServices } from "../staticData/irnServices"
 import { Action, actionOf, ask, rteActionsSequence } from "../utils/actions"
-import { addDays } from "../utils/dates"
+import { addDays, DateString, toExistingDateString } from "../utils/dates"
 import { IrnCrawler, RefreshTablesParams } from "./models"
 
 const rteArraySequence = array.sequence(readerTaskEither)
@@ -17,10 +17,10 @@ const findTableWithLowestDate = (irnTables: IrnTables) =>
 
 const addTablesAndCrawlNextDates = (
   serviceId: number,
-  dateLimit: Date,
-  nextDate: Date = new Date(0),
+  dateLimit: DateString,
+  nextDate: DateString = toExistingDateString(new Date(0)),
 ): Action<IrnTables, void> => irnTables => {
-  const fetchNextTables = (countyId: number, districtId: number, fromDate: Date): Action<void, void> => () =>
+  const fetchNextTables = (countyId: number, districtId: number, fromDate: DateString): Action<void, void> => () =>
     pipe(
       ask(),
       chain(env =>
