@@ -1,4 +1,4 @@
-import { DbConfig } from "../mongodb/main"
+import { IrnLogInput } from "../mongodb/main"
 import { Action } from "../utils/actions"
 import { DateString } from "../utils/dates"
 import { GpsLocation, TimeSlot } from "../utils/models"
@@ -72,12 +72,12 @@ export type GetIrnRepositoryTablesParams = Partial<{
 export interface IrnRepository {
   addCounties: Action<Counties, void>
   addDistricts: Action<Districts, void>
+  addIrnLog: Action<IrnLogInput, void>
   addIrnServices: Action<IrnServices, void>
   addIrnTablesTemporary: Action<IrnRepositoryTables, void>
   clearAll: Action<void, void>
   clearIrnTablesTemporary: Action<void, void>
   close: Action<void, void>
-  getConfig: Action<void, DbConfig | null>
   getCounty: Action<{ countyId: number }, County | null>
   getCounties: Action<{ districtId?: number }, Counties>
   getDistrictRegion: Action<number, Region>
@@ -86,10 +86,11 @@ export interface IrnRepository {
   getIrnService: Action<{ serviceId: number }, IrnService | null>
   getIrnServices: Action<void, IrnServices>
   getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables>
+  getIrnTablesCount: Action<void, number>
   switchIrnTables: Action<void, void>
-  updateConfig: Action<DbConfig, void>
   getIrnPlace: Action<{ placeName: string }, IrnPlace | null>
   getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces>
+  removeOldLogs: Action<void, void>
   upsertIrnPlace: Action<Partial<IrnPlace>, void>
 }
 

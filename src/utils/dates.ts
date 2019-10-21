@@ -21,8 +21,8 @@ export const toExistingDateString = (d: Date | string): DateString =>
 
 export const toUtcMaybeDate = (d: DateString | undefined) => (d ? toUtcDate(d) : undefined)
 export const toUtcDate = (d: DateString) => moment.utc(d).toDate()
-export const currentUtcDate = () => toExistingDateString(moment.utc().toDate())
-export const currentUtcDateTime = () => moment.utc().toDate()
+export const currentUtcDateString = () => toExistingDateString(moment.utc().toDate())
+export const currentUtcDateTime = () => moment.utc()
 
 export const addDays = (d: DateString, days: number) =>
   toExistingDateString(

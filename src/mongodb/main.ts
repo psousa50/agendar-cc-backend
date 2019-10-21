@@ -15,8 +15,9 @@ import {
   IrnServices,
 } from "../irnRepository/models"
 import { ServiceError } from "../utils/audit"
+import { currentUtcDateTime } from "../utils/dates"
 
-const DB_CONFIG = "_dbConfig"
+const IRN_LOG = "IrnLog"
 const IRN_SERVICES = "IrnServices"
 const DISTRICTS = "Districts"
 const COUNTIES = "Counties"
@@ -24,9 +25,12 @@ const IRN_TABLES_TEMPORARY = "_IrnTablesTemporary"
 const IRN_TABLES = "IrnTables"
 const IRN_PLACES = "IrnPlaces"
 
-export interface DbConfig {
-  refreshStarted?: Date
-  refreshEnded?: Date
+export interface IrnLogInput {
+  message: string
+}
+
+export interface IrnLog extends IrnLogInput {
+  timestamp: string
 }
 
 export const connect = (mongoDbUri: string): TaskEither<ServiceError, MongoClient> =>
@@ -106,10 +110,6 @@ const buildGetIrnTablesQuery = ({
         },
       }),
 })
-export const getIrnTables = (params: GetIrnRepositoryTablesParams) => {
-  const query = buildGetIrnTablesQuery(params)
-  return get<IrnRepositoryTable>(IRN_TABLES)(query)
-}
 
 const upsertManyById = <T extends { _id: string }>(collection: string) => (data: T[]) =>
   upsertMany(collection)(data, (item: T) => ({ _id: item._id }))
@@ -135,15 +135,21 @@ export const addDistricts = (districts: Districts) =>
 export const addCounties = (counties: Counties) =>
   upsertManyById(COUNTIES)(counties.map(c => ({ ...c, _id: c.countyId.toString() })))
 
-export const addIrnTablesTemporary = (irnTables: IrnRepositoryTables) => upsertMany(IRN_TABLES_TEMPORARY)(irnTables)
-
-export const getConfig = getById<DbConfig>(DB_CONFIG)(1)
-
-export const updateConfig = (dbConfig: DbConfig) => (client: MongoClient) =>
+export const addIrnLog = (log: IrnLogInput) => (client: MongoClient) =>
   client
     .db()
-    .collection(DB_CONFIG)
-    .updateOne({ _id: 1 }, { $set: { _id: 1, ...dbConfig } }, { upsert: true })
+    .collection<IrnLog>(IRN_LOG)
+    .insertOne({ timestamp: currentUtcDateTime().format("YYYY-MM-DD HH:mm:ss"), ...log })
+
+export const removeOldLogs = (client: MongoClient) => {
+  const lowerTimestamp = currentUtcDateTime()
+    .add(-1, "day")
+    .format("YYYY-MM-DD HH:mm:ss")
+  return client
+    .db()
+    .collection<IrnLog>(IRN_LOG)
+    .deleteMany({ timestamp: { $lte: lowerTimestamp } })
+}
 
 export const getIrnPlace = (placeName: string) => getById<IrnPlace>(IRN_PLACES)(placeName)
 
@@ -158,6 +164,19 @@ export const updateIrnPlace = (irnPlace: Partial<IrnPlace>) => (client: MongoCli
     .db()
     .collection(IRN_PLACES)
     .updateOne({ _id: irnPlace.name }, { $set: { _id: irnPlace.name, ...irnPlace } }, { upsert: true })
+
+export const addIrnTablesTemporary = (irnTables: IrnRepositoryTables) => upsertMany(IRN_TABLES_TEMPORARY)(irnTables)
+
+export const getIrnTables = (params: GetIrnRepositoryTablesParams) => {
+  const query = buildGetIrnTablesQuery(params)
+  return get<IrnRepositoryTable>(IRN_TABLES)(query)
+}
+
+export const getIrnTablesCount = (client: MongoClient) =>
+  client
+    .db()
+    .collection(IRN_TABLES)
+    .countDocuments()
 
 export const switchIrnTables = (client: MongoClient) =>
   client

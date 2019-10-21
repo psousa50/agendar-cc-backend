@@ -6,7 +6,7 @@ import { buildEnvironment, Environment } from "../environment"
 import { irnCrawler } from "../irnCrawler/main"
 import { ServiceError } from "../utils/audit"
 import { isDev } from "../utils/config"
-import { currentUtcDate, currentUtcDateTime } from "../utils/dates"
+import { currentUtcDateString } from "../utils/dates"
 import { logDebug } from "../utils/debug"
 
 const exitProcess = (error: ServiceError) => {
@@ -22,9 +22,11 @@ const start = (environment: Environment) => {
   run(
     pipe(
       irnCrawler.start(),
-      chain(() => environment.irnRepository.updateConfig({ refreshStarted: currentUtcDateTime() })),
-      chain(() => irnCrawler.refreshTables({ startDate: currentUtcDate() })),
-      chain(() => environment.irnRepository.updateConfig({ refreshEnded: currentUtcDateTime() })),
+      chain(() => environment.irnRepository.removeOldLogs()),
+      chain(() => environment.irnRepository.addIrnLog({ message: "Refresh tables started" })),
+      chain(() => irnCrawler.refreshTables({ startDate: currentUtcDateString() })),
+      chain(() => environment.irnRepository.getIrnTablesCount()),
+      chain(tablesCount => environment.irnRepository.addIrnLog({ message: `Refresh tables ended (${tablesCount})` })),
       chain(() => irnCrawler.updateIrnPlacesLocation()),
       chain(() => environment.irnRepository.close()),
       mapLeft(e => logDebug("ERROR: ", e)),

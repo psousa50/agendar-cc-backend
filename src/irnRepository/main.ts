@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/lib/pipeable"
 import { map } from "fp-ts/lib/ReaderTaskEither"
 import * as mongoDb from "../mongodb/main"
-import { DbConfig, disconnect } from "../mongodb/main"
+import { disconnect } from "../mongodb/main"
 import { globalDistricts } from "../staticData/districts"
 import { Action, actionOf, fromPromise, fromVoidPromise } from "../utils/actions"
 import { toUtcDate } from "../utils/dates"
@@ -46,6 +46,8 @@ const getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables> = 
     map(irnTables => (params.onlyOnSaturdays ? irnTables.filter(t => toUtcDate(t.date).getDay() === 6) : irnTables)),
   )
 
+const getIrnTablesCount: Action<void, number> = () => fromPromise(env => mongoDb.getIrnTablesCount(env.dbClient))
+
 const addCounties: Action<Counties, void> = counties =>
   fromVoidPromise(env => mongoDb.addCounties(counties.map(c => ({ _id: c.countyId, ...c })))(env.dbClient))
 
@@ -58,10 +60,9 @@ const addIrnTablesTemporary: Action<IrnRepositoryTables, void> = irnTables =>
 const addIrnServices: Action<IrnServices, void> = irnServices =>
   fromVoidPromise(env => mongoDb.addIrnServices(irnServices)(env.dbClient))
 
-const getConfig: Action<void, DbConfig | null> = () => fromPromise(env => mongoDb.getConfig(env.dbClient))
+const addIrnLog: Action<mongoDb.IrnLogInput, void> = log => fromVoidPromise(env => mongoDb.addIrnLog(log)(env.dbClient))
 
-const updateConfig: Action<DbConfig, void> = dbConfig =>
-  fromVoidPromise(env => mongoDb.updateConfig({ ...dbConfig })(env.dbClient))
+const removeOldLogs: Action<void, void> = () => fromVoidPromise(env => mongoDb.removeOldLogs(env.dbClient))
 
 const switchIrnTables: Action<void, void> = () => fromVoidPromise(env => mongoDb.switchIrnTables(env.dbClient))
 
@@ -82,12 +83,12 @@ const getDistrictRegion: Action<number, Region> = districtId =>
 export const irnRepository: IrnRepository = {
   addCounties,
   addDistricts,
+  addIrnLog,
   addIrnServices,
   addIrnTablesTemporary,
   clearAll,
   clearIrnTablesTemporary,
   close,
-  getConfig,
   getCounties,
   getCounty,
   getDistrict,
@@ -98,7 +99,8 @@ export const irnRepository: IrnRepository = {
   getIrnService,
   getIrnServices,
   getIrnTables,
+  getIrnTablesCount,
+  removeOldLogs,
   switchIrnTables,
-  updateConfig,
   upsertIrnPlace,
 }
