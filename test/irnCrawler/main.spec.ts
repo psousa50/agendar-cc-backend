@@ -72,6 +72,8 @@ describe("IrnCrawler", () => {
     getDistrictRegion: jest.fn(() => actionOf(region)),
     getIrnPlace: jest.fn(() => actionOf(null)),
     getIrnServices: jest.fn(() => actionOf([])),
+    getIrnTablesCount: jest.fn(() => actionOf(100)),
+    getIrnTablesTemporaryCount: jest.fn(() => actionOf(100)),
     switchIrnTables: jest.fn(() => actionOf(undefined)),
     upsertIrnPlace: jest.fn(() => actionOf(undefined)),
   }
@@ -398,6 +400,43 @@ describe("IrnCrawler", () => {
 
       expect(irnFetch.getIrnTables).toHaveBeenCalledTimes(getTablesCalls.length)
       getTablesCalls.forEach(c => expect(irnFetch.getIrnTables).toHaveBeenCalledWith(c.calledWith))
+    })
+
+    it("does not switch tables if new tables count is to low", async () => {
+      const table = makeTable({ date: toExistingDateString("2000-01-01") })
+
+      const getTablesCalls = [
+        {
+          calledWith: { serviceId, countyId, districtId },
+          returns: [table],
+        },
+        {
+          calledWith: { serviceId, countyId, districtId, date: toExistingDateString("2000-01-02") },
+          returns: [],
+        },
+      ]
+
+      const irnFetch = {
+        getIrnTables: jest.fn(implementFindWith(getTablesCalls)),
+      }
+
+      const irnRepository = {
+        ...defaultIrnRepository,
+        addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
+        getIrnTablesCount: jest.fn(() => actionOf(100)),
+        getIrnTablesTemporaryCount: jest.fn(() => actionOf(50)),
+        switchIrnTables: jest.fn(() => actionOf(undefined)),
+      }
+
+      const environment = {
+        ...defaultEnvironment,
+        irnFetch,
+        irnRepository,
+      }
+
+      await run(irnCrawler.refreshTables(defaultCrawlerParams), environment as any)
+
+      expect(irnRepository.switchIrnTables).not.toHaveBeenCalled()
     })
   })
 

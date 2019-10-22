@@ -87,6 +87,7 @@ export interface IrnRepository {
   getIrnServices: Action<void, IrnServices>
   getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables>
   getIrnTablesCount: Action<void, number>
+  getIrnTablesTemporaryCount: Action<void, number>
   getLastRefreshIrnLog: Action<void, IrnLog | undefined>
   switchIrnTables: Action<void, void>
   getIrnPlace: Action<{ placeName: string }, IrnPlace | null>

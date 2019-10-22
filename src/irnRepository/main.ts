@@ -47,6 +47,8 @@ const getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables> = 
   )
 
 const getIrnTablesCount: Action<void, number> = () => fromPromise(env => mongoDb.getIrnTablesCount(env.dbClient))
+const getIrnTablesTemporaryCount: Action<void, number> = () =>
+  fromPromise(env => mongoDb.getIrnTablesTemporaryCount(env.dbClient))
 
 const addCounties: Action<Counties, void> = counties =>
   fromVoidPromise(env => mongoDb.addCounties(counties.map(c => ({ _id: c.countyId, ...c })))(env.dbClient))
@@ -102,6 +104,7 @@ export const irnRepository: IrnRepository = {
   getIrnServices,
   getIrnTables,
   getIrnTablesCount,
+  getIrnTablesTemporaryCount,
   getLastRefreshIrnLog,
   removeOldLogs,
   switchIrnTables,

@@ -192,6 +192,12 @@ export const getIrnTablesCount = (client: MongoClient) =>
     .collection(IRN_TABLES)
     .countDocuments()
 
+export const getIrnTablesTemporaryCount = (client: MongoClient) =>
+  client
+    .db()
+    .collection(IRN_TABLES_TEMPORARY)
+    .countDocuments()
+
 export const switchIrnTables = (client: MongoClient) =>
   client
     .db()

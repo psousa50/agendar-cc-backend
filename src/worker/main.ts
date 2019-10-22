@@ -18,8 +18,9 @@ const exitProcess = (error: ServiceError) => {
   return task.of(undefined)
 }
 
-const checkIsTimeToRun: Action<IrnLog | undefined, boolean> = irnLog => {
-  const lastTimestamp = !!irnLog && irnLog.type === "RefreshEnded" ? irnLog.timestamp : undefined
+const checkIsTimeToRun: Action<IrnLog | undefined, boolean> = lastRefreshIrnLog => {
+  const lastTimestamp =
+    !!lastRefreshIrnLog && lastRefreshIrnLog.type === "RefreshEnded" ? lastRefreshIrnLog.timestamp : undefined
   const now = currentUtcDateTime()
   const needToRun = lastTimestamp ? now.diff(moment.utc(lastTimestamp), "minute") > 1 : true
   return actionOf(needToRun)

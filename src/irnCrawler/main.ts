@@ -161,7 +161,14 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
         chain(({ services, counties }) =>
           rteArraySequence(services.map(service => addTablesForService(service.serviceId, counties))),
         ),
-        chain(_ => env.irnRepository.switchIrnTables()),
+        chain(() => env.irnRepository.getIrnTablesCount()),
+        chain(irnTablesCount =>
+          pipe(
+            env.irnRepository.getIrnTablesTemporaryCount(),
+            map(irnTablesTemporaryCount => irnTablesTemporaryCount / irnTablesCount > 0.5),
+          ),
+        ),
+        chain(okToGo => (okToGo ? env.irnRepository.switchIrnTables() : actionOf(undefined))),
       )
     }),
   )
