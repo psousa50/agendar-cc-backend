@@ -25,7 +25,9 @@ const IRN_TABLES_TEMPORARY = "_IrnTablesTemporary"
 const IRN_TABLES = "IrnTables"
 const IRN_PLACES = "IrnPlaces"
 
+export type IrnLogType = "RefreshStarted" | "RefreshEnded"
 export interface IrnLogInput {
+  type: IrnLogType
   message: string
 }
 
@@ -140,6 +142,18 @@ export const addIrnLog = (log: IrnLogInput) => (client: MongoClient) =>
     .db()
     .collection<IrnLog>(IRN_LOG)
     .insertOne({ timestamp: currentUtcDateTime().format("YYYY-MM-DD HH:mm:ss"), ...log })
+
+export const getLastRefreshIrnLog = async (client: MongoClient) => {
+  const logs = await client
+    .db()
+    .collection<IrnLog>(IRN_LOG)
+    .find({ $or: [{ type: "RefreshStarted" }, { type: "RefreshEnded" }] })
+    .sort({ timestamp: -1 })
+    .limit(1)
+    .toArray()
+
+  return logs.length > 0 ? logs[0] : undefined
+}
 
 export const removeOldLogs = (client: MongoClient) => {
   const lowerTimestamp = currentUtcDateTime()

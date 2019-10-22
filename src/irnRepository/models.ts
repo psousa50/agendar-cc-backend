@@ -1,4 +1,4 @@
-import { IrnLogInput } from "../mongodb/main"
+import { IrnLog, IrnLogInput } from "../mongodb/main"
 import { Action } from "../utils/actions"
 import { DateString } from "../utils/dates"
 import { GpsLocation, TimeSlot } from "../utils/models"
@@ -87,6 +87,7 @@ export interface IrnRepository {
   getIrnServices: Action<void, IrnServices>
   getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables>
   getIrnTablesCount: Action<void, number>
+  getLastRefreshIrnLog: Action<void, IrnLog | undefined>
   switchIrnTables: Action<void, void>
   getIrnPlace: Action<{ placeName: string }, IrnPlace | null>
   getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces>

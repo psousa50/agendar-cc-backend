@@ -2,11 +2,14 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { chain, mapLeft, run } from "fp-ts/lib/ReaderTaskEither"
 import { task } from "fp-ts/lib/Task"
 import { fold } from "fp-ts/lib/TaskEither"
+import moment = require("moment")
 import { buildEnvironment, Environment } from "../environment"
 import { irnCrawler } from "../irnCrawler/main"
+import { IrnLog } from "../mongodb/main"
+import { Action, actionOf, ask } from "../utils/actions"
 import { ServiceError } from "../utils/audit"
 import { isDev } from "../utils/config"
-import { currentUtcDateString } from "../utils/dates"
+import { currentUtcDateString, currentUtcDateTime } from "../utils/dates"
 import { logDebug } from "../utils/debug"
 
 const exitProcess = (error: ServiceError) => {
@@ -15,21 +18,45 @@ const exitProcess = (error: ServiceError) => {
   return task.of(undefined)
 }
 
+const checkIsTimeToRun: Action<IrnLog | undefined, boolean> = irnLog => {
+  const lastTimestamp = !!irnLog && irnLog.type === "RefreshEnded" ? irnLog.timestamp : undefined
+  const now = currentUtcDateTime()
+  const needToRun = lastTimestamp ? now.diff(moment.utc(lastTimestamp), "minute") > 1 : true
+  return actionOf(needToRun)
+}
+
+const runProcess: Action<void, void> = () =>
+  pipe(
+    ask(),
+    chain(env =>
+      pipe(
+        irnCrawler.start(),
+        chain(() => env.irnRepository.removeOldLogs()),
+        chain(() => env.irnRepository.addIrnLog({ type: "RefreshStarted", message: "Refresh tables started" })),
+        chain(() => irnCrawler.refreshTables({ startDate: currentUtcDateString() })),
+        chain(() => env.irnRepository.getIrnTablesCount()),
+        chain(tablesCount =>
+          env.irnRepository.addIrnLog({ type: "RefreshEnded", message: `Refresh tables ended (${tablesCount})` }),
+        ),
+        chain(() => irnCrawler.updateIrnPlacesLocation()),
+        mapLeft(e => {
+          logDebug("ERROR: ", e)
+          return e
+        }),
+      ),
+    ),
+  )
+
 const start = (environment: Environment) => {
   if (isDev(environment.config)) {
     logDebug("App Config =====>\n", environment.config)
   }
   run(
     pipe(
-      irnCrawler.start(),
-      chain(() => environment.irnRepository.removeOldLogs()),
-      chain(() => environment.irnRepository.addIrnLog({ message: "Refresh tables started" })),
-      chain(() => irnCrawler.refreshTables({ startDate: currentUtcDateString() })),
-      chain(() => environment.irnRepository.getIrnTablesCount()),
-      chain(tablesCount => environment.irnRepository.addIrnLog({ message: `Refresh tables ended (${tablesCount})` })),
-      chain(() => irnCrawler.updateIrnPlacesLocation()),
+      environment.irnRepository.getLastRefreshIrnLog(),
+      chain(checkIsTimeToRun),
+      chain(needsToRun => (needsToRun ? runProcess() : actionOf(undefined))),
       chain(() => environment.irnRepository.close()),
-      mapLeft(e => logDebug("ERROR: ", e)),
     ),
     environment,
   )

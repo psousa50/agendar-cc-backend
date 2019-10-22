@@ -62,6 +62,8 @@ const addIrnServices: Action<IrnServices, void> = irnServices =>
 
 const addIrnLog: Action<mongoDb.IrnLogInput, void> = log => fromVoidPromise(env => mongoDb.addIrnLog(log)(env.dbClient))
 
+const getLastRefreshIrnLog: Action<void, mongoDb.IrnLog | undefined> = () =>
+  fromPromise(env => mongoDb.getLastRefreshIrnLog(env.dbClient))
 const removeOldLogs: Action<void, void> = () => fromVoidPromise(env => mongoDb.removeOldLogs(env.dbClient))
 
 const switchIrnTables: Action<void, void> = () => fromVoidPromise(env => mongoDb.switchIrnTables(env.dbClient))
@@ -100,6 +102,7 @@ export const irnRepository: IrnRepository = {
   getIrnServices,
   getIrnTables,
   getIrnTablesCount,
+  getLastRefreshIrnLog,
   removeOldLogs,
   switchIrnTables,
   upsertIrnPlace,
