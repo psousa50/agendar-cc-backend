@@ -19,10 +19,12 @@ const exitProcess = (error: ServiceError) => {
 }
 
 const checkIsTimeToRun: Action<IrnLog | undefined, boolean> = lastRefreshIrnLog => {
-  const lastTimestamp =
-    !!lastRefreshIrnLog && lastRefreshIrnLog.type === "RefreshEnded" ? lastRefreshIrnLog.timestamp : undefined
+  const lastTimestamp = lastRefreshIrnLog && lastRefreshIrnLog.timestamp
+  const minElappsedTimeMn = lastRefreshIrnLog ? (lastRefreshIrnLog.type === "RefreshStarted" ? 15 : 1) : undefined
   const now = currentUtcDateTime()
-  const needToRun = lastTimestamp ? now.diff(moment.utc(lastTimestamp), "minute") > 1 : true
+  const needToRun =
+    lastTimestamp && minElappsedTimeMn ? now.diff(moment.utc(lastTimestamp), "minute") > minElappsedTimeMn : true
+  logDebug(needToRun ? "Running Refresh Tables..." : "Skipping Refresh Tables!")
   return actionOf(needToRun)
 }
 

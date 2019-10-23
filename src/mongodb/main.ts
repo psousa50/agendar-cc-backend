@@ -137,11 +137,11 @@ export const addDistricts = (districts: Districts) =>
 export const addCounties = (counties: Counties) =>
   upsertManyById(COUNTIES)(counties.map(c => ({ ...c, _id: c.countyId.toString() })))
 
-export const addIrnLog = (log: IrnLogInput) => (client: MongoClient) =>
+export const addIrnLog = (irnLogInput: IrnLogInput) => (client: MongoClient) =>
   client
     .db()
     .collection<IrnLog>(IRN_LOG)
-    .insertOne({ timestamp: currentUtcDateTime().format("YYYY-MM-DD HH:mm:ss"), ...log })
+    .insertOne({ timestamp: currentUtcDateTime().format("YYYY-MM-DD HH:mm:ss"), ...irnLogInput })
 
 export const getLastRefreshIrnLog = async (client: MongoClient) => {
   const logs = await client
