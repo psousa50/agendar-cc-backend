@@ -2,3 +2,4 @@
 db.getCollection('IrnLog').find({}).sort({timestamp: -1})
 
 db.getCollection('IrnLog').find( { type: "RefreshEnded" }, { _id: 0, message: 1}).sort({timestamp: -1})
+ 
