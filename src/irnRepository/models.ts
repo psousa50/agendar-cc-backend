@@ -58,6 +58,7 @@ export type GetIrnPlacesParams = Partial<{
 
 export type GetIrnRepositoryTablesParams = Partial<{
   countyId: number
+  date: DateString
   districtId: number
   endDate: DateString
   endTime: TimeSlot
@@ -67,6 +68,7 @@ export type GetIrnRepositoryTablesParams = Partial<{
   serviceId: number
   startDate: DateString
   startTime: TimeSlot
+  timeSlot: TimeSlot
 }>
 
 export interface IrnRepository {

@@ -4,7 +4,15 @@ import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
 import { Environment } from "../../../environment"
 import { ErrorCodes, ServiceError } from "../../../utils/audit"
 import { logDebug } from "../../../utils/debug"
-import { getCounties, getDistricts, getIrnPlaces, getIrnTables, getIrnTableScheduleHtml, getServices } from "./domain"
+import {
+  getCounties,
+  getDistricts,
+  getIrnPlaces,
+  getIrnTableMatch,
+  getIrnTables,
+  getIrnTableScheduleHtml,
+  getServices,
+} from "./domain"
 
 const errorHandler = (res: Response) => (error: ServiceError) => {
   res.sendStatus(error.dependencyError ? (error.errorCode === ErrorCodes.NOT_FOUND ? 404 : 502) : 400)
@@ -63,6 +71,16 @@ export const router = (env: Environment) =>
       await run(
         pipe(
           getIrnTables(req.query),
+          bimap(errorHandler(res), okHandler(res)),
+        ),
+        env,
+      )
+    })
+    .get("/irnTableMatch", async (req, res) => {
+      logDebug("GET irnTableMatch=====>\n", req.query)
+      await run(
+        pipe(
+          getIrnTableMatch(req.query),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,

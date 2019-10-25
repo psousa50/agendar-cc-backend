@@ -83,25 +83,40 @@ export const getCounty = (countyId: number) => getById<County>(COUNTIES)(countyI
 export const getCounties = (districtId?: number) => get<County>(COUNTIES)({ ...(districtId ? { districtId } : {}) })
 
 const buildGetIrnTablesQuery = ({
-  serviceId,
-  region,
-  districtId,
   countyId,
-  placeName,
-  startDate,
+  date,
+  districtId,
   endDate,
-  startTime,
   endTime,
+  placeName,
+  region,
+  serviceId,
+  startDate,
+  startTime,
+  timeSlot,
 }: GetIrnRepositoryTablesParams) => ({
   ...(isNil(serviceId) ? {} : { serviceId }),
   ...(isNil(region) ? {} : { region }),
   ...(isNil(districtId) ? {} : { districtId }),
   ...(isNil(countyId) ? {} : { countyId }),
   ...(isNil(placeName) ? {} : { placeName }),
-  ...(isNil(startDate) && isNil(endDate)
+  ...(isNil(date) ? {} : { date }),
+  ...((isNil(startDate) && isNil(endDate)) || !isNil(date)
     ? {}
-    : { date: { ...(isNil(startDate) ? {} : { $gte: startDate }), ...(isNil(endDate) ? {} : { $lte: endDate }) } }),
-  ...(isNil(startTime) && isNil(endTime)
+    : {
+        date: {
+          ...(isNil(startDate) ? {} : { $gte: startDate }),
+          ...(isNil(endDate) ? {} : { $lte: endDate }),
+        },
+      }),
+  ...(isNil(timeSlot)
+    ? {}
+    : {
+        timeSlots: {
+          $elemMatch: timeSlot,
+        },
+      }),
+  ...((isNil(startTime) && isNil(endTime)) || !isNil(timeSlot)
     ? {}
     : {
         timeSlots: {
@@ -183,6 +198,8 @@ export const addIrnTablesTemporary = (irnTables: IrnRepositoryTables) => upsertM
 
 export const getIrnTables = (params: GetIrnRepositoryTablesParams) => {
   const query = buildGetIrnTablesQuery(params)
+  console.log("params=====>\n", params)
+  console.log("query=====>\n", query)
   return get<IrnRepositoryTable>(IRN_TABLES)(query)
 }
 

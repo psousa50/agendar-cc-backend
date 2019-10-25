@@ -1,12 +1,21 @@
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain, map } from "fp-ts/lib/ReaderTaskEither"
-import { isNil } from "ramda"
+import { flatten, isNil, sort, uniq } from "ramda"
 import { getIrnTablesHtml } from "../../../irnFetch/main"
 import { FetchIrnTablesParams } from "../../../irnFetch/models"
-import { Counties, Districts, IrnPlaces, IrnRepositoryTables, IrnServices } from "../../../irnRepository/models"
+import {
+  Counties,
+  Districts,
+  IrnPlaces,
+  IrnRepositoryTable,
+  IrnRepositoryTables,
+  IrnServices,
+} from "../../../irnRepository/models"
 import { Action, actionErrorOf, actionOf, ask } from "../../../utils/actions"
 import { ServiceError } from "../../../utils/audit"
-import { toDateString, toExistingDateString } from "../../../utils/dates"
+import { min } from "../../../utils/collections"
+import { DateString, toDateString, toExistingDateString } from "../../../utils/dates"
+import { TimeSlot } from "../../../utils/models"
 
 const toNumber = (value?: string) => (isNil(value) ? undefined : Number.parseInt(value, 10))
 const toDate = (value?: string) => toDateString(value)
@@ -52,16 +61,18 @@ export const getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces> = params =>
   )
 
 interface GetIrnTablesParams {
-  region?: string
-  serviceId?: string
-  districtId?: string
   countyId?: string
-  placeName?: string
-  startDate?: string
+  date?: string
+  districtId?: string
   endDate?: string
-  startTime?: string
   endTime?: string
   onlyOnSaturdays?: string
+  placeName?: string
+  region?: string
+  serviceId?: string
+  startDate?: string
+  startTime?: string
+  timeSlot?: string
 }
 export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = params =>
   pipe(
@@ -69,6 +80,7 @@ export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = par
     chain(env =>
       env.irnRepository.getIrnTables({
         countyId: toNumber(params.countyId),
+        date: toDate(params.date),
         districtId: toNumber(params.districtId),
         endDate: toDate(params.endDate),
         endTime: toTimeSlot(params.endTime),
@@ -78,8 +90,94 @@ export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = par
         serviceId: toNumber(params.serviceId),
         startDate: toDate(params.startDate),
         startTime: params.startTime,
+        timeSlot: toTimeSlot(params.timeSlot),
       }),
     ),
+  )
+
+interface IrnTableMatchResult {
+  irnTableResult?: IrnTableResult
+  otherDates: DateString[]
+  otherPlaces: string[]
+  otherTimeSlots: TimeSlot[]
+}
+
+interface TimeSlotsFilter {
+  endTime?: TimeSlot
+  startTime?: TimeSlot
+  timeSlot?: TimeSlot
+}
+
+interface IrnTableResult {
+  serviceId: number
+  countyId: number
+  districtId: number
+  date: DateString
+  placeName: string
+  timeSlot: TimeSlot
+  tableNumber: string
+}
+
+const sortTimes = (t1: TimeSlot, t2: TimeSlot) => t1.localeCompare(t2)
+
+const byTimeSlots = ({ endTime, startTime, timeSlot }: TimeSlotsFilter) => (ts: TimeSlot) =>
+  (isNil(timeSlot) || ts === timeSlot) && (isNil(startTime) || startTime <= ts) && (isNil(endTime) || endTime >= ts)
+
+const getIrnTablesByClosestDate = (irnTables: IrnRepositoryTables) => {
+  const closestDate = min(irnTables.map(t => t.date)) || irnTables[0].date
+  return irnTables.filter(t => t.date === closestDate)
+}
+
+const getOneIrnTableResult = (irnTable: IrnRepositoryTable, timeSlotsFilter: TimeSlotsFilter): IrnTableResult => {
+  const timeSlots = sort(sortTimes, irnTable.timeSlots).filter(byTimeSlots(timeSlotsFilter))
+  const earlierTimeSlot = timeSlots[0]
+
+  return {
+    countyId: irnTable.countyId,
+    date: irnTable.date,
+    districtId: irnTable.districtId,
+    placeName: irnTable.placeName,
+    serviceId: irnTable.serviceId,
+    tableNumber: irnTable.tableNumber,
+    timeSlot: earlierTimeSlot,
+  }
+}
+
+const getIrnTableResult = (params: GetIrnTablesParams, irnTables: IrnRepositoryTables) => {
+  if (irnTables.length === 0) {
+    return undefined
+  }
+
+  const irnTablesByClosestDate = getIrnTablesByClosestDate(irnTables)
+
+  const timeSlotsFilter = {
+    endTime: params.endTime,
+    startTime: params.startTime,
+    timeSlot: params.timeSlot,
+  }
+
+  return getOneIrnTableResult(irnTablesByClosestDate[0], timeSlotsFilter)
+}
+
+const findIrnTableMatch: (
+  params: GetIrnTablesParams,
+) => Action<IrnRepositoryTables, IrnTableMatchResult> = params => irnTables => {
+  const irnTableResult = getIrnTableResult(params, irnTables)
+
+  const irnTableMatchResult = {
+    irnTableResult,
+    otherDates: uniq(irnTables.map(t => t.date)),
+    otherPlaces: uniq(irnTables.map(t => t.placeName)),
+    otherTimeSlots: uniq(flatten(irnTables.map(t => t.timeSlots.filter(byTimeSlots(params))))),
+  }
+
+  return actionOf(irnTableMatchResult)
+}
+
+export const getIrnTableMatch: Action<GetIrnTablesParams, IrnTableMatchResult> = params =>
+  pipe(
+    getIrnTables(params),
+    chain(findIrnTableMatch(params)),
   )
 
 interface GetIrnTableScheduleHtmlParams {
