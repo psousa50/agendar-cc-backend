@@ -10,15 +10,17 @@ import { IrnRepository } from "./irnRepository/models"
 import { connect } from "./mongodb/main"
 import { config as appConfig } from "./utils/config"
 import { AppConfig } from "./utils/config"
+import { logDebug } from "./utils/debug"
 import { FetchAction, fetchAction } from "./utils/fetch"
 
 export type Environment = {
   config: AppConfig
+  dbClient: MongoClient
   fetch: FetchAction
+  geoCoding: GeoCoding
   irnFetch: IrnFetch
   irnRepository: IrnRepository
-  dbClient: MongoClient
-  geoCoding: GeoCoding
+  log: (message: string) => void
 }
 
 export const buildEnvironment = () => {
@@ -36,6 +38,7 @@ export const buildEnvironment = () => {
       },
       irnFetch,
       irnRepository,
+      log: logDebug,
     })),
   )
 }

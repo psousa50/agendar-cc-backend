@@ -5,7 +5,6 @@ import isoFetch from "isomorphic-fetch"
 import { Environment } from "../environment"
 import { actionErrorOf, actionOf, ActionResult, ask, delay } from "./actions"
 import { ServiceError } from "./audit"
-import { logDebug } from "./debug"
 import * as Errors from "./errors"
 
 export type FetchPromise = (input: Request | string, init?: RequestInit) => Promise<Response>
@@ -30,7 +29,7 @@ export const buildFetchAction = (fetch: FetchPromise) => (
           coreFetch(),
           fold(
             e => {
-              logDebug(`Error Fetching ${e.message}. ${nTries < env.config.retryCount ? "Retrying..." : ""}`)
+              env.log(`Error Fetching ${e.message}. ${nTries < env.config.retryCount ? "Retrying..." : ""}`)
               return nTries < env.config.retryCount
                 ? delay<Environment, ServiceError, Response>(env)(env.config.retryDelay)(fetchRetry(nTries + 1))
                 : actionErrorOf(e)
