@@ -15,7 +15,7 @@ import {
 import { Action, actionErrorOf, actionOf, ask } from "../../../utils/actions"
 import { ServiceError } from "../../../utils/audit"
 import { min } from "../../../utils/collections"
-import { DateString, toDateString, toExistingDateString } from "../../../utils/dates"
+import { DateString } from "../../../utils/dates"
 import { TimeSlot } from "../../../utils/models"
 
 export const getServices: Action<void, IrnServices> = () =>

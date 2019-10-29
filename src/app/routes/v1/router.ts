@@ -1,10 +1,8 @@
 import { Response, Router } from "express"
 import { pipe } from "fp-ts/lib/pipeable"
 import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
-import { isNil } from "ramda"
 import { Environment } from "../../../environment"
 import { ErrorCodes, ServiceError } from "../../../utils/audit"
-import { toDateString, toExistingDateString } from "../../../utils/dates"
 import { logDebug } from "../../../utils/debug"
 import {
   getCounties,
@@ -13,7 +11,6 @@ import {
   getIrnTableMatch,
   getIrnTables,
   getIrnTableScheduleHtml,
-  GetIrnTablesParams,
   getServices,
 } from "./domain"
 import {

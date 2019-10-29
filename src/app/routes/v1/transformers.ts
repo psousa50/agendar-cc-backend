@@ -1,6 +1,6 @@
 import { isNil } from "ramda"
 import { GetIrnPlacesParams } from "../../../irnRepository/models"
-import { toDateString, toExistingDateString } from "../../../utils/dates"
+import { toDateString } from "../../../utils/dates"
 import { GetIrnTableMatchParams, GetIrnTableScheduleHtmlParams, GetIrnTablesParams } from "./domain"
 
 type Stringify<T> = {
@@ -11,8 +11,6 @@ const toNumber = (value?: string) => (isNil(value) ? undefined : Number.parseInt
 const toDate = (value?: string) => toDateString(value)
 const toTimeSlot = (value?: string) => value
 const toBoolean = (value?: string) => !isNil(value) && value.toUpperCase().substr(0, 1) === "Y"
-const toExistingNumber = (value: string) => Number.parseInt(value, 10)
-const toExistingDate = (value: string) => toExistingDateString(value)
 
 export const transformGetCountiesParams = (params: { districtId?: string }) => ({
   districtId: toNumber(params.districtId),
