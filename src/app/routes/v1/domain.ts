@@ -6,6 +6,7 @@ import { FetchIrnTablesParams } from "../../../irnFetch/models"
 import {
   Counties,
   Districts,
+  GetIrnRepositoryTablesParams,
   IrnPlaces,
   IrnRepositoryTable,
   IrnRepositoryTables,
@@ -16,13 +17,6 @@ import { ServiceError } from "../../../utils/audit"
 import { min } from "../../../utils/collections"
 import { DateString, toDateString, toExistingDateString } from "../../../utils/dates"
 import { TimeSlot } from "../../../utils/models"
-
-const toNumber = (value?: string) => (isNil(value) ? undefined : Number.parseInt(value, 10))
-const toDate = (value?: string) => toDateString(value)
-const toTimeSlot = (value?: string) => value
-const toBoolean = (value?: string) => !isNil(value) && value.toUpperCase().substr(0, 1) === "Y"
-const toExistingNumber = (value: string) => Number.parseInt(value, 10)
-const toExistingDate = (value: string) => toExistingDateString(value)
 
 export const getServices: Action<void, IrnServices> = () =>
   pipe(
@@ -39,60 +33,33 @@ export const getDistricts: Action<void, Districts> = () =>
 export interface GetCountiesParams {
   districtId?: string
 }
-export const getCounties: Action<any, Counties> = params =>
+export const getCounties: Action<{ districtId?: number }, Counties> = ({ districtId }) =>
   pipe(
     ask(),
-    chain(env => env.irnRepository.getCounties({ districtId: toNumber(params.districtId) })),
+    chain(env => env.irnRepository.getCounties({ districtId })),
   )
 
 interface GetIrnPlacesParams {
-  districtId?: string
-  countyId?: string
+  districtId?: number
+  countyId?: number
 }
-export const getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces> = params =>
+export const getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces> = ({ countyId, districtId }) =>
   pipe(
     ask(),
     chain(env =>
       env.irnRepository.getIrnPlaces({
-        countyId: toNumber(params.countyId),
-        districtId: toNumber(params.districtId),
+        countyId,
+        districtId,
       }),
     ),
   )
 
-interface GetIrnTablesParams {
-  countyId?: string
-  date?: string
-  districtId?: string
-  endDate?: string
-  endTime?: string
-  onlyOnSaturdays?: string
-  placeName?: string
-  region?: string
-  serviceId?: string
-  startDate?: string
-  startTime?: string
-  timeSlot?: string
-}
+export type GetIrnTablesParams = GetIrnRepositoryTablesParams
+
 export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = params =>
   pipe(
     ask(),
-    chain(env =>
-      env.irnRepository.getIrnTables({
-        countyId: toNumber(params.countyId),
-        date: toDate(params.date),
-        districtId: toNumber(params.districtId),
-        endDate: toDate(params.endDate),
-        endTime: toTimeSlot(params.endTime),
-        onlyOnSaturdays: toBoolean(params.onlyOnSaturdays),
-        placeName: toTimeSlot(params.placeName),
-        region: params.region,
-        serviceId: toNumber(params.serviceId),
-        startDate: toDate(params.startDate),
-        startTime: params.startTime,
-        timeSlot: toTimeSlot(params.timeSlot),
-      }),
-    ),
+    chain(env => env.irnRepository.getIrnTables(params)),
   )
 
 interface IrnTableMatchResult {
@@ -109,16 +76,16 @@ interface TimeSlotsFilter {
 }
 
 interface IrnTableResult {
-  serviceId: number
   countyId: number
-  districtId: number
   date: DateString
+  districtId: number
   placeName: string
-  timeSlot: TimeSlot
+  serviceId: number
   tableNumber: string
+  timeSlot: TimeSlot
 }
 
-const sortTimes = (t1: TimeSlot, t2: TimeSlot) => t1.localeCompare(t2)
+const sortTimeSlots = (t1: TimeSlot, t2: TimeSlot) => t1.localeCompare(t2)
 
 const byTimeSlots = ({ endTime, startTime, timeSlot }: TimeSlotsFilter) => (ts: TimeSlot) =>
   (isNil(timeSlot) || ts === timeSlot) && (isNil(startTime) || startTime <= ts) && (isNil(endTime) || endTime >= ts)
@@ -129,7 +96,7 @@ const getIrnTablesByClosestDate = (irnTables: IrnRepositoryTables) => {
 }
 
 const getOneIrnTableResult = (irnTable: IrnRepositoryTable, timeSlotsFilter: TimeSlotsFilter): IrnTableResult => {
-  const timeSlots = sort(sortTimes, irnTable.timeSlots).filter(byTimeSlots(timeSlotsFilter))
+  const timeSlots = sort(sortTimeSlots, irnTable.timeSlots).filter(byTimeSlots(timeSlotsFilter))
   const earlierTimeSlot = timeSlots[0]
 
   return {
@@ -143,24 +110,43 @@ const getOneIrnTableResult = (irnTable: IrnRepositoryTable, timeSlotsFilter: Tim
   }
 }
 
-const getIrnTableResult = (params: GetIrnTablesParams, irnTables: IrnRepositoryTables) => {
-  if (irnTables.length === 0) {
+const getIrnTableResult = (
+  {
+    endTime,
+    selectedCountyId,
+    selectedDate,
+    selectedDistrictId,
+    selectedPlaceName,
+    startTime,
+    timeSlot,
+  }: GetIrnTableMatchParams,
+  irnTables: IrnRepositoryTables,
+) => {
+  const filteredIrnTables = irnTables.filter(
+    t =>
+      (isNil(selectedDate) || t.date === selectedDate) &&
+      (isNil(selectedCountyId) || t.countyId === selectedCountyId) &&
+      (isNil(selectedDistrictId) || t.districtId === selectedDistrictId) &&
+      (isNil(selectedPlaceName) || t.placeName === selectedPlaceName),
+  )
+
+  if (filteredIrnTables.length > 0) {
+    const irnTablesByClosestDate = getIrnTablesByClosestDate(filteredIrnTables)
+
+    const timeSlotsFilter = {
+      endTime,
+      startTime,
+      timeSlot,
+    }
+
+    return getOneIrnTableResult(irnTablesByClosestDate[0], timeSlotsFilter)
+  } else {
     return undefined
   }
-
-  const irnTablesByClosestDate = getIrnTablesByClosestDate(irnTables)
-
-  const timeSlotsFilter = {
-    endTime: params.endTime,
-    startTime: params.startTime,
-    timeSlot: params.timeSlot,
-  }
-
-  return getOneIrnTableResult(irnTablesByClosestDate[0], timeSlotsFilter)
 }
 
 const findIrnTableMatch: (
-  params: GetIrnTablesParams,
+  params: GetIrnTableMatchParams,
 ) => Action<IrnRepositoryTables, IrnTableMatchResult> = params => irnTables => {
   const irnTableResult = getIrnTableResult(params, irnTables)
 
@@ -174,17 +160,23 @@ const findIrnTableMatch: (
   return actionOf(irnTableMatchResult)
 }
 
-export const getIrnTableMatch: Action<GetIrnTablesParams, IrnTableMatchResult> = params =>
+export interface GetIrnTableMatchParams extends GetIrnRepositoryTablesParams {
+  selectedDate?: DateString
+  selectedCountyId?: number
+  selectedDistrictId?: number
+  selectedPlaceName?: string
+}
+export const getIrnTableMatch: Action<GetIrnTableMatchParams, IrnTableMatchResult> = params =>
   pipe(
     getIrnTables(params),
     chain(findIrnTableMatch(params)),
   )
 
-interface GetIrnTableScheduleHtmlParams {
-  serviceId?: string
-  districtId?: string
-  countyId?: string
-  date?: string
+export interface GetIrnTableScheduleHtmlParams {
+  serviceId?: number
+  districtId?: number
+  countyId?: number
+  date?: DateString
 }
 
 const addDescriptionAndGetHtml: Action<FetchIrnTablesParams, string> = params => {
@@ -216,13 +208,10 @@ export const getIrnTableScheduleHtml: Action<GetIrnTableScheduleHtmlParams, stri
   date,
 }) =>
   serviceId && districtId && countyId && date
-    ? pipe(
-        actionOf({
-          countyId: toExistingNumber(countyId),
-          date: toExistingDate(date),
-          districtId: toExistingNumber(districtId),
-          serviceId: toExistingNumber(serviceId),
-        }),
-        chain(addDescriptionAndGetHtml),
-      )
+    ? addDescriptionAndGetHtml({
+        countyId,
+        date,
+        districtId,
+        serviceId,
+      })
     : actionErrorOf(new ServiceError("Invalid params"))

@@ -1,8 +1,10 @@
 import { Response, Router } from "express"
 import { pipe } from "fp-ts/lib/pipeable"
 import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
+import { isNil } from "ramda"
 import { Environment } from "../../../environment"
 import { ErrorCodes, ServiceError } from "../../../utils/audit"
+import { toDateString, toExistingDateString } from "../../../utils/dates"
 import { logDebug } from "../../../utils/debug"
 import {
   getCounties,
@@ -11,8 +13,15 @@ import {
   getIrnTableMatch,
   getIrnTables,
   getIrnTableScheduleHtml,
+  GetIrnTablesParams,
   getServices,
 } from "./domain"
+import {
+  transformGetCountiesParams,
+  transformGetIrnTableMatchParams,
+  transformGetIrnTableScheduleParams,
+  transformGetIrnTablesParams,
+} from "./transformers"
 
 const errorHandler = (res: Response) => (error: ServiceError) => {
   res.sendStatus(error.dependencyError ? (error.errorCode === ErrorCodes.NOT_FOUND ? 404 : 502) : 400)
@@ -50,7 +59,7 @@ export const router = (env: Environment) =>
       logDebug("GET counties=====>\n", req.query)
       await run(
         pipe(
-          getCounties(req.query),
+          getCounties(transformGetCountiesParams(req.query)),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,
@@ -70,7 +79,7 @@ export const router = (env: Environment) =>
       logDebug("GET irnTables=====>\n", req.query)
       await run(
         pipe(
-          getIrnTables(req.query),
+          getIrnTables(transformGetIrnTablesParams(req.query)),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,
@@ -80,7 +89,7 @@ export const router = (env: Environment) =>
       logDebug("GET irnTableMatch=====>\n", req.query)
       await run(
         pipe(
-          getIrnTableMatch(req.query),
+          getIrnTableMatch(transformGetIrnTableMatchParams(req.query)),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,
@@ -90,7 +99,7 @@ export const router = (env: Environment) =>
       logDebug("GET irnTableScheduleHtml=====>\n", req.query)
       await run(
         pipe(
-          getIrnTableScheduleHtml(req.query),
+          getIrnTableScheduleHtml(transformGetIrnTableScheduleParams(req.query)),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,

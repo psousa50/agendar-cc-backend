@@ -198,8 +198,6 @@ export const addIrnTablesTemporary = (irnTables: IrnRepositoryTables) => upsertM
 
 export const getIrnTables = (params: GetIrnRepositoryTablesParams) => {
   const query = buildGetIrnTablesQuery(params)
-  console.log("params=====>\n", params)
-  console.log("query=====>\n", query)
   return get<IrnRepositoryTable>(IRN_TABLES)(query)
 }
 

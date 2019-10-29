@@ -29,7 +29,7 @@ describe("IrnCrawler", () => {
   }
 
   const sortIrnTables = (irnTables: IrnRepositoryTables) => sort((t1, t2) => t1.countyId - t2.countyId, irnTables)
-  const makeTable = (irnTable: Partial<IrnTable>): IrnTable => {
+  const makeIrnTable = (irnTable: Partial<IrnTable>): IrnTable => {
     const defaultIrnTable = {
       address: "some address",
       countyId,
@@ -104,7 +104,7 @@ describe("IrnCrawler", () => {
     }
 
     it("persist a single IrnTable", async () => {
-      const table = makeTable({ date: toExistingDateString("2000-01-01") })
+      const table = makeIrnTable({ date: toExistingDateString("2000-01-01") })
 
       const getTablesCalls = [
         {
@@ -169,8 +169,8 @@ describe("IrnCrawler", () => {
       const service2 = {
         serviceId: serviceId2,
       }
-      const tableService1 = makeTable({ serviceId: serviceId1, date: toExistingDateString("2000-01-01") })
-      const tableService2 = makeTable({ serviceId: serviceId1, date: toExistingDateString("2000-01-01") })
+      const tableService1 = makeIrnTable({ serviceId: serviceId1, date: toExistingDateString("2000-01-01") })
+      const tableService2 = makeIrnTable({ serviceId: serviceId1, date: toExistingDateString("2000-01-01") })
 
       const services = [service1, service2]
 
@@ -220,11 +220,11 @@ describe("IrnCrawler", () => {
     })
 
     it("crawls for next available dates on a table", async () => {
-      const table1Date1 = makeTable({ tableNumber: "1", date: toExistingDateString("2000-01-01") })
-      const table1Date2 = makeTable({ tableNumber: "1", date: toExistingDateString("2000-01-10") })
-      const table1Date3 = makeTable({ tableNumber: "1", date: toExistingDateString("2000-01-20") })
-      const table2Date1 = makeTable({ tableNumber: "2", date: toExistingDateString("2000-01-02") })
-      const table2Date2 = makeTable({ tableNumber: "2", date: toExistingDateString("2000-01-10") })
+      const table1Date1 = makeIrnTable({ tableNumber: "1", date: toExistingDateString("2000-01-01") })
+      const table1Date2 = makeIrnTable({ tableNumber: "1", date: toExistingDateString("2000-01-10") })
+      const table1Date3 = makeIrnTable({ tableNumber: "1", date: toExistingDateString("2000-01-20") })
+      const table2Date1 = makeIrnTable({ tableNumber: "2", date: toExistingDateString("2000-01-02") })
+      const table2Date2 = makeIrnTable({ tableNumber: "2", date: toExistingDateString("2000-01-10") })
 
       const getTablesCalls = [
         {
@@ -297,10 +297,10 @@ describe("IrnCrawler", () => {
         districtId,
       }
 
-      const tableCounty1Date1 = makeTable({ countyId: countyId1, date: toExistingDateString("2000-01-01") })
-      const tableCounty1Date2 = makeTable({ countyId: countyId1, date: toExistingDateString("2000-01-11") })
-      const tableCounty2Date1 = makeTable({ countyId: countyId2, date: toExistingDateString("2000-01-02") })
-      const tableCounty2Date2 = makeTable({ countyId: countyId2, date: toExistingDateString("2000-01-12") })
+      const tableCounty1Date1 = makeIrnTable({ countyId: countyId1, date: toExistingDateString("2000-01-01") })
+      const tableCounty1Date2 = makeIrnTable({ countyId: countyId1, date: toExistingDateString("2000-01-11") })
+      const tableCounty2Date1 = makeIrnTable({ countyId: countyId2, date: toExistingDateString("2000-01-02") })
+      const tableCounty2Date2 = makeIrnTable({ countyId: countyId2, date: toExistingDateString("2000-01-12") })
 
       const getTablesCalls = [
         {
@@ -361,10 +361,10 @@ describe("IrnCrawler", () => {
 
     it("stops crawling after the crawl days limit", async () => {
       const startDate = toExistingDateString("2000-01-01")
-      const table1 = makeTable({ date: toExistingDateString("2000-01-01") })
+      const table1 = makeIrnTable({ date: toExistingDateString("2000-01-01") })
       const crawlDaysLimit = 10
       const dateAfterDateLimit = toExistingDateString("2000-01-12")
-      const table2 = makeTable({ date: dateAfterDateLimit })
+      const table2 = makeIrnTable({ date: dateAfterDateLimit })
 
       const getTablesCalls = [
         {
@@ -403,7 +403,7 @@ describe("IrnCrawler", () => {
     })
 
     it("does not switch tables if new tables count is to low", async () => {
-      const table = makeTable({ date: toExistingDateString("2000-01-01") })
+      const table = makeIrnTable({ date: toExistingDateString("2000-01-01") })
 
       const getTablesCalls = [
         {
