@@ -165,7 +165,7 @@ const refreshTables: Action<RefreshTablesParams, void> = params =>
         chain(irnTablesCount =>
           pipe(
             env.irnRepository.getIrnTablesTemporaryCount(),
-            map(irnTablesTemporaryCount => irnTablesTemporaryCount / irnTablesCount > 0.5),
+            map(irnTablesTemporaryCount => irnTablesTemporaryCount / irnTablesCount > 0.9),
           ),
         ),
         chain(okToGo => (okToGo ? env.irnRepository.switchIrnTables() : actionOf(undefined))),
