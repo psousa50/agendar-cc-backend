@@ -84,6 +84,9 @@ const upsertIrnPlace: Action<Partial<IrnPlace>, void> = irnPlace =>
 const getDistrictRegion: Action<number, Region> = districtId =>
   actionOf(globalDistricts.find(d => d.districtId === districtId)!.region)
 
+const updateIrnTablesLocation: Action<void, void> = () =>
+  fromVoidPromise(env => mongoDb.updateIrnTablesLocation(env.dbClient))
+
 export const irnRepository: IrnRepository = {
   addCounties,
   addDistricts,
@@ -108,5 +111,6 @@ export const irnRepository: IrnRepository = {
   getLastRefreshIrnLog,
   removeOldLogs,
   switchIrnTables,
+  updateIrnTablesLocation,
   upsertIrnPlace,
 }

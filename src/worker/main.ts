@@ -42,6 +42,7 @@ const runProcess: Action<void, void> = () =>
           env.irnRepository.addIrnLog({ type: "RefreshEnded", message: `Refresh tables ended (${tablesCount})` }),
         ),
         chain(() => irnCrawler.updateIrnPlacesLocation()),
+        chain(() => irnCrawler.updateIrnTablesLocation()),
         mapLeft(e => {
           logDebug("ERROR: ", e)
           return e

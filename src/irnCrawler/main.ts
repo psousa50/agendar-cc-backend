@@ -196,8 +196,15 @@ const updateIrnPlacesLocation: Action<void, void> = () =>
     chain(() => actionOf(undefined)),
   )
 
+const updateIrnTablesLocation: Action<void, void> = () =>
+  pipe(
+    ask(),
+    chain(env => env.irnRepository.updateIrnTablesLocation()),
+  )
+
 export const irnCrawler: IrnCrawler = {
   refreshTables,
   start,
   updateIrnPlacesLocation,
+  updateIrnTablesLocation,
 }

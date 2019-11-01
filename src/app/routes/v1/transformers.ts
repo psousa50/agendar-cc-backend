@@ -8,6 +8,7 @@ type Stringify<T> = {
 }
 
 const toNumber = (value?: string) => (isNil(value) ? undefined : Number.parseInt(value, 10))
+const toExistingNumber = (value: string) => Number.parseInt(value, 10)
 const toDate = (value?: string) => toDateString(value)
 const toTimeSlot = (value?: string) => value
 const toBoolean = (value?: string) => !isNil(value) && value.toUpperCase().substr(0, 1) === "Y"
@@ -36,12 +37,38 @@ export const transformGetIrnTablesParams = (params: Stringify<GetIrnTablesParams
   timeSlot: toTimeSlot(params.timeSlot),
 })
 
-export const transformGetIrnTableMatchParams = (params: Stringify<GetIrnTableMatchParams>) => ({
+export type GetIrnTableMatchQueryParams = Partial<{
+  countyId: string
+  date: string
+  districtId: string
+  endDate: string
+  endTime: string
+  onlyOnSaturdays: string
+  placeName: string
+  region: string
+  serviceId: string
+  startDate: string
+  startTime: string
+  timeSlot: string
+  selectedDate: string
+  selectedCountyId: string
+  selectedDistrictId: string
+  selectedPlaceName: string
+  lat: string
+  lng: string
+  rangeDistanceKm: string
+}>
+
+export const transformGetIrnTableMatchParams = (params: GetIrnTableMatchQueryParams): GetIrnTableMatchParams => ({
   ...transformGetIrnTablesParams(params),
-  selecteCountyId: toNumber(params.selectedCountyId),
+  selectedCountyId: toNumber(params.selectedCountyId),
   selectedDate: toDateString(params.selectedDate),
   selectedDistrictId: toNumber(params.selectedDistrictId),
   selectedPlaceName: params.selectedPlaceName,
+  ...(params.lat && params.lng
+    ? { gpsLocation: { latitude: toExistingNumber(params.lat), longitude: toExistingNumber(params.lng) } }
+    : {}),
+  rangeDistanceKm: toNumber(params.rangeDistanceKm),
 })
 
 export const transformGetIrnTableScheduleParams = (params: Stringify<GetIrnTableScheduleHtmlParams>) => ({

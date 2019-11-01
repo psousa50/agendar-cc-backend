@@ -47,6 +47,7 @@ export type IrnRepositoryTable = {
   serviceId: number
   tableNumber: string
   timeSlots: TimeSlot[]
+  gpsLocation?: GpsLocation
 }
 
 export type IrnRepositoryTables = IrnRepositoryTable[]
@@ -96,6 +97,7 @@ export interface IrnRepository {
   getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces>
   removeOldLogs: Action<void, void>
   upsertIrnPlace: Action<Partial<IrnPlace>, void>
+  updateIrnTablesLocation: Action<void, void>
 }
 
 export const getCountyFromIrnTable = (irnTable: IrnRepositoryTable) => ({

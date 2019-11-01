@@ -218,3 +218,23 @@ export const switchIrnTables = (client: MongoClient) =>
     .db()
     .collection(IRN_TABLES_TEMPORARY)
     .rename(IRN_TABLES, { dropTarget: true })
+
+const updateIrnTableLocation = (client: MongoClient) => async (irnTable: IrnRepositoryTable & { _id: string }) => {
+  const irnPlace = await getIrnPlace(irnTable.placeName)(client)
+  return irnPlace
+    ? client
+        .db()
+        .collection<IrnRepositoryTable>(IRN_TABLES)
+        .updateOne({ _id: irnTable._id }, { $set: { ...irnTable, gpsLocation: irnPlace.gpsLocation } })
+    : Promise.resolve(undefined)
+}
+
+export const updateIrnTablesLocation = async (client: MongoClient) => {
+  const irnTables = await client
+    .db()
+    .collection<IrnRepositoryTable & { _id: string }>(IRN_TABLES)
+    .find()
+    .toArray()
+
+  return Promise.all(irnTables.map(updateIrnTableLocation(client)))
+}
