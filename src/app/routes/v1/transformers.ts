@@ -54,6 +54,7 @@ export type GetIrnTableMatchQueryParams = Partial<{
   selectedCountyId: string
   selectedDistrictId: string
   selectedPlaceName: string
+  selectedTimeSlot: string
   lat: string
   lng: string
   distanceRadiusKm: string
@@ -61,6 +62,7 @@ export type GetIrnTableMatchQueryParams = Partial<{
 
 export const transformGetIrnTableMatchParams = (params: GetIrnTableMatchQueryParams): GetIrnTableMatchParams => ({
   ...transformGetIrnTablesParams(params),
+  distanceRadiusKm: toNumber(params.distanceRadiusKm),
   selectedCountyId: toNumber(params.selectedCountyId),
   selectedDate: toDateString(params.selectedDate),
   selectedDistrictId: toNumber(params.selectedDistrictId),
@@ -68,7 +70,7 @@ export const transformGetIrnTableMatchParams = (params: GetIrnTableMatchQueryPar
   ...(params.lat && params.lng
     ? { gpsLocation: { latitude: toExistingNumber(params.lat), longitude: toExistingNumber(params.lng) } }
     : {}),
-  distanceRadiusKm: toNumber(params.distanceRadiusKm),
+  selectedTimeSlot: params.selectedTimeSlot,
 })
 
 export const transformGetIrnTableScheduleParams = (params: Stringify<GetIrnTableScheduleHtmlParams>) => ({

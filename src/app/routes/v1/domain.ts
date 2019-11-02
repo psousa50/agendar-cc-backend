@@ -118,6 +118,7 @@ const getIrnTableResult = (
     selectedDate,
     selectedDistrictId,
     selectedPlaceName,
+    selectedTimeSlot,
     startTime,
     timeSlot,
   }: GetIrnTableMatchParams,
@@ -128,7 +129,8 @@ const getIrnTableResult = (
       (isNil(selectedDate) || t.date === selectedDate) &&
       (isNil(selectedCountyId) || t.countyId === selectedCountyId) &&
       (isNil(selectedDistrictId) || t.districtId === selectedDistrictId) &&
-      (isNil(selectedPlaceName) || t.placeName === selectedPlaceName),
+      (isNil(selectedPlaceName) || t.placeName === selectedPlaceName) &&
+      (isNil(selectedTimeSlot) || t.timeSlots.includes(selectedTimeSlot)),
   )
 
   if (filteredIrnTables.length > 0) {
@@ -137,7 +139,7 @@ const getIrnTableResult = (
     const timeSlotsFilter = {
       endTime,
       startTime,
-      timeSlot,
+      timeSlot: timeSlot || selectedTimeSlot,
     }
 
     return getOneIrnTableResult(irnTablesByClosestDate[0], timeSlotsFilter)
@@ -203,7 +205,7 @@ const distanceInRange = (gpsLocation: GpsLocation, distanceRadiusKm: number) => 
   return distance ? distance < distanceRadiusKm : false
 }
 
-const filterIrnTablesByRange: (
+const filterIrnTablesByDistanceRadius: (
   params: GetIrnTableMatchParams,
 ) => Action<IrnRepositoryTables, IrnRepositoryTables> = params => irnTables =>
   pipe(
@@ -217,26 +219,26 @@ const filterIrnTablesByRange: (
 
 const findIrnTableMatch: (
   params: GetIrnTableMatchParams,
-) => Action<IrnRepositoryTables, IrnTableMatchResult> = params => irnTables =>
-  pipe(
-    params.distanceRadiusKm ? filterIrnTablesByRange(params)(irnTables) : actionOf(irnTables),
+) => Action<IrnRepositoryTables, IrnTableMatchResult> = params => irnTables => {
+  return pipe(
+    params.distanceRadiusKm ? filterIrnTablesByDistanceRadius(params)(irnTables) : actionOf(irnTables),
     chain(filteredIrnTables => {
       const irnTableResult = getIrnTableResult(params, filteredIrnTables)
 
       const irnTableMatchResult = {
         irnTableResult,
-        otherDates: uniq(irnTables.map(t => t.date)),
-        otherPlaces: uniq(irnTables.map(t => t.placeName)),
-        otherTimeSlots: uniq(flatten(irnTables.map(t => t.timeSlots.filter(byTimeSlots(params))))),
+        otherDates: uniq(filteredIrnTables.map(t => t.date)),
+        otherPlaces: uniq(filteredIrnTables.map(t => t.placeName)),
+        otherTimeSlots: uniq(flatten(filteredIrnTables.map(t => t.timeSlots.filter(byTimeSlots(params))))),
       }
 
       return actionOf(irnTableMatchResult)
     }),
   )
+}
 
-const removeLocationIfRange = (params: GetIrnTableMatchParams) => {
-  console.log("params=====>\n", params)
-  const x = params.distanceRadiusKm
+const removeLocationIfRange = (params: GetIrnTableMatchParams) =>
+  params.distanceRadiusKm
     ? {
         ...params,
         countyId: undefined,
@@ -244,13 +246,13 @@ const removeLocationIfRange = (params: GetIrnTableMatchParams) => {
         placeName: undefined,
       }
     : params
-  return x
-}
+
 export interface GetIrnTableMatchParams extends GetIrnRepositoryTablesParams {
   selectedDate?: DateString
   selectedCountyId?: number
   selectedDistrictId?: number
   selectedPlaceName?: string
+  selectedTimeSlot?: string
   gpsLocation?: GpsLocation
   distanceRadiusKm?: number
 }
