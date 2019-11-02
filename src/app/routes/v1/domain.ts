@@ -198,9 +198,9 @@ const getParamsLocation: Action<GetIrnTableMatchParams, GpsLocation | undefined>
     chain(pl => (pl ? actionOf(pl) : actionOf(gpsLocation))),
   )
 
-const distanceInRange = (gpsLocation: GpsLocation, rangeDistanceKm: number) => (irnTable: IrnRepositoryTable) => {
+const distanceInRange = (gpsLocation: GpsLocation, distanceRadiusKm: number) => (irnTable: IrnRepositoryTable) => {
   const distance = irnTable.gpsLocation ? calcDistanceInKm(gpsLocation, irnTable.gpsLocation) : undefined
-  return distance ? distance < rangeDistanceKm : false
+  return distance ? distance < distanceRadiusKm : false
 }
 
 const filterIrnTablesByRange: (
@@ -209,8 +209,8 @@ const filterIrnTablesByRange: (
   pipe(
     getParamsLocation(params),
     chain(paramsGpsLocation =>
-      paramsGpsLocation && params.rangeDistanceKm
-        ? actionOf(irnTables.filter(distanceInRange(paramsGpsLocation, params.rangeDistanceKm)))
+      paramsGpsLocation && params.distanceRadiusKm
+        ? actionOf(irnTables.filter(distanceInRange(paramsGpsLocation, params.distanceRadiusKm)))
         : actionOf(irnTables),
     ),
   )
@@ -219,7 +219,7 @@ const findIrnTableMatch: (
   params: GetIrnTableMatchParams,
 ) => Action<IrnRepositoryTables, IrnTableMatchResult> = params => irnTables =>
   pipe(
-    params.rangeDistanceKm ? filterIrnTablesByRange(params)(irnTables) : actionOf(irnTables),
+    params.distanceRadiusKm ? filterIrnTablesByRange(params)(irnTables) : actionOf(irnTables),
     chain(filteredIrnTables => {
       const irnTableResult = getIrnTableResult(params, filteredIrnTables)
 
@@ -234,8 +234,9 @@ const findIrnTableMatch: (
     }),
   )
 
-const removeLocationIfRange = (params: GetIrnTableMatchParams) =>
-  params.rangeDistanceKm
+const removeLocationIfRange = (params: GetIrnTableMatchParams) => {
+  console.log("params=====>\n", params)
+  const x = params.distanceRadiusKm
     ? {
         ...params,
         countyId: undefined,
@@ -243,14 +244,15 @@ const removeLocationIfRange = (params: GetIrnTableMatchParams) =>
         placeName: undefined,
       }
     : params
-
+  return x
+}
 export interface GetIrnTableMatchParams extends GetIrnRepositoryTablesParams {
   selectedDate?: DateString
   selectedCountyId?: number
   selectedDistrictId?: number
   selectedPlaceName?: string
   gpsLocation?: GpsLocation
-  rangeDistanceKm?: number
+  distanceRadiusKm?: number
 }
 export const getIrnTableMatch: Action<GetIrnTableMatchParams, IrnTableMatchResult> = params =>
   pipe(

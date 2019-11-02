@@ -56,7 +56,7 @@ export type GetIrnTableMatchQueryParams = Partial<{
   selectedPlaceName: string
   lat: string
   lng: string
-  rangeDistanceKm: string
+  distanceRadiusKm: string
 }>
 
 export const transformGetIrnTableMatchParams = (params: GetIrnTableMatchQueryParams): GetIrnTableMatchParams => ({
@@ -68,7 +68,7 @@ export const transformGetIrnTableMatchParams = (params: GetIrnTableMatchQueryPar
   ...(params.lat && params.lng
     ? { gpsLocation: { latitude: toExistingNumber(params.lat), longitude: toExistingNumber(params.lng) } }
     : {}),
-  rangeDistanceKm: toNumber(params.rangeDistanceKm),
+  distanceRadiusKm: toNumber(params.distanceRadiusKm),
 })
 
 export const transformGetIrnTableScheduleParams = (params: Stringify<GetIrnTableScheduleHtmlParams>) => ({
