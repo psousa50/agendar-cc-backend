@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { chain, map } from "fp-ts/lib/ReaderTaskEither"
 import { flatten, isNil, sort, uniq } from "ramda"
 import { getIrnTablesHtml } from "../../../irnFetch/main"
-import { FetchIrnTablesParams } from "../../../irnFetch/models"
+import { FetchIrnTablesParams, IrnTable } from "../../../irnFetch/models"
 import {
   Counties,
   Districts,
@@ -96,45 +96,25 @@ const getIrnTablesByClosestDate = (irnTables: IrnRepositoryTables) => {
   return irnTables.filter(t => t.date === closestDate)
 }
 
-const getOneIrnTableResult = (irnTable: IrnRepositoryTable, timeSlotsFilter: TimeSlotsFilter): IrnTableResult => {
-  const timeSlots = sort(sortTimeSlots, irnTable.timeSlots).filter(byTimeSlots(timeSlotsFilter))
-  const earlierTimeSlot = timeSlots[0]
-
-  return {
-    countyId: irnTable.countyId,
-    date: irnTable.date,
-    districtId: irnTable.districtId,
-    placeName: irnTable.placeName,
-    serviceId: irnTable.serviceId,
-    tableNumber: irnTable.tableNumber,
-    timeSlot: earlierTimeSlot,
-  }
-}
+const bySelectedFilter = ({
+  selectedCountyId,
+  selectedDate,
+  selectedDistrictId,
+  selectedPlaceName,
+  selectedTimeSlot,
+}: GetIrnTableMatchParams) => (irnTable: IrnRepositoryTable) =>
+  (isNil(selectedDate) || irnTable.date === selectedDate) &&
+  (isNil(selectedCountyId) || irnTable.countyId === selectedCountyId) &&
+  (isNil(selectedDistrictId) || irnTable.districtId === selectedDistrictId) &&
+  (isNil(selectedPlaceName) || irnTable.placeName === selectedPlaceName) &&
+  (isNil(selectedTimeSlot) || irnTable.timeSlots.includes(selectedTimeSlot))
 
 const getIrnTableResult = (
-  {
-    endTime,
-    selectedCountyId,
-    selectedDate,
-    selectedDistrictId,
-    selectedPlaceName,
-    selectedTimeSlot,
-    startTime,
-    timeSlot,
-  }: GetIrnTableMatchParams,
+  { endTime, selectedTimeSlot, startTime, timeSlot }: GetIrnTableMatchParams,
   irnTables: IrnRepositoryTables,
 ) => {
-  const filteredIrnTables = irnTables.filter(
-    t =>
-      (isNil(selectedDate) || t.date === selectedDate) &&
-      (isNil(selectedCountyId) || t.countyId === selectedCountyId) &&
-      (isNil(selectedDistrictId) || t.districtId === selectedDistrictId) &&
-      (isNil(selectedPlaceName) || t.placeName === selectedPlaceName) &&
-      (isNil(selectedTimeSlot) || t.timeSlots.includes(selectedTimeSlot)),
-  )
-
-  if (filteredIrnTables.length > 0) {
-    const irnTablesByClosestDate = getIrnTablesByClosestDate(filteredIrnTables)
+  if (irnTables.length > 0) {
+    const irnTablesByClosestDate = getIrnTablesByClosestDate(irnTables)
 
     const timeSlotsFilter = {
       endTime,
@@ -142,7 +122,19 @@ const getIrnTableResult = (
       timeSlot: timeSlot || selectedTimeSlot,
     }
 
-    return getOneIrnTableResult(irnTablesByClosestDate[0], timeSlotsFilter)
+    const irnTable = irnTablesByClosestDate[0]
+    const timeSlots = sort(sortTimeSlots, irnTable.timeSlots).filter(byTimeSlots(timeSlotsFilter))
+    const earlierTimeSlot = timeSlots[0]
+
+    return {
+      countyId: irnTable.countyId,
+      date: irnTable.date,
+      districtId: irnTable.districtId,
+      placeName: irnTable.placeName,
+      serviceId: irnTable.serviceId,
+      tableNumber: irnTable.tableNumber,
+      timeSlot: earlierTimeSlot,
+    }
   } else {
     return undefined
   }
@@ -222,7 +214,8 @@ const findIrnTableMatch: (
 ) => Action<IrnRepositoryTables, IrnTableMatchResult> = params => irnTables => {
   return pipe(
     params.distanceRadiusKm ? filterIrnTablesByDistanceRadius(params)(irnTables) : actionOf(irnTables),
-    chain(filteredIrnTables => {
+    chain(filteredIrnTablesByRadius => {
+      const filteredIrnTables = filteredIrnTablesByRadius.filter(bySelectedFilter(params))
       const irnTableResult = getIrnTableResult(params, filteredIrnTables)
 
       const irnTableMatchResult = {
@@ -237,7 +230,7 @@ const findIrnTableMatch: (
   )
 }
 
-const removeLocationIfRange = (params: GetIrnTableMatchParams) =>
+const removeLocationIfHasDistanceRadius = (params: GetIrnTableMatchParams) =>
   params.distanceRadiusKm
     ? {
         ...params,
@@ -258,7 +251,7 @@ export interface GetIrnTableMatchParams extends GetIrnRepositoryTablesParams {
 }
 export const getIrnTableMatch: Action<GetIrnTableMatchParams, IrnTableMatchResult> = params =>
   pipe(
-    getIrnTables(removeLocationIfRange(params)),
+    getIrnTables(removeLocationIfHasDistanceRadius(params)),
     chain(findIrnTableMatch(params)),
   )
 
