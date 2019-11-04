@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/lib/pipeable"
 import { chain, map } from "fp-ts/lib/ReaderTaskEither"
 import { flatten, isNil, sort, uniq } from "ramda"
 import { getIrnTablesHtml } from "../../../irnFetch/main"
-import { FetchIrnTablesParams, IrnTable } from "../../../irnFetch/models"
+import { FetchIrnTablesParams } from "../../../irnFetch/models"
 import {
   Counties,
   Districts,
