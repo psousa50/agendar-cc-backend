@@ -90,6 +90,17 @@ export const buildFetchAction = (fetch: FetchPromise) => (
 export const extractText = (response: Response): ActionResult<string> =>
   fromTaskEither(tryCatch(() => response.text(), e => new Errors.BadResponseError((e as Error).message)))
 
+export const extractCookies = (response: Response) => {
+  let cookies: string[] = []
+  response.headers.forEach((v, k) => {
+    if (k === "set-cookie") {
+      cookies = [...cookies, v]
+    }
+  })
+
+  return cookies
+}
+
 export const extractJson = (response: Response): ActionResult<any> =>
   fromTaskEither(tryCatch(() => response.json(), e => new Errors.BadResponseError((e as Error).message)))
 

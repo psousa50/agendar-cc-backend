@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain, map } from "fp-ts/lib/ReaderTaskEither"
 import { flatten, isNil, sort, uniq } from "ramda"
-import { getIrnTablesHtml } from "../../../irnFetch/main"
+import { getIrnTablesHtml, getIrnTablesResponse } from "../../../irnFetch/main"
 import { FetchIrnTablesParams } from "../../../irnFetch/models"
 import {
   Counties,
@@ -16,6 +16,7 @@ import { Action, actionErrorOf, actionOf, ask } from "../../../utils/actions"
 import { ServiceError } from "../../../utils/audit"
 import { min } from "../../../utils/collections"
 import { DateString } from "../../../utils/dates"
+import { extractCookies, extractText } from "../../../utils/fetch"
 import { calcDistanceInKm } from "../../../utils/location"
 import { GpsLocation, TimeSlot } from "../../../utils/models"
 
@@ -262,7 +263,7 @@ export interface GetIrnTableScheduleHtmlParams {
   date?: DateString
 }
 
-const addDescriptionAndGetHtml: Action<FetchIrnTablesParams, string> = params => {
+const addDescriptionAndGetHtml: Action<FetchIrnTablesParams, GetIrnTableScheduleHtmlResponse> = params => {
   const { serviceId, countyId } = params
   return pipe(
     ask(),
@@ -278,13 +279,32 @@ const addDescriptionAndGetHtml: Action<FetchIrnTablesParams, string> = params =>
             })),
           ),
         ),
-        chain(descriptions => getIrnTablesHtml({ params, descriptions })),
+        chain(descriptions => getIrnTablesResponse({ params, descriptions })),
+        chain(response =>
+          pipe(
+            actionOf(extractCookies(response)),
+            chain(cookies =>
+              pipe(
+                extractText(response),
+                map(html => ({
+                  cookies,
+                  html,
+                })),
+              ),
+            ),
+          ),
+        ),
       ),
     ),
   )
 }
 
-export const getIrnTableScheduleHtml: Action<GetIrnTableScheduleHtmlParams, string> = ({
+interface GetIrnTableScheduleHtmlResponse {
+  html: string
+  cookies: string[]
+}
+
+export const getIrnTableScheduleHtml: Action<GetIrnTableScheduleHtmlParams, GetIrnTableScheduleHtmlResponse> = ({
   serviceId,
   districtId,
   countyId,

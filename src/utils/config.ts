@@ -19,7 +19,7 @@ export interface AppConfig {
 
 export const config = convict<AppConfig>({
   crawlDaysLimit: {
-    default: 15,
+    default: 60,
     doc: "",
     env: "CRAWL_DAYS_LIMIT",
     format: "int",

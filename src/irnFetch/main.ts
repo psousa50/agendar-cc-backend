@@ -5,7 +5,7 @@ import { ParseCounties, parseCounties, parseIrnTables, ParseIrnTables, ParseTok,
 import { Counties } from "../irnRepository/models"
 import { Action, actionOf, ask, toAction } from "../utils/actions"
 import { AppConfig } from "../utils/config"
-import { delayedFetch, extractText } from "../utils/fetch"
+import { delayedFetch, extractCookies, extractText } from "../utils/fetch"
 import { FetchIrnTablesParams, IrnTables } from "./models"
 
 export const fetchIrnPage = (page: string, options?: RequestInit) =>
@@ -31,17 +31,6 @@ const getCounties = buildGetCounties(parseCounties)
 
 const getHomePage = (config: AppConfig) => `${config.irnUrlLocations.homePage}`
 const getIrnTablesPage = (config: AppConfig) => `${config.irnUrlLocations.irnTablesPage}`
-
-const extractCookies = (response: Response) => {
-  let cookies: string[] = []
-  response.headers.forEach((v, k) => {
-    if (k === "set-cookie") {
-      cookies = [...cookies, v]
-    }
-  })
-
-  return cookies
-}
 
 type FormDataParam = [string, string]
 interface BuildFormDataParamsDescriptions {
@@ -92,12 +81,12 @@ interface FetchIrnTablesOptions {
   method: string
 }
 
-interface BuildGetIrnTablesHtmlParams {
+interface BuildGetIrnTablesResponseParams {
   params: FetchIrnTablesParams
   descriptions: BuildFormDataParamsDescriptions
 }
-type BuildGetIrnTablesHtml = (_: ParseTok, __: BuildFormData) => Action<BuildGetIrnTablesHtmlParams, string>
-export const buildGetIrnTablesHtml: BuildGetIrnTablesHtml = (injectedParseTok, injectedBuildFormData) => ({
+type BuildGetIrnTablesResponse = (_: ParseTok, __: BuildFormData) => Action<BuildGetIrnTablesResponseParams, Response>
+export const buildGetIrnTablesResponse: BuildGetIrnTablesResponse = (injectedParseTok, injectedBuildFormData) => ({
   params,
   descriptions,
 }) => {
@@ -127,7 +116,6 @@ export const buildGetIrnTablesHtml: BuildGetIrnTablesHtml = (injectedParseTok, i
     pipe(
       ask(),
       chain(env => fetchIrnPage(getIrnTablesPage(env.config), options)),
-      chain(extractText),
     )
 
   return pipe(
@@ -137,6 +125,13 @@ export const buildGetIrnTablesHtml: BuildGetIrnTablesHtml = (injectedParseTok, i
     chain(fetchIrnTablesHtml),
   )
 }
+
+type BuildGetIrnTablesHtml = (_: ParseTok, __: BuildFormData) => Action<BuildGetIrnTablesResponseParams, string>
+export const buildGetIrnTablesHtml: BuildGetIrnTablesHtml = (injectedParseTok, injectedBuildFormData) => params =>
+  pipe(
+    buildGetIrnTablesResponse(injectedParseTok, injectedBuildFormData)(params),
+    chain(extractText),
+  )
 
 type BuildGetIrnTables = (
   _: ParseTok,
@@ -152,6 +147,8 @@ export const buildGetIrnTables: BuildGetIrnTables = (
     buildGetIrnTablesHtml(injectedParseTok, injectedBuildFormData)({ params, descriptions: {} }),
     chain(toAction(injectedParseIrnTables(params.serviceId, params.countyId, params.districtId))),
   )
+
+export const getIrnTablesResponse = buildGetIrnTablesResponse(parseTok, buildFormData(buildFormDataParams))
 
 export const getIrnTablesHtml = buildGetIrnTablesHtml(parseTok, buildFormData(buildFormDataParams))
 
