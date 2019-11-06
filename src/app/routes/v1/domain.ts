@@ -213,8 +213,11 @@ const filterIrnTablesByDistanceRadius: (
 const findIrnTableMatch: (
   params: GetIrnTableMatchParams,
 ) => Action<IrnRepositoryTables, IrnTableMatchResult> = params => irnTables => {
+  const { districtId, countyId, placeName, gpsLocation } = params
+  const hasLocation = !isNil(districtId) || !isNil(countyId) || !isNil(placeName) || !isNil(gpsLocation)
+  const distanceRadiusKm = hasLocation ? params.distanceRadiusKm : undefined
   return pipe(
-    params.distanceRadiusKm ? filterIrnTablesByDistanceRadius(params)(irnTables) : actionOf(irnTables),
+    distanceRadiusKm ? filterIrnTablesByDistanceRadius(params)(irnTables) : actionOf(irnTables),
     chain(filteredIrnTablesByRadius => {
       const filteredIrnTables = filteredIrnTablesByRadius.filter(bySelectedFilter(params))
       const irnTableResult = getIrnTableResult(params, filteredIrnTables)
