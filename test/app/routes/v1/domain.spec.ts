@@ -55,6 +55,9 @@ describe("getIrnTableMatch", () => {
 
     const environment = {
       irnRepository: {
+        getCounty: jest.fn(() => actionOf(undefined)),
+        getDistrict: jest.fn(() => actionOf(undefined)),
+        getIrnPlace: jest.fn(() => actionOf(undefined)),
         getIrnTables,
       },
     } as any
@@ -74,14 +77,25 @@ describe("getIrnTableMatch", () => {
 
     const result = await run(getIrnTableMatch(params), environment)
     const expectedResult = {
-      irnTableResult: {
-        countyId: irnTable2.countyId,
-        date: irnTable2.date,
-        districtId: irnTable2.districtId,
-        placeName: irnTable2.placeName,
-        serviceId: irnTable2.serviceId,
-        tableNumber: irnTable2.tableNumber,
-        timeSlot: firstTimeSlot,
+      irnTableResults: {
+        closest: {
+          countyId: irnTable1.countyId,
+          date: irnTable1.date,
+          districtId: irnTable1.districtId,
+          placeName: irnTable1.placeName,
+          serviceId: irnTable1.serviceId,
+          tableNumber: irnTable1.tableNumber,
+          timeSlot: timeSlot1,
+        },
+        soonest: {
+          countyId: irnTable2.countyId,
+          date: irnTable2.date,
+          districtId: irnTable2.districtId,
+          placeName: irnTable2.placeName,
+          serviceId: irnTable2.serviceId,
+          tableNumber: irnTable2.tableNumber,
+          timeSlot: firstTimeSlot,
+        },
       },
       otherDates: [date1, soonestDate, date3],
       otherPlaces: [place1, place2, place3],
@@ -90,43 +104,42 @@ describe("getIrnTableMatch", () => {
 
     expect(getIrnTables).toHaveBeenCalledWith(params)
     expect(result).toEqual(right(expectedResult))
-  })
+  }),
+    it("forwards date and timeSlot params", async () => {
+      const getIrnTables = jest.fn(() => actionOf([]))
 
-  it("forwards date and timeSlot params", async () => {
-    const getIrnTables = jest.fn(() => actionOf([]))
+      const environment = {
+        irnRepository: {
+          getIrnTables,
+        },
+      } as any
 
-    const environment = {
-      irnRepository: {
-        getIrnTables,
-      },
-    } as any
+      const params: GetIrnRepositoryTablesParams = {
+        countyId: undefined,
+        date: "2010-09-20" as DateString,
+        districtId: undefined,
+        endDate: undefined,
+        endTime: undefined,
+        onlyOnSaturdays: false,
+        placeName: undefined,
+        region: undefined,
+        serviceId: undefined,
+        startDate: undefined,
+        startTime: undefined,
+        timeSlot: "10:00",
+      }
 
-    const params: GetIrnRepositoryTablesParams = {
-      countyId: undefined,
-      date: "2010-09-20" as DateString,
-      districtId: undefined,
-      endDate: undefined,
-      endTime: undefined,
-      onlyOnSaturdays: false,
-      placeName: undefined,
-      region: undefined,
-      serviceId: undefined,
-      startDate: undefined,
-      startTime: undefined,
-      timeSlot: "10:00",
-    }
+      const result = await run(getIrnTableMatch(params), environment)
+      const expectedResult = {
+        irnTableResult: undefined,
+        otherDates: [],
+        otherPlaces: [],
+        otherTimeSlots: [],
+      }
 
-    const result = await run(getIrnTableMatch(params), environment)
-    const expectedResult = {
-      irnTableResult: undefined,
-      otherDates: [],
-      otherPlaces: [],
-      otherTimeSlots: [],
-    }
-
-    expect(getIrnTables).toHaveBeenCalledWith(params)
-    expect(result).toEqual(right(expectedResult))
-  })
+      expect(getIrnTables).toHaveBeenCalledWith(params)
+      expect(result).toEqual(right(expectedResult))
+    })
 
   describe("filters final result by", () => {
     it("selected date", async () => {
@@ -162,7 +175,7 @@ describe("getIrnTableMatch", () => {
 
       pipe(
         result,
-        map(r => expect(r.irnTableResult).toEqual(expectedResult)),
+        map(r => expect(r.irnTableResults!.soonest).toEqual(expectedResult)),
       )
     })
   })
@@ -202,7 +215,7 @@ describe("getIrnTableMatch", () => {
 
     pipe(
       result,
-      map(r => expect(r.irnTableResult).toEqual(expectedResult)),
+      map(r => expect(r.irnTableResults!.soonest).toEqual(expectedResult)),
     )
   })
 })
