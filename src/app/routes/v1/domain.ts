@@ -13,7 +13,7 @@ import {
 import { Action, actionOf, ask } from "../../../utils/actions"
 import { min } from "../../../utils/collections"
 import { DateString } from "../../../utils/dates"
-import { calcDistanceInKm } from "../../../utils/location"
+import { calcDistanceInKm, getClosestLocation } from "../../../utils/location"
 import { GpsLocation, TimeSlot } from "../../../utils/models"
 
 export const getServices: Action<void, IrnServices> = () =>
@@ -61,7 +61,10 @@ export const getIrnTables: Action<GetIrnTablesParams, IrnRepositoryTables> = par
   )
 
 interface IrnTableMatchResult {
-  irnTableResult?: IrnTableResult
+  irnTableResults?: {
+    closest: IrnTableResult
+    soonest: IrnTableResult
+  }
   otherDates: DateString[]
   otherPlaces: string[]
   otherTimeSlots: TimeSlot[]
@@ -93,6 +96,13 @@ const getIrnTablesByClosestDate = (irnTables: IrnRepositoryTables) => {
   return irnTables.filter(t => t.date === closestDate)
 }
 
+export const getIrnTablesByClosestPlace = (location?: GpsLocation) => (irnTables: IrnRepositoryTables) => {
+  const closest = location ? getClosestLocation(irnTables)(location) : undefined
+  const closestIrnTable = closest ? closest.location : irnTables[0]
+
+  return irnTables.filter(t => t.placeName === closestIrnTable.placeName)
+}
+
 const bySelectedFilter = ({
   selectedCountyId,
   selectedDate,
@@ -107,30 +117,42 @@ const bySelectedFilter = ({
   (isNil(selectedTimeSlot) || irnTable.timeSlots.includes(selectedTimeSlot))
 
 const getIrnTableResult = (
+  tablesFilter: (irnTables: IrnRepositoryTables) => IrnRepositoryTables,
   { endTime, selectedTimeSlot, startTime, timeSlot }: GetIrnTableMatchParams,
   irnTables: IrnRepositoryTables,
 ) => {
+  const irnTablesFiltered = tablesFilter(irnTables)
+
+  const timeSlotsFilter = {
+    endTime,
+    startTime,
+    timeSlot: timeSlot || selectedTimeSlot,
+  }
+
+  const irnTable = irnTablesFiltered[0]
+  const timeSlots = sort(sortTimeSlots, irnTable.timeSlots).filter(byTimeSlots(timeSlotsFilter))
+  const earlierTimeSlot = timeSlots[0]
+
+  return {
+    countyId: irnTable.countyId,
+    date: irnTable.date,
+    districtId: irnTable.districtId,
+    placeName: irnTable.placeName,
+    serviceId: irnTable.serviceId,
+    tableNumber: irnTable.tableNumber,
+    timeSlot: earlierTimeSlot,
+  }
+}
+
+const getIrnTableResults = (
+  params: GetIrnTableMatchParams,
+  paramsGpsLocation: GpsLocation | undefined,
+  irnTables: IrnRepositoryTables,
+) => {
   if (irnTables.length > 0) {
-    const irnTablesByClosestDate = getIrnTablesByClosestDate(irnTables)
-
-    const timeSlotsFilter = {
-      endTime,
-      startTime,
-      timeSlot: timeSlot || selectedTimeSlot,
-    }
-
-    const irnTable = irnTablesByClosestDate[0]
-    const timeSlots = sort(sortTimeSlots, irnTable.timeSlots).filter(byTimeSlots(timeSlotsFilter))
-    const earlierTimeSlot = timeSlots[0]
-
     return {
-      countyId: irnTable.countyId,
-      date: irnTable.date,
-      districtId: irnTable.districtId,
-      placeName: irnTable.placeName,
-      serviceId: irnTable.serviceId,
-      tableNumber: irnTable.tableNumber,
-      timeSlot: earlierTimeSlot,
+      closest: getIrnTableResult(getIrnTablesByClosestPlace(paramsGpsLocation), params, irnTables),
+      soonest: getIrnTableResult(getIrnTablesByClosestDate, params, irnTables),
     }
   } else {
     return undefined
@@ -194,17 +216,13 @@ const distanceInRange = (gpsLocation: GpsLocation, distanceRadiusKm: number) => 
   return distance ? distance < distanceRadiusKm : false
 }
 
-const filterIrnTablesByDistanceRadius: (
+const filterIrnTablesByDistanceRadius = (
   params: GetIrnTableMatchParams,
-) => Action<IrnRepositoryTables, IrnRepositoryTables> = params => irnTables =>
-  pipe(
-    getParamsLocation(params),
-    chain(paramsGpsLocation =>
-      paramsGpsLocation && params.distanceRadiusKm
-        ? actionOf(irnTables.filter(distanceInRange(paramsGpsLocation, params.distanceRadiusKm)))
-        : actionOf(irnTables),
-    ),
-  )
+  paramsGpsLocation: GpsLocation | undefined,
+): Action<IrnRepositoryTables, IrnRepositoryTables> => irnTables =>
+  paramsGpsLocation && params.distanceRadiusKm
+    ? actionOf(irnTables.filter(distanceInRange(paramsGpsLocation, params.distanceRadiusKm)))
+    : actionOf(irnTables)
 
 const findIrnTableMatch: (
   params: GetIrnTableMatchParams,
@@ -212,21 +230,27 @@ const findIrnTableMatch: (
   const { districtId, countyId, placeName, gpsLocation } = params
   const hasLocation = !isNil(districtId) || !isNil(countyId) || !isNil(placeName) || !isNil(gpsLocation)
   const distanceRadiusKm = hasLocation ? params.distanceRadiusKm : undefined
+
   return pipe(
-    distanceRadiusKm ? filterIrnTablesByDistanceRadius(params)(irnTables) : actionOf(irnTables),
-    chain(filteredIrnTablesByRadius => {
-      const filteredIrnTables = filteredIrnTablesByRadius.filter(bySelectedFilter(params))
-      const irnTableResult = getIrnTableResult(params, filteredIrnTables)
+    getParamsLocation(params),
+    chain(paramsLocation =>
+      pipe(
+        distanceRadiusKm ? filterIrnTablesByDistanceRadius(params, paramsLocation)(irnTables) : actionOf(irnTables),
+        chain(filteredIrnTablesByRadius => {
+          const filteredIrnTables = filteredIrnTablesByRadius.filter(bySelectedFilter(params))
+          const irnTableResults = getIrnTableResults(params, paramsLocation, filteredIrnTables)
 
-      const irnTableMatchResult = {
-        irnTableResult,
-        otherDates: uniq(filteredIrnTables.map(t => t.date)),
-        otherPlaces: uniq(filteredIrnTables.map(t => t.placeName)),
-        otherTimeSlots: uniq(flatten(filteredIrnTables.map(t => t.timeSlots.filter(byTimeSlots(params))))),
-      }
+          const irnTableMatchResult = {
+            irnTableResults,
+            otherDates: uniq(filteredIrnTables.map(t => t.date)),
+            otherPlaces: uniq(filteredIrnTables.map(t => t.placeName)),
+            otherTimeSlots: uniq(flatten(filteredIrnTables.map(t => t.timeSlots.filter(byTimeSlots(params))))),
+          }
 
-      return actionOf(irnTableMatchResult)
-    }),
+          return actionOf(irnTableMatchResult)
+        }),
+      ),
+    ),
   )
 }
 

@@ -18,3 +18,16 @@ export const calcDistanceInKm = (loc1: GpsLocation, loc2: GpsLocation) => {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return earthRadiusKm * c
 }
+
+export const getClosestLocation = <T extends { gpsLocation?: GpsLocation }>(locations: T[]) => (
+  locationToMatch: GpsLocation,
+) =>
+  locations.length > 0
+    ? locations.slice(1).reduce(
+        (acc, location) => {
+          const newDistance = location.gpsLocation ? calcDistanceInKm(location.gpsLocation, locationToMatch) : null
+          return newDistance && newDistance < acc.distance ? { location, distance: newDistance } : acc
+        },
+        { location: locations[0], distance: calcDistanceInKm(locations[0].gpsLocation!, locationToMatch) },
+      )
+    : undefined
