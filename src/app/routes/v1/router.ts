@@ -4,19 +4,10 @@ import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
 import { Environment } from "../../../environment"
 import { ErrorCodes, ServiceError } from "../../../utils/audit"
 import { logDebug } from "../../../utils/debug"
-import {
-  getCounties,
-  getDistricts,
-  getIrnPlaces,
-  getIrnTableMatch,
-  getIrnTables,
-  getIrnTableScheduleHtml,
-  getServices,
-} from "./domain"
+import { getCounties, getDistricts, getIrnPlaces, getIrnTableMatch, getIrnTables, getServices } from "./domain"
 import {
   transformGetCountiesParams,
   transformGetIrnTableMatchParams,
-  transformGetIrnTableScheduleParams,
   transformGetIrnTablesParams,
 } from "./transformers"
 
@@ -87,16 +78,6 @@ export const router = (env: Environment) =>
       await run(
         pipe(
           getIrnTableMatch(transformGetIrnTableMatchParams(req.query)),
-          bimap(errorHandler(res), okHandler(res)),
-        ),
-        env,
-      )
-    })
-    .get("/irnTableScheduleHtml", async (req, res) => {
-      logDebug("GET irnTableScheduleHtml=====>\n", req.query)
-      await run(
-        pipe(
-          getIrnTableScheduleHtml(transformGetIrnTableScheduleParams(req.query)),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,

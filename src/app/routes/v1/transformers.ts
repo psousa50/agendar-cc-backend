@@ -1,7 +1,7 @@
 import { isNil } from "ramda"
 import { GetIrnPlacesParams } from "../../../irnRepository/models"
 import { toDateString } from "../../../utils/dates"
-import { GetIrnTableMatchParams, GetIrnTableScheduleHtmlParams, GetIrnTablesParams } from "./domain"
+import { GetIrnTableMatchParams, GetIrnTablesParams } from "./domain"
 
 type Stringify<T> = {
   [k in keyof T]?: string
@@ -71,11 +71,4 @@ export const transformGetIrnTableMatchParams = (params: GetIrnTableMatchQueryPar
     ? { gpsLocation: { latitude: toExistingNumber(params.lat), longitude: toExistingNumber(params.lng) } }
     : {}),
   selectedTimeSlot: params.selectedTimeSlot,
-})
-
-export const transformGetIrnTableScheduleParams = (params: Stringify<GetIrnTableScheduleHtmlParams>) => ({
-  countyId: toNumber(params.countyId),
-  date: toDate(params.date),
-  districtId: toNumber(params.districtId),
-  serviceId: toNumber(params.serviceId),
 })

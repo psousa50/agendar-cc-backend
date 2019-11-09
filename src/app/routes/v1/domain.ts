@@ -1,8 +1,6 @@
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain, map } from "fp-ts/lib/ReaderTaskEither"
 import { flatten, isNil, sort, uniq } from "ramda"
-import { getIrnTablesResponse } from "../../../irnFetch/main"
-import { FetchIrnTablesParams } from "../../../irnFetch/models"
 import {
   Counties,
   Districts,
@@ -12,11 +10,9 @@ import {
   IrnRepositoryTables,
   IrnServices,
 } from "../../../irnRepository/models"
-import { Action, actionErrorOf, actionOf, ask } from "../../../utils/actions"
-import { ServiceError } from "../../../utils/audit"
+import { Action, actionOf, ask } from "../../../utils/actions"
 import { min } from "../../../utils/collections"
 import { DateString } from "../../../utils/dates"
-import { extractCookies, extractText } from "../../../utils/fetch"
 import { calcDistanceInKm } from "../../../utils/location"
 import { GpsLocation, TimeSlot } from "../../../utils/models"
 
@@ -258,66 +254,3 @@ export const getIrnTableMatch: Action<GetIrnTableMatchParams, IrnTableMatchResul
     getIrnTables(removeLocationIfHasDistanceRadius(params)),
     chain(findIrnTableMatch(params)),
   )
-
-export interface GetIrnTableScheduleHtmlParams {
-  serviceId?: number
-  districtId?: number
-  countyId?: number
-  date?: DateString
-}
-
-const addDescriptionAndGetHtml: Action<FetchIrnTablesParams, GetIrnTableScheduleHtmlResponse> = params => {
-  const { serviceId, countyId } = params
-  return pipe(
-    ask(),
-    chain(env =>
-      pipe(
-        env.irnRepository.getIrnService({ serviceId }),
-        chain(irnService =>
-          pipe(
-            env.irnRepository.getCounty({ countyId }),
-            map(county => ({
-              county: county ? county.name : undefined,
-              irnService: irnService ? irnService.name : undefined,
-            })),
-          ),
-        ),
-        chain(descriptions => getIrnTablesResponse({ params, descriptions })),
-        chain(response =>
-          pipe(
-            actionOf(extractCookies(response)),
-            chain(cookies =>
-              pipe(
-                extractText(response),
-                map(html => ({
-                  cookies,
-                  html,
-                })),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  )
-}
-
-interface GetIrnTableScheduleHtmlResponse {
-  html: string
-  cookies: string[]
-}
-
-export const getIrnTableScheduleHtml: Action<GetIrnTableScheduleHtmlParams, GetIrnTableScheduleHtmlResponse> = ({
-  serviceId,
-  districtId,
-  countyId,
-  date,
-}) =>
-  serviceId && districtId && countyId && date
-    ? addDescriptionAndGetHtml({
-        countyId,
-        date,
-        districtId,
-        serviceId,
-      })
-    : actionErrorOf(new ServiceError("Invalid params"))
