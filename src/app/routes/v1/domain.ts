@@ -242,9 +242,9 @@ const findIrnTableMatch: (
 
           const irnTableMatchResult = {
             irnTableResults,
-            otherDates: uniq(filteredIrnTablesByRadius.map(t => t.date)),
-            otherPlaces: uniq(filteredIrnTablesByRadius.map(t => t.placeName)),
-            otherTimeSlots: uniq(flatten(filteredIrnTablesByRadius.map(t => t.timeSlots.filter(byTimeSlots(params))))),
+            otherDates: uniq(filteredIrnTables.map(t => t.date)),
+            otherPlaces: uniq(filteredIrnTables.map(t => t.placeName)),
+            otherTimeSlots: uniq(flatten(filteredIrnTables.map(t => t.timeSlots.filter(byTimeSlots(params))))),
           }
 
           return actionOf(irnTableMatchResult)
