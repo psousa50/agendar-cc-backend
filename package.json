@@ -4,8 +4,9 @@
   "description": "An App to help Portuguese citizens to schedule an appointment to get their Citizen Card",
   "main": "dist/index.js",
   "scripts": {
+    "copy-public": "cp -r ./src/app/public dist/app/public",
     "prebuild": "npm run clean && npm run lint",
-    "postbuild": "npm test",
+    "postbuild": "npm test && npm copy-public",
     "build": "npm run tsc",
     "tsc": "tsc --project tsconfig.dist.json",
     "clean": "rm -rf dist",
