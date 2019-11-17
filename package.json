@@ -6,7 +6,7 @@
   "scripts": {
     "copy-public": "cp -r ./src/app/public dist/app/public",
     "prebuild": "npm run clean && npm run lint",
-    "postbuild": "npm test && npm copy-public",
+    "postbuild": "npm test && npm run copy-public",
     "build": "npm run tsc",
     "tsc": "tsc --project tsconfig.dist.json",
     "clean": "rm -rf dist",
