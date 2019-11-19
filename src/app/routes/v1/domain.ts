@@ -150,9 +150,13 @@ const getIrnTableResults = (
   irnTables: IrnRepositoryTables,
 ) => {
   if (irnTables.length > 0) {
+    const soonest = getIrnTableResult(getIrnTablesByClosestDate, params, irnTables)
     return {
-      closest: getIrnTableResult(getIrnTablesByClosestPlace(paramsGpsLocation), params, irnTables),
-      soonest: getIrnTableResult(getIrnTablesByClosestDate, params, irnTables),
+      closest: isNil(params.districtId)
+        ? soonest
+        : getIrnTableResult(getIrnTablesByClosestPlace(paramsGpsLocation), params, irnTables),
+
+      soonest,
     }
   } else {
     return undefined
@@ -220,7 +224,7 @@ const filterIrnTablesByDistanceRadius = (
   params: GetIrnTableMatchParams,
   paramsGpsLocation: GpsLocation | undefined,
 ): Action<IrnRepositoryTables, IrnRepositoryTables> => irnTables =>
-  paramsGpsLocation && params.distanceRadiusKm
+  !isNil(params.districtId) && paramsGpsLocation && !isNil(params.distanceRadiusKm)
     ? actionOf(irnTables.filter(distanceInRange(paramsGpsLocation, params.distanceRadiusKm)))
     : actionOf(irnTables)
 
