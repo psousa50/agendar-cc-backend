@@ -11,9 +11,8 @@ import {
   IrnServices,
 } from "../../../irnRepository/models"
 import { Action, actionOf, ask } from "../../../utils/actions"
-import { min } from "../../../utils/collections"
 import { DateString, toUtcDate } from "../../../utils/dates"
-import { calcDistanceInKm, getClosestLocation } from "../../../utils/location"
+import { calcDistanceInKm } from "../../../utils/location"
 import { GpsLocation, TimeSlot } from "../../../utils/models"
 
 export const getServices: Action<void, IrnServices> = () =>
