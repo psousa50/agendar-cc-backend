@@ -12,7 +12,7 @@ import {
 } from "../../../irnRepository/models"
 import { Action, actionOf, ask } from "../../../utils/actions"
 import { min } from "../../../utils/collections"
-import { DateString } from "../../../utils/dates"
+import { DateString, toUtcDate } from "../../../utils/dates"
 import { calcDistanceInKm, getClosestLocation } from "../../../utils/location"
 import { GpsLocation, TimeSlot } from "../../../utils/models"
 
@@ -91,17 +91,19 @@ const sortTimeSlots = (t1: TimeSlot, t2: TimeSlot) => t1.localeCompare(t2)
 const byTimeSlots = ({ endTime, startTime, timeSlot }: TimeSlotsFilter) => (ts: TimeSlot) =>
   (isNil(timeSlot) || ts === timeSlot) && (isNil(startTime) || startTime <= ts) && (isNil(endTime) || endTime >= ts)
 
-const getIrnTablesByClosestDate = (irnTables: IrnRepositoryTables) => {
-  const closestDate = min(irnTables.map(t => t.date)) || irnTables[0].date
-  return irnTables.filter(t => t.date === closestDate)
-}
+const byDate = (t1: IrnRepositoryTable, t2: IrnRepositoryTable) =>
+  toUtcDate(t1.date).getTime() - toUtcDate(t2.date).getTime()
 
-export const getIrnTablesByClosestPlace = (location?: GpsLocation) => (irnTables: IrnRepositoryTables) => {
-  const closest = location ? getClosestLocation(irnTables)(location) : undefined
-  const closestIrnTable = closest ? closest.location : irnTables[0]
+const byDistance = (t1: IrnRepositoryTableWithDistance, t2: IrnRepositoryTableWithDistance) =>
+  (t1.distanceKm || 0) - (t2.distanceKm || 0)
 
-  return irnTables.filter(t => t.placeName === closestIrnTable.placeName)
-}
+const byDateAndDistance = (t1: IrnRepositoryTable, t2: IrnRepositoryTable) => byDate(t1, t2) || byDistance(t1, t2)
+const byDistanceAndDate = (t1: IrnRepositoryTable, t2: IrnRepositoryTable) => byDistance(t1, t2) || byDate(t1, t2)
+
+const sortIrnTablesByClosestDate = (irnTables: IrnRepositoryTables) => sort(byDateAndDistance, irnTables)
+
+export const sortIrnTablesByClosestPlace = (irnTables: IrnRepositoryTableWithDistance[]) =>
+  sort(byDistanceAndDate, irnTables)
 
 const bySelectedFilter = ({
   selectedCountyId,
@@ -109,7 +111,7 @@ const bySelectedFilter = ({
   selectedDistrictId,
   selectedPlaceName,
   selectedTimeSlot,
-}: GetIrnTableMatchParams) => (irnTable: IrnRepositoryTable) =>
+}: GetIrnTableMatchParams) => (irnTable: IrnRepositoryTableWithDistance) =>
   (isNil(selectedDate) || irnTable.date === selectedDate) &&
   (isNil(selectedCountyId) || irnTable.countyId === selectedCountyId) &&
   (isNil(selectedDistrictId) || irnTable.districtId === selectedDistrictId) &&
@@ -144,18 +146,11 @@ const getIrnTableResult = (
   }
 }
 
-const getIrnTableResults = (
-  params: GetIrnTableMatchParams,
-  paramsGpsLocation: GpsLocation | undefined,
-  irnTables: IrnRepositoryTables,
-) => {
+const getIrnTableResults = (params: GetIrnTableMatchParams, irnTables: IrnRepositoryTableWithDistance[]) => {
   if (irnTables.length > 0) {
-    const soonest = getIrnTableResult(getIrnTablesByClosestDate, params, irnTables)
+    const soonest = getIrnTableResult(sortIrnTablesByClosestDate, params, irnTables)
     return {
-      closest: isNil(params.districtId)
-        ? soonest
-        : getIrnTableResult(getIrnTablesByClosestPlace(paramsGpsLocation), params, irnTables),
-
+      closest: isNil(params.districtId) ? soonest : getIrnTableResult(sortIrnTablesByClosestPlace, params, irnTables),
       soonest,
     }
   } else {
@@ -215,17 +210,18 @@ const getParamsLocation: Action<GetIrnTableMatchParams, GpsLocation | undefined>
     chain(pl => (pl ? actionOf(pl) : actionOf(gpsLocation))),
   )
 
-const distanceInRange = (gpsLocation: GpsLocation, distanceRadiusKm: number) => (irnTable: IrnRepositoryTable) => {
-  const distance = irnTable.gpsLocation ? calcDistanceInKm(gpsLocation, irnTable.gpsLocation) : undefined
-  return distance ? distance < distanceRadiusKm : false
-}
-
+type IrnRepositoryTableWithDistance = IrnRepositoryTable & { distanceKm?: number }
 const filterIrnTablesByDistanceRadius = (
-  params: GetIrnTableMatchParams,
+  { distanceRadiusKm, districtId }: GetIrnTableMatchParams,
   paramsGpsLocation: GpsLocation | undefined,
-): Action<IrnRepositoryTables, IrnRepositoryTables> => irnTables =>
-  !isNil(params.districtId) && paramsGpsLocation && !isNil(params.distanceRadiusKm)
-    ? actionOf(irnTables.filter(distanceInRange(paramsGpsLocation, params.distanceRadiusKm)))
+): Action<IrnRepositoryTables, IrnRepositoryTableWithDistance[]> => irnTables =>
+  !isNil(districtId) && paramsGpsLocation && !isNil(distanceRadiusKm) && !isNil(distanceRadiusKm)
+    ? actionOf(
+        irnTables
+          .filter(t => !isNil(t.gpsLocation))
+          .map(irnTable => ({ ...irnTable, distanceKm: calcDistanceInKm(paramsGpsLocation, irnTable.gpsLocation!) }))
+          .filter(t => t.distanceKm < distanceRadiusKm),
+      )
     : actionOf(irnTables)
 
 const findIrnTableMatch: (
@@ -242,7 +238,7 @@ const findIrnTableMatch: (
         distanceRadiusKm ? filterIrnTablesByDistanceRadius(params, paramsLocation)(irnTables) : actionOf(irnTables),
         chain(filteredIrnTablesByRadius => {
           const filteredIrnTables = filteredIrnTablesByRadius.filter(bySelectedFilter(params))
-          const irnTableResults = getIrnTableResults(params, paramsLocation, filteredIrnTables)
+          const irnTableResults = getIrnTableResults(params, filteredIrnTables)
 
           const irnTableMatchResult = {
             irnTableResults,

@@ -37,18 +37,19 @@ describe("getIrnTableMatch", () => {
     const date1 = toExistingDateString("2000-01-20")
     const place1 = "some place 1"
     const timeSlot1 = "20:00"
-    const irnTable1 = makeIrnTable({ date: date1, placeName: place1, timeSlots: [timeSlot1] })
 
     const tableNumber = "5"
     const soonestDate = toExistingDateString("2000-01-01")
     const place2 = "some place 2"
     const firstTimeSlot = "10:00"
     const timeSlots = [firstTimeSlot, "12:30"]
-    const irnTable2 = makeIrnTable({ date: soonestDate, placeName: place2, tableNumber, timeSlots })
 
     const date3 = toExistingDateString("2000-01-95")
     const place3 = "some place 3"
     const timeSlot3 = "12:30"
+
+    const irnTable1 = makeIrnTable({ date: date1, placeName: place1, timeSlots: [timeSlot1] })
+    const irnTable2 = makeIrnTable({ date: soonestDate, placeName: place2, tableNumber, timeSlots })
     const irnTable3 = makeIrnTable({ date: date3, placeName: place3, timeSlots: [timeSlot3] })
 
     const getIrnTables = jest.fn(() => actionOf([irnTable1, irnTable2, irnTable3]))
@@ -79,13 +80,13 @@ describe("getIrnTableMatch", () => {
     const expectedResult = {
       irnTableResults: {
         closest: {
-          countyId: irnTable1.countyId,
-          date: irnTable1.date,
-          districtId: irnTable1.districtId,
-          placeName: irnTable1.placeName,
-          serviceId: irnTable1.serviceId,
-          tableNumber: irnTable1.tableNumber,
-          timeSlot: timeSlot1,
+          countyId: irnTable2.countyId,
+          date: irnTable2.date,
+          districtId: irnTable2.districtId,
+          placeName: irnTable2.placeName,
+          serviceId: irnTable2.serviceId,
+          tableNumber: irnTable2.tableNumber,
+          timeSlot: firstTimeSlot,
         },
         soonest: {
           countyId: irnTable2.countyId,
@@ -104,42 +105,43 @@ describe("getIrnTableMatch", () => {
 
     expect(getIrnTables).toHaveBeenCalledWith(params)
     expect(result).toEqual(right(expectedResult))
-  }),
-    it("forwards date and timeSlot params", async () => {
-      const getIrnTables = jest.fn(() => actionOf([]))
+  })
 
-      const environment = {
-        irnRepository: {
-          getIrnTables,
-        },
-      } as any
+  it("forwards date and timeSlot params", async () => {
+    const getIrnTables = jest.fn(() => actionOf([]))
 
-      const params: GetIrnRepositoryTablesParams = {
-        countyId: undefined,
-        date: "2010-09-20" as DateString,
-        districtId: undefined,
-        endDate: undefined,
-        endTime: undefined,
-        onlyOnSaturdays: false,
-        placeName: undefined,
-        region: undefined,
-        serviceId: undefined,
-        startDate: undefined,
-        startTime: undefined,
-        timeSlot: "10:00",
-      }
+    const environment = {
+      irnRepository: {
+        getIrnTables,
+      },
+    } as any
 
-      const result = await run(getIrnTableMatch(params), environment)
-      const expectedResult = {
-        irnTableResult: undefined,
-        otherDates: [],
-        otherPlaces: [],
-        otherTimeSlots: [],
-      }
+    const params: GetIrnRepositoryTablesParams = {
+      countyId: undefined,
+      date: "2010-09-20" as DateString,
+      districtId: undefined,
+      endDate: undefined,
+      endTime: undefined,
+      onlyOnSaturdays: false,
+      placeName: undefined,
+      region: undefined,
+      serviceId: undefined,
+      startDate: undefined,
+      startTime: undefined,
+      timeSlot: "10:00",
+    }
 
-      expect(getIrnTables).toHaveBeenCalledWith(params)
-      expect(result).toEqual(right(expectedResult))
-    })
+    const result = await run(getIrnTableMatch(params), environment)
+    const expectedResult = {
+      irnTableResult: undefined,
+      otherDates: [],
+      otherPlaces: [],
+      otherTimeSlots: [],
+    }
+
+    expect(getIrnTables).toHaveBeenCalledWith(params)
+    expect(result).toEqual(right(expectedResult))
+  })
 
   describe("filters final result by", () => {
     it("selected date", async () => {
