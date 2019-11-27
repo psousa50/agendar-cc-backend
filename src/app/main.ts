@@ -13,13 +13,9 @@ export const createApp: Action<void, Express> = () =>
     ask(),
     map(environment => {
       const app: Express = express()
-
       app.use(express.static(`${__dirname}/public`))
-
       app.use("/api/v1", v1Router(environment))
-
       app.all("*", createNotFoundHandler())
-
       app.use(createErrorHandler())
 
       return app
