@@ -1,12 +1,14 @@
-import { IrnTable } from "../../../../src/irnFetch/models"
-
-import { chain, map, right } from "fp-ts/lib/Either"
+import { map, right } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/pipeable"
 import { run } from "fp-ts/lib/ReaderTaskEither"
-import { getIrnTableMatch } from "../../../../src/app/routes/v1/domain"
-import { GetIrnRepositoryTablesParams } from "../../../../src/irnRepository/models"
+import { getIrnTableMatch, GetIrnTableMatchParams } from "../../../../src/app/routes/v1/domain"
+import {
+  GetIrnRepositoryTablesParams,
+  IrnRepositoryTable,
+  IrnRepositoryTables,
+} from "../../../../src/irnRepository/models"
 import { actionOf } from "../../../../src/utils/actions"
-import { DateString, toExistingDateString } from "../../../../src/utils/dates"
+import { DateString, toDateString, toExistingDateString } from "../../../../src/utils/dates"
 
 describe("getIrnTableMatch", () => {
   const serviceId = 10
@@ -14,15 +16,24 @@ describe("getIrnTableMatch", () => {
   const countyId = 20
   const districtId = 30
 
-  const makeIrnTable = (irnTable: Partial<IrnTable>): IrnTable => {
-    const defaultIrnTable = {
-      address: "some address",
+  const getEnvironmentFor = (irnTables: IrnRepositoryTables) =>
+    ({
+      irnRepository: {
+        getCounty: jest.fn(() => actionOf(undefined)),
+        getDistrict: jest.fn(() => actionOf(undefined)),
+        getIrnPlace: jest.fn(() => actionOf(undefined)),
+        getIrnTables: jest.fn(() => actionOf(irnTables)),
+      },
+    } as any)
+
+  const makeIrnTable = (irnTable: Partial<IrnRepositoryTable>): IrnRepositoryTable => {
+    const defaultIrnTable: IrnRepositoryTable = {
       countyId,
-      date: toExistingDateString("2000-01-01"),
+      date: toExistingDateString("2010-01-01"),
       districtId,
-      phone: "",
+      gpsLocation: { latitude: 0, longitude: 0 },
       placeName: "Some place name",
-      postalCode: "",
+      region: "Continente",
       serviceId,
       tableNumber: "1",
       timeSlots: ["12:30"],
@@ -33,191 +44,178 @@ describe("getIrnTableMatch", () => {
     }
   }
 
-  it("retrieves soonest first table result with all dates and places", async () => {
-    const date1 = toExistingDateString("2000-01-20")
-    const place1 = "some place 1"
-    const timeSlot1 = "20:00"
+  it("retrieves soonest and closest places", async () => {
+    const closestTable = makeIrnTable({ tableNumber: "1", gpsLocation: { latitude: 1.1, longitude: 1.1 } })
+    const table1 = makeIrnTable({ tableNumber: "2", gpsLocation: { latitude: 10, longitude: 10 } })
+    const soonestTable = makeIrnTable({ tableNumber: "3", date: toExistingDateString("2000-01-01") })
+    const table2 = makeIrnTable({ tableNumber: "4", date: toExistingDateString("2015-12-31") })
 
-    const tableNumber = "5"
-    const soonestDate = toExistingDateString("2000-01-01")
-    const place2 = "some place 2"
-    const firstTimeSlot = "10:00"
-    const timeSlots = [firstTimeSlot, "12:30"]
+    const environment = getEnvironmentFor([table1, closestTable, table2, soonestTable])
 
-    const date3 = toExistingDateString("2000-01-95")
-    const place3 = "some place 3"
-    const timeSlot3 = "12:30"
-
-    const irnTable1 = makeIrnTable({ date: date1, placeName: place1, timeSlots: [timeSlot1] })
-    const irnTable2 = makeIrnTable({ date: soonestDate, placeName: place2, tableNumber, timeSlots })
-    const irnTable3 = makeIrnTable({ date: date3, placeName: place3, timeSlots: [timeSlot3] })
-
-    const getIrnTables = jest.fn(() => actionOf([irnTable1, irnTable2, irnTable3]))
-
-    const environment = {
-      irnRepository: {
-        getCounty: jest.fn(() => actionOf(undefined)),
-        getDistrict: jest.fn(() => actionOf(undefined)),
-        getIrnPlace: jest.fn(() => actionOf(undefined)),
-        getIrnTables,
-      },
-    } as any
-
-    const params: GetIrnRepositoryTablesParams = {
-      countyId: 10,
-      districtId: 20,
-      endDate: "2010-09-30" as DateString,
-      endTime: "20:00",
-      onlyOnSaturdays: true,
-      placeName: "Some place name",
-      region: "some region",
-      serviceId: 1,
-      startDate: "2010-09-10" as DateString,
-      startTime: "08:00",
+    const params: GetIrnTableMatchParams = {
+      districtId: 1,
+      gpsLocation: { latitude: 1, longitude: 1 },
     }
 
     const result = await run(getIrnTableMatch(params), environment)
-    const expectedResult = {
-      irnTableResults: {
-        closest: {
-          countyId: irnTable2.countyId,
-          date: irnTable2.date,
-          districtId: irnTable2.districtId,
-          placeName: irnTable2.placeName,
-          serviceId: irnTable2.serviceId,
-          tableNumber: irnTable2.tableNumber,
-          timeSlot: firstTimeSlot,
-        },
-        soonest: {
-          countyId: irnTable2.countyId,
-          date: irnTable2.date,
-          districtId: irnTable2.districtId,
-          placeName: irnTable2.placeName,
-          serviceId: irnTable2.serviceId,
-          tableNumber: irnTable2.tableNumber,
-          timeSlot: firstTimeSlot,
-        },
-      },
-      otherDates: [date1, soonestDate, date3],
-      otherPlaces: [place1, place2, place3],
-      otherTimeSlots: [timeSlot1, ...irnTable2.timeSlots],
-    }
 
-    expect(getIrnTables).toHaveBeenCalledWith(params)
-    expect(result).toEqual(right(expectedResult))
+    pipe(
+      result,
+      map(r => {
+        expect(r.irnTableResults!.soonest.tableNumber).toBe(soonestTable.tableNumber)
+        expect(r.irnTableResults!.closest.tableNumber).toBe(closestTable.tableNumber)
+      }),
+    )
   })
 
-  it("forwards date and timeSlot params", async () => {
-    const getIrnTables = jest.fn(() => actionOf([]))
+  it("does not retrieve closest place if district is not defined", async () => {
+    const closestTable = makeIrnTable({ tableNumber: "1", gpsLocation: { latitude: 1.1, longitude: 1.1 } })
+    const table1 = makeIrnTable({ tableNumber: "2", gpsLocation: { latitude: 10, longitude: 10 } })
+    const soonestTable = makeIrnTable({ tableNumber: "3", date: toExistingDateString("2000-01-01") })
+    const table2 = makeIrnTable({ tableNumber: "4", date: toExistingDateString("2015-12-31") })
 
-    const environment = {
-      irnRepository: {
-        getIrnTables,
-      },
-    } as any
+    const environment = getEnvironmentFor([table1, closestTable, table2, soonestTable])
 
-    const params: GetIrnRepositoryTablesParams = {
-      countyId: undefined,
-      date: "2010-09-20" as DateString,
-      districtId: undefined,
-      endDate: undefined,
-      endTime: undefined,
-      onlyOnSaturdays: false,
-      placeName: undefined,
-      region: undefined,
-      serviceId: undefined,
-      startDate: undefined,
-      startTime: undefined,
-      timeSlot: "10:00",
+    const params: GetIrnTableMatchParams = {
+      gpsLocation: { latitude: 1, longitude: 1 },
     }
 
     const result = await run(getIrnTableMatch(params), environment)
-    const expectedResult = {
-      irnTableResult: undefined,
-      otherDates: [],
-      otherPlaces: [],
-      otherTimeSlots: [],
+
+    pipe(
+      result,
+      map(r => {
+        expect(r.irnTableResults!.soonest).toEqual(r.irnTableResults!.closest)
+      }),
+    )
+  })
+
+  it("returns all dates of selected tables", async () => {
+    const date1 = toDateString("2010-01-01")
+    const date2 = toDateString("2010-01-05")
+    const table1 = makeIrnTable({ date: date1 })
+    const table2 = makeIrnTable({ date: date2 })
+
+    const environment = getEnvironmentFor([table1, table2])
+
+    const result = await run(getIrnTableMatch({}), environment)
+
+    pipe(
+      result,
+      map(r => {
+        expect(r.otherDates).toEqual([date1, date2])
+      }),
+    )
+  })
+
+  it("returns all places of selected tables", async () => {
+    const place1 = "Some place 1"
+    const place2 = "Some place 2"
+    const table1 = makeIrnTable({ placeName: place1 })
+    const table2 = makeIrnTable({ placeName: place2 })
+
+    const environment = getEnvironmentFor([table1, table2])
+
+    const result = await run(getIrnTableMatch({}), environment)
+
+    pipe(
+      result,
+      map(r => {
+        expect(r.otherPlaces).toEqual([place1, place2])
+      }),
+    )
+  })
+
+  it("returns all timeslots of selected tables", async () => {
+    const timeSlots1 = ["08:00", "09:00"]
+    const timeSlots2 = ["10:00", "11:00"]
+    const table1 = makeIrnTable({ timeSlots: timeSlots1 })
+    const table2 = makeIrnTable({ timeSlots: timeSlots2 })
+
+    const environment = getEnvironmentFor([table1, table2])
+
+    const result = await run(getIrnTableMatch({}), environment)
+
+    pipe(
+      result,
+      map(r => {
+        expect(r.otherTimeSlots).toEqual(timeSlots1.concat(timeSlots2))
+      }),
+    )
+  })
+
+  it("removes locations params if distanceRadius is included", async () => {
+    const environment = getEnvironmentFor([])
+
+    const params = {
+      countyId: 2,
+      distanceRadiusKm: 10,
+      districtId: 1,
+      other: "param",
+      placeName: "some place",
     }
 
-    expect(getIrnTables).toHaveBeenCalledWith(params)
-    expect(result).toEqual(right(expectedResult))
+    await run(getIrnTableMatch(params), environment)
+
+    const expectedParams = {
+      distanceRadiusKm: 10,
+      other: "param",
+    }
+
+    expect(environment.irnRepository.getIrnTables).toHaveBeenCalledWith(expectedParams)
   })
 
   describe("filters final result by", () => {
     it("selected date", async () => {
       const date1 = toExistingDateString("2000-01-20")
-      const irnTable1 = makeIrnTable({ date: date1 })
+      const irnTable1 = makeIrnTable({ tableNumber: "1", date: date1 })
 
       const date2 = toExistingDateString("2000-01-30")
-      const irnTable2 = makeIrnTable({ date: date2 })
-
+      const irnTable2 = makeIrnTable({ tableNumber: "2", date: date2 })
       const selectedDate = date2
-      const getIrnTables = jest.fn(() => actionOf([irnTable1, irnTable2]))
 
-      const environment = {
-        irnRepository: {
-          getIrnTables,
-        },
-      } as any
+      const environment = getEnvironmentFor([irnTable1, irnTable2])
 
       const params = {
         selectedDate,
       }
 
       const result = await run(getIrnTableMatch(params), environment)
-      const expectedResult = {
-        countyId: irnTable2.countyId,
-        date: irnTable2.date,
-        districtId: irnTable2.districtId,
-        placeName: irnTable2.placeName,
-        serviceId: irnTable2.serviceId,
-        tableNumber: irnTable2.tableNumber,
-        timeSlot: irnTable2.timeSlots[0],
-      }
 
       pipe(
         result,
-        map(r => expect(r.irnTableResults!.soonest).toEqual(expectedResult)),
+        map(r => {
+          expect(r.irnTableResults!.soonest.tableNumber).toEqual(irnTable2.tableNumber)
+          expect(r.otherDates).toEqual([irnTable2.date])
+        }),
       )
     })
-  })
 
-  it("selected placeName", async () => {
-    const place1 = "Some place 1"
-    const irnTable1 = makeIrnTable({ placeName: place1 })
+    it("selected placeName", async () => {
+      const place1 = "Some place 1"
+      const irnTable1 = makeIrnTable({ tableNumber: "1", placeName: place1 })
 
-    const place2 = "Some place 2"
-    const irnTable2 = makeIrnTable({ countyId, districtId, placeName: place2 })
+      const place2 = "Some place 2"
+      const irnTable2 = makeIrnTable({ tableNumber: "2", countyId, districtId, placeName: place2 })
 
-    const selectedPlace = place2
-    const getIrnTables = jest.fn(() => actionOf([irnTable1, irnTable2]))
+      const selectedPlaceName = place2
+      const environment = getEnvironmentFor([irnTable1, irnTable2])
 
-    const environment = {
-      irnRepository: {
-        getIrnTables,
-      },
-    } as any
+      const params = {
+        selectedCountyId: countyId,
+        selectedDistrictId: districtId,
+        selectedPlaceName,
+      }
 
-    const params = {
-      selectedCountyId: countyId,
-      selectedDistrictId: districtId,
-      selectedPlaceName: place2,
-    }
+      const result = await run(getIrnTableMatch(params), environment)
 
-    const result = await run(getIrnTableMatch(params), environment)
-    const expectedResult = {
-      countyId: irnTable2.countyId,
-      date: irnTable2.date,
-      districtId: irnTable2.districtId,
-      placeName: irnTable2.placeName,
-      serviceId: irnTable2.serviceId,
-      tableNumber: irnTable2.tableNumber,
-      timeSlot: irnTable2.timeSlots[0],
-    }
-
-    pipe(
-      result,
-      map(r => expect(r.irnTableResults!.soonest).toEqual(expectedResult)),
-    )
+      pipe(
+        result,
+        map(r => {
+          expect(r.irnTableResults!.soonest.tableNumber).toEqual(irnTable2.tableNumber)
+          expect(r.otherPlaces).toEqual([irnTable2.placeName])
+        }),
+      )
+    })
   })
 })

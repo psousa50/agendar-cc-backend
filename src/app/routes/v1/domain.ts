@@ -210,18 +210,17 @@ const getParamsLocation: Action<GetIrnTableMatchParams, GpsLocation | undefined>
   )
 
 type IrnRepositoryTableWithDistance = IrnRepositoryTable & { distanceKm?: number }
-const filterIrnTablesByDistanceRadius = (
-  { distanceRadiusKm, districtId }: GetIrnTableMatchParams,
+const getIrnTablesDistance = (
+  districtId: number | undefined,
   paramsGpsLocation: GpsLocation | undefined,
 ): Action<IrnRepositoryTables, IrnRepositoryTableWithDistance[]> => irnTables =>
-  !isNil(districtId) && paramsGpsLocation && !isNil(distanceRadiusKm) && !isNil(distanceRadiusKm)
+  !isNil(districtId) && paramsGpsLocation
     ? actionOf(
         irnTables
           .filter(t => !isNil(t.gpsLocation))
-          .map(irnTable => ({ ...irnTable, distanceKm: calcDistanceInKm(paramsGpsLocation, irnTable.gpsLocation!) }))
-          .filter(t => t.distanceKm < distanceRadiusKm),
+          .map(irnTable => ({ ...irnTable, distanceKm: calcDistanceInKm(paramsGpsLocation, irnTable.gpsLocation!) })),
       )
-    : actionOf(irnTables)
+    : actionOf(irnTables.map(irnTable => ({ ...irnTable, distanceKm: 0 })))
 
 const findIrnTableMatch: (
   params: GetIrnTableMatchParams,
@@ -234,7 +233,14 @@ const findIrnTableMatch: (
     getParamsLocation(params),
     chain(paramsLocation =>
       pipe(
-        distanceRadiusKm ? filterIrnTablesByDistanceRadius(params, paramsLocation)(irnTables) : actionOf(irnTables),
+        getIrnTablesDistance(districtId, paramsLocation)(irnTables),
+        chain(irnTablesWithDistance =>
+          actionOf(
+            irnTablesWithDistance.filter(
+              t => isNil(distanceRadiusKm) || (t.distanceKm && t.distanceKm < distanceRadiusKm),
+            ),
+          ),
+        ),
         chain(filteredIrnTablesByRadius => {
           const filteredIrnTables = filteredIrnTablesByRadius.filter(bySelectedFilter(params))
           const irnTableResults = getIrnTableResults(params, filteredIrnTables)
