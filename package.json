@@ -43,7 +43,7 @@
     "query-string": "^6.8.3",
     "ramda": "^0.26.0",
     "response-time": "^2.3.2",
-    "serialize-javascript": "^1.8.0"
+    "serialize-javascript": "^2.1.1"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.13",
