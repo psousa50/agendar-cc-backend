@@ -22,10 +22,10 @@ const checkIsTimeToRun: Action<IrnLog | undefined, boolean> = lastRefreshIrnLog 
   const lastTimestamp = lastRefreshIrnLog && lastRefreshIrnLog.timestamp
   const minElappsedTimeMn = lastRefreshIrnLog ? (lastRefreshIrnLog.type === "RefreshStarted" ? 15 : 1) : undefined
   const now = currentUtcDateTime()
-  const needToRun =
+  const needsToRun = true ||
     lastTimestamp && minElappsedTimeMn ? now.diff(moment.utc(lastTimestamp), "minute") > minElappsedTimeMn : true
-  logDebug(needToRun ? "Running Refresh Tables..." : "Skipping Refresh Tables!")
-  return actionOf(needToRun)
+  logDebug(needsToRun ? "Running Refresh Tables..." : "Skipping Refresh Tables!")
+  return actionOf(needsToRun)
 }
 
 const runProcess: Action<void, void> = () =>
