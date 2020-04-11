@@ -424,7 +424,7 @@ describe("IrnCrawler", () => {
         ...defaultIrnRepository,
         addIrnTablesTemporary: jest.fn(() => actionOf(undefined)),
         getIrnTablesCount: jest.fn(() => actionOf(100)),
-        getIrnTablesTemporaryCount: jest.fn(() => actionOf(50)),
+        getIrnTablesTemporaryCount: jest.fn(() => actionOf(29)),
         switchIrnTables: jest.fn(() => actionOf(undefined)),
       }
 
