@@ -1,7 +1,6 @@
 export const globalIrnServices = [
-  { serviceId: 1, name: "CC urgente ou extremo urgente" },
-  { serviceId: 2, name: "1º CC urgente ou extremo urgente" },
-  { serviceId: 3, name: "CC para menores de 25 anos urgente ou extremo urgente" },
-  { serviceId: 4, name: "CC provisório" },
-  { serviceId: 5, name: "CC com alterações de dados urgente ou extremo urgente" },
+  { serviceId: 1, name: "Pedir / Renovar o Cartão de Cidadão" },
+  { serviceId: 2, name: "Levantar o Cartão de Cidadão" },
+  { serviceId: 3, name: "Pedir o Passaporte Electrónico" },
+  { serviceId: 4, name: "Levantar o Passaporte Electrónico" },
 ]
