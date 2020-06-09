@@ -5,7 +5,7 @@ import { FetchIrnTablesParams, IrnTable, IrnTables } from "../../src/irnFetch/mo
 import { IrnPlace, IrnRepositoryTables } from "../../src/irnRepository/models"
 import { actionErrorOf, actionOf } from "../../src/utils/actions"
 import { ServiceError } from "../../src/utils/audit"
-import { toDateString, toExistingDateString } from "../../src/utils/dates"
+import { toExistingDateString } from "../../src/utils/dates"
 import { logDebug } from "../../src/utils/debug"
 
 describe("IrnCrawler", () => {
@@ -475,9 +475,13 @@ describe("IrnCrawler", () => {
       expect(irnRepository.upsertIrnPlace).toHaveBeenLastCalledWith(newIrnPlace1)
     })
 
-    it("do nothing on gps error", async () => {
+    it("do nothing and continue on gps error", async () => {
+      const geoCoding = {
+        latitude: 10,
+        longitude: 20,
+      }
       const irnPlace1 = makeIrnPlace({ countyId, gpsLocation: undefined })
-      const irnPlace2 = makeIrnPlace({ gpsLocation: { latitude: 1, longitude: 2 } })
+      const irnPlace2 = makeIrnPlace({ countyId, gpsLocation: undefined })
       const irnRepository = {
         ...defaultIrnRepository,
         getCounty: jest.fn(() => actionOf(county)),
@@ -488,14 +492,17 @@ describe("IrnCrawler", () => {
       const environment = {
         ...defaultEnvironment,
         geoCoding: {
-          get: jest.fn(() => actionErrorOf(new ServiceError("some error"))),
+          get: jest
+            .fn()
+            .mockImplementationOnce(() => actionErrorOf(new ServiceError("some error")))
+            .mockImplementationOnce(() => actionOf(geoCoding)),
         },
         irnRepository,
       }
 
       await run(irnCrawler.updateIrnPlacesLocation(), environment as any)
 
-      expect(irnRepository.upsertIrnPlace).not.toHaveBeenCalled()
+      expect(irnRepository.upsertIrnPlace).toHaveBeenCalledTimes(1)
     })
   })
 })

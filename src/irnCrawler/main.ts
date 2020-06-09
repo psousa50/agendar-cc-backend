@@ -1,12 +1,15 @@
 import { array } from "fp-ts/lib/Array"
+import { right } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/pipeable"
-import { chain, map, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
+import { chain, fromEither, map, orElse, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
+import { Environment } from "../environment"
 import { IrnTable, IrnTables } from "../irnFetch/models"
 import { Counties, IrnPlace, IrnRepositoryTables, Region } from "../irnRepository/models"
 import { globalCounties } from "../staticData/counties"
 import { globalDistricts } from "../staticData/districts"
 import { globalIrnServices } from "../staticData/irnServices"
 import { Action, actionOf, ask, rteActionsSequence } from "../utils/actions"
+import { ServiceError } from "../utils/audit"
 import { addDays, DateString, toExistingDateString } from "../utils/dates"
 import { IrnCrawler, RefreshTablesParams } from "./models"
 
@@ -183,6 +186,7 @@ const updateIrnPlaceLocation: Action<IrnPlace, void> = irnPlace =>
         chain(gpsLocation =>
           gpsLocation ? env.irnRepository.upsertIrnPlace({ ...irnPlace, gpsLocation }) : actionOf(undefined),
         ),
+        orElse<Environment, ServiceError, void, ServiceError>(_ => fromEither(right(undefined))),
       ),
     ),
   )
