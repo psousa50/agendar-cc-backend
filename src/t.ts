@@ -1,16 +1,10 @@
-import { either, left, right } from "fp-ts/lib/Either"
+import { left, right } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain, fromEither, orElse } from "fp-ts/lib/ReaderTaskEither"
 
 const f = async () => {
   const t1 = fromEither<string, boolean, void>(left(false))
   // const t1 = fromEither<string, boolean, number>(right(2))
-
-  const a = either.of(10)
-  const b = pipe(
-    a,
-    chainLeft,
-  )
 
   const t2 = pipe(
     t1,
