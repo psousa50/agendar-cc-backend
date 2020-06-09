@@ -13,6 +13,7 @@ describe("IrnCrawler", () => {
     config: {
       crawlDaysLimit: 60,
     },
+    log: () => undefined,
   }
 
   const serviceId = 10

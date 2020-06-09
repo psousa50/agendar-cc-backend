@@ -186,7 +186,10 @@ const updateIrnPlaceLocation: Action<IrnPlace, void> = irnPlace =>
         chain(gpsLocation =>
           gpsLocation ? env.irnRepository.upsertIrnPlace({ ...irnPlace, gpsLocation }) : actionOf(undefined),
         ),
-        orElse<Environment, ServiceError, void, ServiceError>(_ => fromEither(right(undefined))),
+        orElse<Environment, ServiceError, void, ServiceError>(e => {
+          env.log(`Error fetching IrnPlaceLocation for ${irnPlace.address} -> ${e.message}`)
+          return fromEither(right(undefined))
+        }),
       ),
     ),
   )
