@@ -139,8 +139,8 @@ describe("buildFormDataParams generates params for a fetch irnTable", () => {
       ["data_tipo", "primeira"],
       ["data", "2000-01-01"],
       ["sabado_show", "0"],
-      ["servico_desc", ""],
-      ["concelho_desc", ""],
+      ["servico_desc", "servico_desc"],
+      ["concelho_desc", "concelho_desc"],
     ]
 
     expect(buildFormDataParams("some-tok", params, {})).toEqual(expectedParams)
