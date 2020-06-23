@@ -54,8 +54,8 @@ export const buildFormDataParams: BuildFormDataParams = (
   ["data_tipo", date ? "outra" : "primeira"],
   ["data", date ? date : "2000-01-01"],
   ["sabado_show", "0"],
-  ["servico_desc", irnService || ""],
-  ["concelho_desc", county || ""],
+  ["servico_desc", irnService || "servico_desc"],
+  ["concelho_desc", county || "concelho_desc"],
 ]
 
 type BuildFormData = (
