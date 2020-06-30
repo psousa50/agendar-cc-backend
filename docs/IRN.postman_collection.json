@@ -1,0 +1,117 @@
+{
+	"info": {
+		"_postman_id": "eaf1a7ba-94b8-40a6-9c09-2b62e3e3560b",
+		"name": "IRN",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "https://agendamento.irn.mj.pt/steps/step1.php",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://agendamento.irn.mj.pt/steps/step1.php",
+					"protocol": "https",
+					"host": [
+						"agendamento",
+						"irn",
+						"mj",
+						"pt"
+					],
+					"path": [
+						"steps",
+						"step1.php"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://agendamento.irn.mj.pt/steps/step2.php",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "hidden",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "tok",
+							"value": "989774ed98831efcf24275709e5bd25c92c3f0a1242d47a401aa16fd1902be7b9c3929f89659c2888a1bdc8fe51ff9873d55e153ec31df94e79bea4794ae7774",
+							"type": "text"
+						},
+						{
+							"key": "servico",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "distrito",
+							"value": "11",
+							"type": "text"
+						},
+						{
+							"key": "concelho",
+							"value": "27",
+							"type": "text"
+						},
+						{
+							"key": "data_tipo",
+							"value": "primeira",
+							"type": "text"
+						},
+						{
+							"key": "data",
+							"value": "2019-10-26",
+							"type": "text"
+						},
+						{
+							"key": "sabado_show",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "servico_desc",
+							"value": "Pedido / Renovação de Cartão de Cidadão",
+							"type": "text"
+						},
+						{
+							"key": "concelho_desc",
+							"value": "LISBOA",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://agendamento.irn.mj.pt/steps/step2.php",
+					"protocol": "https",
+					"host": [
+						"agendamento",
+						"irn",
+						"mj",
+						"pt"
+					],
+					"path": [
+						"steps",
+						"step2.php"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
