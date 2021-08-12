@@ -35,7 +35,7 @@ const runProcess: Action<void, void> = () =>
       pipe(
         irnCrawler.start(),
         chain(() => env.irnRepository.removeOldLogs()),
-        chain(() => env.irnRepository.addIrnLog({ type: "RefreshStarted", message: "Refresh tables started" })),
+        chain(() => env.irnRepository.addIrnLog({ type: "RefreshStarted", message: `Refresh tables started for ${env.config.crawlDaysLimit} days` })),
         chain(() => irnCrawler.refreshTables({ startDate: currentUtcDateString() })),
         chain(() => env.irnRepository.getIrnTablesCount()),
         chain(tablesCount =>
