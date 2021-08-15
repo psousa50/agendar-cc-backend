@@ -53,14 +53,14 @@ describe("IrnCrawler", () => {
 
   const makeIrnPlace = (irnPlace: Partial<IrnPlace>): IrnPlace => {
     const defaultIrnPlace = {
+      active: true,
       address: "some address",
       countyId,
       districtId,
+      lastUpdatedTimestamp: 0,
       name: "Some place name",
       phone: "spme phone",
       postalCode: "some postal code",
-      lastUpdatedTimestamp: 0,
-      active: true,
     }
 
     return {
