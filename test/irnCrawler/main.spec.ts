@@ -14,6 +14,7 @@ describe("IrnCrawler", () => {
       crawlDaysLimit: 60,
     },
     log: () => undefined,
+    now: () => 0,
   }
 
   const serviceId = 10
@@ -58,6 +59,8 @@ describe("IrnCrawler", () => {
       name: "Some place name",
       phone: "spme phone",
       postalCode: "some postal code",
+      lastUpdatedTimestamp: 0,
+      active: true,
     }
 
     return {
@@ -133,10 +136,12 @@ describe("IrnCrawler", () => {
         upsertIrnPlace: jest.fn(() => actionOf(undefined)),
       }
 
+      const now = 10000
       const environment = {
         ...defaultEnvironment,
         irnFetch,
         irnRepository,
+        now: () => now,
       }
 
       const newIrnPlace = {
@@ -144,6 +149,7 @@ describe("IrnCrawler", () => {
         countyId: table.countyId,
         districtId: table.districtId,
         gpsLocation: undefined,
+        lastUpdatedTimestamp: now,
         name: table.placeName,
         phone: table.phone,
         postalCode: table.postalCode,
@@ -390,6 +396,7 @@ describe("IrnCrawler", () => {
       }
 
       const environment = {
+        ...defaultEnvironment,
         config: {
           crawlDaysLimit,
         },

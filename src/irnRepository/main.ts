@@ -114,7 +114,7 @@ export const irnRepository: IrnRepository = {
   getLastRefreshIrnLog,
   removeOldLogs,
   switchIrnTables,
+  updateActiveIrnPlaces,
   updateIrnTablesLocation,
   upsertIrnPlace,
-  updateActiveIrnPlaces,
 }

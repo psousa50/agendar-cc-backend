@@ -98,10 +98,10 @@ const extractIrnPlace = (irnTable: IrnTable, lastUpdatedTimestamp: number) => ({
   address: irnTable.address,
   countyId: irnTable.countyId,
   districtId: irnTable.districtId,
+  lastUpdatedTimestamp,
   name: irnTable.placeName,
   phone: irnTable.phone,
   postalCode: irnTable.postalCode,
-  lastUpdatedTimestamp,
 })
 
 const upsertIrnPlaces = (lastUpdatedTimestamp: number): Action<IrnTables, void> => irnTables => {
@@ -134,10 +134,10 @@ const addIrnRepositoryTables = (lastUpdatedTimestamp: number): Action<IrnTables,
 }
 
 const refreshTables: Action<RefreshTablesParams, void> = params => {
-  const lastUpdatedTimestamp = Date.now()
   return pipe(
     ask(),
     chain(env => {
+      const lastUpdatedTimestamp = env.now()
       const getServicesAndCounties = () =>
         pipe(
           env.irnRepository.getIrnServices(),
@@ -149,7 +149,7 @@ const refreshTables: Action<RefreshTablesParams, void> = params => {
           ),
         )
 
-      const addTablesForService = (lastUpdatedTimestamp: number, serviceId: number, counties: Counties) =>
+      const addTablesForService = (serviceId: number, counties: Counties) =>
         pipe(
           rteArraySequence(
             counties.map(county =>
@@ -169,9 +169,7 @@ const refreshTables: Action<RefreshTablesParams, void> = params => {
         env.irnRepository.clearIrnTablesTemporary(),
         chain(_ => getServicesAndCounties()),
         chain(({ services, counties }) =>
-          rteArraySequence(
-            services.map(service => addTablesForService(lastUpdatedTimestamp, service.serviceId, counties)),
-          ),
+          rteArraySequence(services.map(service => addTablesForService(service.serviceId, counties))),
         ),
         chain(() => env.irnRepository.getIrnTablesCount()),
         chain(irnTablesCount =>
@@ -229,7 +227,7 @@ const updateIrnTablesLocation: Action<void, void> = () =>
 export const irnCrawler: IrnCrawler = {
   refreshTables,
   start,
+  updateActiveIrnPlaces,
   updateIrnPlacesLocation,
   updateIrnTablesLocation,
-  updateActiveIrnPlaces,
 }

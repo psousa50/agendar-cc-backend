@@ -21,6 +21,7 @@ export type Environment = {
   irnFetch: IrnFetch
   irnRepository: IrnRepository
   log: (message: string) => void
+  now: () => number
 }
 
 export const buildEnvironment = () => {
@@ -39,6 +40,7 @@ export const buildEnvironment = () => {
       irnFetch,
       irnRepository,
       log: logDebug,
+      now: Date.now,
     })),
   )
 }
