@@ -20,6 +20,8 @@ export const transformGetCountiesParams = (params: { districtId?: string }) => (
 export const transformGetIrnPlacesParams = (params: Stringify<GetIrnPlacesParams>) => ({
   countyId: toNumber(params.countyId),
   districtId: toNumber(params.districtId),
+  lastUpdatedTimestamp: toNumber(params.lastUpdatedTimestamp),
+  ...(params.active ? { active: toBoolean(params.active) } : {}),
 })
 
 export const transformGetIrnTablesParams = (params: Stringify<GetIrnTablesParams>) => ({

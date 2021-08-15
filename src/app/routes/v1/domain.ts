@@ -39,16 +39,12 @@ export const getCounties: Action<{ districtId?: number }, Counties> = ({ distric
 interface GetIrnPlacesParams {
   districtId?: number
   countyId?: number
+  lastUpdatedTimestamp?: number
 }
-export const getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces> = ({ countyId, districtId }) =>
+export const getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces> = params =>
   pipe(
     ask(),
-    chain(env =>
-      env.irnRepository.getIrnPlaces({
-        countyId,
-        districtId,
-      }),
-    ),
+    chain(env => env.irnRepository.getIrnPlaces(params)),
   )
 
 export type GetIrnTablesParams = GetIrnRepositoryTablesParams

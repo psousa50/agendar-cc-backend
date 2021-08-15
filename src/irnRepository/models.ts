@@ -35,6 +35,8 @@ export type IrnPlace = {
   name: string
   phone: string
   postalCode: string
+  lastUpdatedTimestamp: number
+  active: boolean
 }
 export type IrnPlaces = IrnPlace[]
 
@@ -55,6 +57,8 @@ export type IrnRepositoryTables = IrnRepositoryTable[]
 export type GetIrnPlacesParams = Partial<{
   districtId: number
   countyId: number
+  lastUpdatedTimestamp: number
+  active: boolean
 }>
 
 export type GetIrnRepositoryTablesParams = Partial<{
@@ -98,6 +102,7 @@ export interface IrnRepository {
   removeOldLogs: Action<void, void>
   upsertIrnPlace: Action<Partial<IrnPlace>, void>
   updateIrnTablesLocation: Action<void, void>
+  updateActiveIrnPlaces: Action<void, void>
 }
 
 export const getCountyFromIrnTable = (irnTable: IrnRepositoryTable) => ({

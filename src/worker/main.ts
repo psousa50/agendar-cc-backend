@@ -35,7 +35,12 @@ const runProcess: Action<void, void> = () =>
       pipe(
         irnCrawler.start(),
         chain(() => env.irnRepository.removeOldLogs()),
-        chain(() => env.irnRepository.addIrnLog({ type: "RefreshStarted", message: `Refresh tables started for ${env.config.crawlDaysLimit} days` })),
+        chain(() =>
+          env.irnRepository.addIrnLog({
+            type: "RefreshStarted",
+            message: `Refresh tables started for ${env.config.crawlDaysLimit} days`,
+          }),
+        ),
         chain(() => irnCrawler.refreshTables({ startDate: currentUtcDateString() })),
         chain(() => env.irnRepository.getIrnTablesCount()),
         chain(tablesCount =>
@@ -43,6 +48,7 @@ const runProcess: Action<void, void> = () =>
         ),
         chain(() => irnCrawler.updateIrnPlacesLocation()),
         chain(() => irnCrawler.updateIrnTablesLocation()),
+        chain(() => irnCrawler.updateActiveIrnPlaces()),
         mapLeft(e => {
           logDebug("ERROR: ", e)
           return e

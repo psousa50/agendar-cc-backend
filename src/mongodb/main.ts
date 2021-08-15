@@ -182,11 +182,17 @@ export const removeOldLogs = (client: MongoClient) => {
 
 export const getIrnPlace = (placeName: string) => getById<IrnPlace>(IRN_PLACES)(placeName)
 
-const buildGetIrnPlacesQuery = ({ districtId, countyId }: GetIrnRepositoryTablesParams) => ({
+const buildGetIrnPlacesQuery = ({ districtId, countyId, lastUpdatedTimestamp, active }: GetIrnPlacesParams) => ({
   ...(isNil(districtId) ? {} : { districtId }),
   ...(isNil(countyId) ? {} : { countyId }),
+  ...(isNil(lastUpdatedTimestamp) ? {} : { lastUpdatedTimestamp: { $gt: lastUpdatedTimestamp } }),
+  ...(isNil(active) ? {} : { active }),
 })
-export const getIrnPlaces = (params: GetIrnPlacesParams) => get<IrnPlace>(IRN_PLACES)(buildGetIrnPlacesQuery(params))
+
+export const getIrnPlaces = (params: GetIrnPlacesParams) => {
+  const query = buildGetIrnPlacesQuery(params)
+  return get<IrnPlace>(IRN_PLACES)(query)
+}
 
 export const updateIrnPlace = (irnPlace: Partial<IrnPlace>) => (client: MongoClient) =>
   client
@@ -194,6 +200,32 @@ export const updateIrnPlace = (irnPlace: Partial<IrnPlace>) => (client: MongoCli
     .collection(IRN_PLACES)
     .updateOne({ _id: irnPlace.name }, { $set: { _id: irnPlace.name, ...irnPlace } }, { upsert: true })
 
+export const updateActiveIrnPlaces = async (client: MongoClient) => {
+  const maxUpdatedTimestamp = await client
+    .db()
+    .collection<IrnPlace>(IRN_PLACES)
+    .find()
+    .sort({ lastUpdatedTimestamp: -1 })
+    .limit(1)
+    .toArray()
+
+  if (maxUpdatedTimestamp.length === 0) {
+    return Promise.resolve()
+  }
+
+  const lastUpdatedTimestamp = maxUpdatedTimestamp[0].lastUpdatedTimestamp
+
+  const updateActive = client
+    .db()
+    .collection(IRN_PLACES)
+    .updateMany({ lastUpdatedTimestamp: { $gte: lastUpdatedTimestamp } }, { $set: { active: true } })
+  const updateInactive = client
+    .db()
+    .collection(IRN_PLACES)
+    .updateMany({ lastUpdatedTimestamp: { $lt: lastUpdatedTimestamp } }, { $set: { active: false } })
+
+  return Promise.all([updateActive, updateInactive])
+}
 export const addIrnTablesTemporary = (irnTables: IrnRepositoryTables) => upsertMany(IRN_TABLES_TEMPORARY)(irnTables)
 
 export const getIrnTables = (params: GetIrnRepositoryTablesParams) => {

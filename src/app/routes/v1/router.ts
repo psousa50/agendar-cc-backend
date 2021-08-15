@@ -7,6 +7,7 @@ import { logDebug } from "../../../utils/debug"
 import { getCounties, getDistricts, getIrnPlaces, getIrnTableMatch, getIrnTables, getServices } from "./domain"
 import {
   transformGetCountiesParams,
+  transformGetIrnPlacesParams,
   transformGetIrnTableMatchParams,
   transformGetIrnTablesParams,
 } from "./transformers"
@@ -57,7 +58,7 @@ export const router = (env: Environment) =>
       logDebug("GET irnPlaces=====>\n", req.query)
       await run(
         pipe(
-          getIrnPlaces(req.query),
+          getIrnPlaces(transformGetIrnPlacesParams(req.query)),
           bimap(errorHandler(res), okHandler(res)),
         ),
         env,
