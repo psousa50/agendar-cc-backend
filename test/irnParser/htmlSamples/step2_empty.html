@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <title>IRN - Agendamento Online</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/validator.min.js"></script>
+  <script src='https://www.google.com/recaptcha/api.js?hl=pt'></script>
+  <link rel="stylesheet" href="css/agd.css">
+<style>
+
+#tblResult {
+	line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .btn-responsive {
+    padding:2px 4px;
+    line-height: 2;
+    margin-top: 10px;
+	width: 200px;
+  }
+
+  #btnGroup {
+	width: 100%;
+	text-align: center;
+  }
+
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+  .btn-responsive {
+    line-height: 1.2;
+  }
+
+  #btnGroup {
+        width: 100%;
+  }
+
+  #btnConcluir {
+	float: right;
+  }
+}
+
+@media (min-width: 993px) {
+  .btn-responsive {
+    line-height: 1.2;
+  }
+  
+  #btnGroup {
+        width: 100%;
+  }
+
+  #btnConcluir {
+        float: right;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+	<div class="header">
+                <div class="row">
+                        <div class="form-group col-md-6">
+                                <a href="../index.php" ><img src="images/irnlogo.jpg" alt="IRN" width="314" height="119"></a>
+                        </div>
+                        <div class="form-group col-md-6 center" id="note">
+                                <div style="font-weight: bold; text-align: center;">Atenção</div>Para finalizar o seu pedido de agendamento, deverá, no prazo de 12 horas confirmar através do e-mail que irá receber na caixa de correio mencionada.
+                        </div>
+                </div>
+	</div>
+
+	<form action="step3.php" id="formAgd" method="POST" data-toggle="validator" role="form" id="formAgd">
+		<input type="hidden" name="tok" value="8aa6c7128770d7b6fc40f5baf3ff8835df5f8410cf5ac0c4927ebc05bd96aa52fa0c23b98d48431aec46d2ba56e255f8a24e401e2f0bb021789eccb963fe408b">
+
+                <div class="row">
+                        <!--<div class="form-group col-md-12 has-danger" style="border: 3px solid orange; padding: 10px">-->
+
+                    <!--    </div> -->
+
+
+                </div>
+
+	<div id="divHorario">
+        <br><h4>Resultados para <b>Pedido / Renovação de Cartão de Cidadão</b> no concelho de <b>LISBOA</b></h4><br>
+
+
+                <div class="row">
+                        <div class="form-group col-md-4 has-danger">
+			</div>
+		</div>
+		<div id="custom_error_div" style="display:none; color: red;"></div>
+        	<br /><button type="button" class="btn btn-warning" onclick="window.history.back();; return false;">Voltar</button>
+        	<button type="button" class="btn btn-warning" onclick="window.location.href='../index.php'; return false;">Cancelar Agendamento</button>
+</div> <!-- divHorario-->
+
+		<div id="dados" style="display: none;">
+
+                <div class="row">
+                        <div class="form-group col-md-12">
+        <div class="panel-group">
+            <div class="panel panel-default">
+               <div class="panel-heading" style="background-color: #ffffcc;">
+<!--			<table><tr><td><h3><b>O seu agendamento&nbsp;&nbsp;&nbsp;</i></h3></td><td>-->
+                                <label class="control-label" id="lcon"></label><br>
+                                <label class="control-label" id="lmesa"></label><br>
+                                <label class="control-label" id="ldia"></label><br>
+			<!--</td></tr></table>-->
+		</div>
+	    </div>
+	</div>
+                        </div>
+                </div>
+
+
+                <div class="row">
+                        <div class="form-group col-md-6 has-danger">
+                                <label class="control-label" for="nome">Nome:</label>
+                                <input type="text" class="form-control" id="nome" name="nome" data-error="Por favor preencha o seu nome" placeholder="Introduza o seu nome" required>
+                                <div class="help-block with-errors"></div>
+                        </div>
+                        <div class="form-group col-md-6 has-danger">
+                                <label class="control-label" for="nic">Nº de Cartão de Cidadão:</label>
+                                <input type="text" class="form-control" id="nic" name="nic" data-error="Indique o nº de cartão de Cidadão" placeholder="Introduza o nº de Cartão de Cidadão" required>
+                                <div class="help-block with-errors"></div>
+                        </div>
+                </div>
+                <div class="row">
+                        <div class="form-group col-md-6 has-danger">
+                                <label class="control-label" for="mail">E-mail</label>
+                                <input type="email" class="form-control" id="mail" name="mail" data-error="Por favor indique o seu endereço de correio eletrónico" placeholder="Introduza o seu endereço de correio eletrónico" required>
+                                <div class="help-block with-errors"></div>
+                        </div>
+                        <div class="form-group col-md-6">
+                                <label class="control-label" for="telefone">Telefone (opcional)</label>
+                                <input type="text" class="form-control" id="telefone" name="telefone" placeholder="Introduza o seu número de telefone ou telemóvel">
+                        </div>
+
+                </div>
+                <div class="row">
+			<div class="form-group">
+		                <div class="g-recaptcha" data-sitekey="6LeW5pwUAAAAAK_0IA6f4TCR8C5Zy46xpP_JMdHM"></div>
+		        </div>
+		</div>
+                <div id="custom_error_div" style="display:none; color: red;"></div>
+
+<div id="btnGroup" class="col-md-12 col-xs-4">
+                <!--<br /><button type="button" class="btn btn-warning btn-responsive" onclick="window.location.href='../index.php'; return false;">Cancelar agendamento</button>-->
+                <br /><button type="button" class="btn btn-warning btn-responsive" onclick="window.history.back(); return false;">Voltar</button>
+                <button type="button" class="btn btn-success btn-responsive" id="btnHour">Selecionar outro balcão</button>
+                <button class="btn btn-primary btn-responsive" id="btnConcluir">Concluir agendamento</button>
+    <br><br>
+</div>
+
+		<input type="hidden" name="fcon" id="fcon" value="">
+		<input type="hidden" name="fmesa" id="fmesa" value="">
+		<input type="hidden" name="fmorada" id="fmorada" value="">
+		<input type="hidden" name="fcp" id="fcp" value="">
+		<input type="hidden" name="ftel" id="ftel" value="">
+		<input type="hidden" name="fdia" id="fdia" value="">
+		<input type="hidden" name="fhora" id="fhora" value="">
+		<input type="hidden" name="fid_mesa" id="fid_mesa" value="">
+
+		</div>
+
+
+	</form>
+    <br><br>
+</div>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <!--<div class="modal-dialog" style="width: 700px !important;">-->
+  <div class="modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    <div class="modal-content" >
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Atenção</h4>
+      </div>
+      <div class="modal-body" id="contentBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-warning" data-dismiss="modal">Fechar</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal confirma Mail-->
+<div id="mdlMail" class="modal fade" role="dialog">
+  <!--<div class="modal-dialog" style="width: 700px !important;">-->
+  <div class="modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    <div class="modal-content" >
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Confirmação de E-mail</h4>
+      </div>
+      <div class="modal-body" id="contentBody_mail"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-warning" data-dismiss="modal">Corrigir E-mail</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="button" class="btn btn-primary" id="btnConfMail">Confirmar E-mail</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <br><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript" src="js/bootstrap-datepicker.min.js"></script>
+<link rel="stylesheet" href="css/bootstrap-datepicker3.css"/>
+<!--<link rel="stylesheet" href="https://formden.com/static/cdn/font-awesome/4.4.0/css/font-awesome.min.css" />-->
+<script type="text/javascript" src="js/bootstrap-datepicker.pt.js"></script>
+<script>
+        function isValidName(name) {
+                var regex = /^[a-zA-ZÀÁÂÃÄÅàáâãäåÒÓÔÕÖØòóôõöøÈÉÊËèéêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÿÑñ\s\-]+$/;
+                //var regex = /^[a-zA-Z\u00C0-\u017F]+,\s[a-zA-Z\u00C0-\u017F]+$/;
+                return regex.test(name);
+        }
+
+        function isEmail(email) {
+                var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+                return regex.test(email);
+        }
+
+        function isPhone(phone) {
+                var regex = /^[0-9\+\-\s]+$/;
+                return regex.test(phone);
+        }
+
+        function isNumber(nic) {
+                var regex = /^[0-9]+$/;
+                return regex.test(nic);
+        }
+
+
+$(document).ready(function(){
+	$('.panel-title').click( function(e) {
+		$('.collapse').collapse('hide');
+	});
+
+        $('#btnHorario').click( function(e) {
+		e.preventDefault();
+		$('#divHorario').hide();
+		$('#dados').show();
+        });
+
+        $('#btnHour').click( function(e) {
+                e.preventDefault();
+                $('#dados').hide();
+                $('#divHorario').show();
+        });
+
+        $('#btnConfMail').click( function(e) {
+		$('#mdlMail').modal('hide');
+		$("#btnConcluir").prop('disabled',true);
+                $('#formAgd')[0].submit();
+		return false;
+        });
+
+        //$('#btnConcluir').click( function(e) {
+	$('#formAgd').validator().on('submit', function (e) {
+		if ( ! e.isDefaultPrevented()) {
+			var nome = $('#nome').val().trim();
+			var words = nome.split(' ');
+			var email = $('#mail').val().trim();
+			var telefone = $('#telefone').val().trim();
+			var nic = $('#nic').val().trim();
+
+			if(words.length < 2) {
+                                $('#contentBody').html('O campo <b><i>Nome</i></b> deve ser constituído no mínimo por dois nomes.');
+                                $('#myModal').modal('show');
+                                return false;
+			}
+
+	                if( ! isValidName(nome)) {
+        	                $('#contentBody').html('O nome possui caracteres inválidos.');
+                	        $('#myModal').modal('show');
+				return false;
+	                }
+
+			if( email != '' && ! isEmail( email )) {
+				$('#contentBody').html('O endereço de correio eletrónico introduzido não é válido.');
+                	        $('#myModal').modal('show');
+				return false;
+			}
+
+                        if( telefone != '' && ! isPhone( telefone )) {
+                                $('#contentBody').html('O nº de telefone introduzido não é válido.');
+                                $('#myModal').modal('show');
+                                return false;
+                        }
+
+                        if( nic != '' && ! isNumber( nic )) {
+                                $('#contentBody').html('O nº de Cartão de Cidadão não é válido.');
+                                $('#myModal').modal('show');
+                                return false;
+                        }
+
+                        if( $('#g-recaptcha-response').val() === "" ){
+                                $('#contentBody').html('Tem de validar o formulário.');
+                                $('#myModal').modal('show');
+                                return false;
+                        }
+
+                        $.ajax({
+                                type: "GET",
+                                //url: "preValidaAgendamento.php?nome="+nome+"&mail="+email+"&id_mesa="+$('#fid_mesa').val()+"&dia="+$('#fdia').val()+"&hora="+$('#fhora').val()+"&id_servico=1&nic="+nic,
+                                url: "preValidaAgendamento.php?id_mesa="+$('#fid_mesa').val()+"&dia="+$('#fdia').val()+"&hora="+$('#fhora').val()+"&id_servico=1&nic="+nic,
+                                success: function(data){
+                                        if(data == "0") {
+                                                $('#contentBody_mail').html('O endereço de correio eletrónico é necessário para posteriormente poder ativar o agendamento. Por favor confirme que o mesmo está correto.<br><br><h3> <b>'+email+'</b></h3><br>');
+                                                $('#mdlMail').modal('show');
+
+						return false;
+                                        } else if(data == "1") {
+                                                $('#contentBody').html('Já existe um agendamento registado para o cidadão <b><i>'+nome+'</i></b> e para o serviço pretendido.<br><br>Se pretende, por exemplo, efetuar um agendamento para um familiar, pode manter o endereço de correio eletrónico e o contacto (opcional) mas deve indicar o nome do titular do agendamento e respetivo nº de Cartão de Cidadão');
+                                                $('#myModal').modal('show');
+						return false;
+                                        } else if(data == "2") {
+                                                $('#contentBody').html('O agendamento solicitado foi entretanto ocupado por outro cidadão. Por favor altere o seu agendamento na opção <b><i>Selecionar outro balcão / data</i></b>');
+                                                $('#myModal').modal('show');
+						return false;
+                                        } else if(data == "3") {
+                                                $('#contentBody').html('Não foi possível validar os dados introduzidos. Por favor corriga os dados ou reinicie o agendamento.<br><br>Em caso de dificuldade experimente utilizar outro navegador de internet como <i>Google Chrome</i> ou <i>Firefox</i>');
+                                                $('#myModal').modal('show');
+						return false;
+                                        } else if(data == "4") {
+                                                $('#contentBody').html('Falta informação para validar o agendamento. A sua sessão pode ter expirado. Por favor reinicie o agendamento');
+                                                $('#myModal').modal('show');
+                                                return false;
+                                        } else if(data == "6") {
+                                                $('#contentBody').html('OK');
+                                                $('#myModal').modal('show');
+                                                return false;
+                                        } else {
+						$('#contentBody').html('Ocorreu um erro no processamento do seu pedido. Por favor tente mais tarde. Se o erro se mantiver contacte os serviços do IRN constante na página de <a href="../index.php#contact">contactos</a>');
+                                                $('#myModal').modal('show');
+						return false;
+                                        }
+                                },
+                                failure: function(errMsg) {
+                                    alert(errMsg);
+				    return false;
+                                }
+                        });
+
+			return false;
+		}
+        });
+
+});
+
+        function getval(sel, id_mesa, dia, con, mesa, morada, cp, tel) {
+                var hora = sel.options[sel.selectedIndex].innerHTML + ':00';
+
+                document.getElementById('fcon').value = con;
+                document.getElementById('fmesa').value = mesa;
+                document.getElementById('fmorada').value = morada;
+                document.getElementById('fcp').value = cp;
+                document.getElementById('ftel').value = tel;
+                document.getElementById('fdia').value = dia;
+                document.getElementById('fhora').value = hora;
+                document.getElementById('fid_mesa').value = id_mesa;
+
+		$('#lcon').html(con);
+		$('#lmesa').html('Mesa '+mesa);
+		$('#ldia').html(dia+' '+hora);
+
+                $('#divHorario').hide();
+                $('#dados').show();
+
+                return false;
+    }
+
+</script>
+</body>
+</html>
+

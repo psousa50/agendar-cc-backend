@@ -1,8 +1,15 @@
 import * as fs from "fs"
 import * as path from "path"
+import { Environment } from "../../src/environment"
 import { IrnTable } from "../../src/irnFetch/models"
 import { parseCounties, parseIrnTables, parseTok } from "../../src/irnParser/main"
 import { toExistingDateString } from "../../src/utils/dates"
+
+const defaultEnvironment = ({
+  log: () => undefined,
+} as any) as Environment
+
+const parseIrnTablesEnv = parseIrnTables(defaultEnvironment)
 
 it("parses counties from get_concelhos html", () => {
   const html = fs.readFileSync(path.join(__dirname, "./htmlSamples/counties.html")).toString()
@@ -79,7 +86,31 @@ it("parses tables from irn tables html page", () => {
   }
   const expectedTables = [expectedTable1, expectedTable2]
 
-  const tables = parseIrnTables(serviceId, countyId, districtId)(html)
+  const tables = parseIrnTablesEnv(serviceId, countyId, districtId)(html)
 
   expect(tables).toEqual(expectedTables)
+})
+
+it("parses irn html page without tables", () => {
+  const html = fs.readFileSync(path.join(__dirname, "./htmlSamples/step2_empty.html")).toString()
+
+  const serviceId = 1
+  const countyId = 7
+  const districtId = 12
+
+  const tables = parseIrnTablesEnv(serviceId, countyId, districtId)(html)
+
+  expect(tables).toEqual([])
+})
+
+it("parses irn html page where service is not available", () => {
+  const html = fs.readFileSync(path.join(__dirname, "./htmlSamples/step2_no_service.html")).toString()
+
+  const serviceId = 1
+  const countyId = 7
+  const districtId = 12
+
+  const tables = parseIrnTablesEnv(serviceId, countyId, districtId)(html)
+
+  expect(tables).toEqual(undefined)
 })

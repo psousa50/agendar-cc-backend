@@ -6,6 +6,11 @@ import { actionOf } from "../../src/utils/actions"
 import { toExistingDateString } from "../../src/utils/dates"
 import { timingFn } from "../../src/utils/timing"
 
+const defaultEnvironment = {
+  log: () => undefined,
+  now: () => 0,
+}
+
 describe("IrnFetch", () => {
   describe("getCounties", () => {
     it("fetch the counties data for some district id", async () => {
@@ -19,6 +24,7 @@ describe("IrnFetch", () => {
       }
       const fetch = jest.fn(() => actionOf(response))
       const environment = {
+        ...defaultEnvironment,
         config: {
           irnUrlLocations: {
             countiesPage: "some-counties-page",
@@ -49,7 +55,7 @@ describe("IrnFetch", () => {
       const dateStr = "2010-02-28"
       const date = toExistingDateString(dateStr)
 
-      const homeHtml = "htyml from home page"
+      const homeHtml = "html from home page"
       const tok = "some-tok-value"
       const homeResponse = {
         headers: {
@@ -66,7 +72,8 @@ describe("IrnFetch", () => {
 
       const irnTables = [{ some: "irnTables" }]
       const parseIrnTables = jest.fn(() => irnTables)
-      const parseIrnTablesBuilder = jest.fn(() => parseIrnTables) as any
+      const parseIrnTablesEnv = jest.fn(() => parseIrnTables)
+      const parseIrnTablesBuilder = jest.fn(() => parseIrnTablesEnv) as any
 
       const tablesHtml = "html from tables page"
       const tablesResponse = {
@@ -80,6 +87,7 @@ describe("IrnFetch", () => {
         .mockImplementationOnce(() => actionOf(tablesResponse))
 
       const environment = {
+        ...defaultEnvironment,
         config: {
           irnUrlLocations: {
             homePage: "some-home-page",
@@ -108,12 +116,125 @@ describe("IrnFetch", () => {
       expect(buildFormData).toHaveBeenCalledWith(tok, params, {})
 
       expect(fetch).toHaveBeenCalledWith("some-url/some-tables-page", options)
-      expect(parseIrnTablesBuilder).toHaveBeenCalledWith(serviceId, countyId, districtId)
+      expect(parseIrnTablesEnv).toHaveBeenCalledWith(serviceId, countyId, districtId)
       expect(parseIrnTables).toHaveBeenCalledWith(tablesHtml)
 
       pipe(
         result,
         map(r => expect(r).toBe(irnTables)),
+      )
+    })
+
+    it("retries the fetch if the response states that there is no service available", async () => {
+      let counter = 0
+
+      const parseTok = jest.fn(() => "some-token")
+      const homeHtml = "html from home page"
+      const homeResponse = {
+        headers: {
+          forEach: jest.fn().mockImplementationOnce((cb: any) => {
+            cb("cookie1", "set-cookie")
+          }),
+        },
+        text: () => Promise.resolve(homeHtml),
+      }
+      const tablesResponse = {
+        text: () => Promise.resolve("some html"),
+      }
+
+      const irnTables = [{ some: "irnTables" }]
+      const parseIrnTables = jest.fn(() => () => {
+        counter++
+        return counter === 1 ? undefined : irnTables
+      })
+      const parseIrnTablesBuilder = jest.fn(() => parseIrnTables) as any
+
+      const buildFormData = jest.fn(() => ({ data: "some-form-data", boundary: "some-boundary" }))
+      const fetch = jest
+        .fn()
+        .mockImplementationOnce(() => actionOf(homeResponse))
+        .mockImplementationOnce(() => actionOf(tablesResponse))
+        .mockImplementationOnce(() => actionOf(homeResponse))
+        .mockImplementationOnce(() => actionOf(tablesResponse))
+
+      const environment = {
+        ...defaultEnvironment,
+        config: {
+          irnUrlLocations: {
+            homePage: "some-home-page",
+            irnTablesPage: "some-tables-page",
+            irnUrl: "some-url",
+          },
+          maxNoServiceFetchDelay: 1,
+          maxNoServiceFetchRetries: 3,
+        },
+        fetch,
+      } as any
+
+      const result = await run(
+        buildGetIrnTables(parseTok, buildFormData, parseIrnTablesBuilder)({} as any),
+        environment,
+      )
+
+      expect(fetch).toHaveBeenCalledTimes(2 + 2)
+
+      pipe(
+        result,
+        map(r => expect(r).toBe(irnTables)),
+      )
+    })
+
+    it("return empty table list if max retries is exceeded", async () => {
+      const parseTok = jest.fn(() => "some-token")
+      const homeHtml = "html from home page"
+      const homeResponse = {
+        headers: {
+          forEach: jest.fn().mockImplementationOnce((cb: any) => {
+            cb("cookie1", "set-cookie")
+          }),
+        },
+        text: () => Promise.resolve(homeHtml),
+      }
+      const tablesResponse = {
+        text: () => Promise.resolve("some html"),
+      }
+
+      const parseIrnTables = jest.fn(() => () => undefined)
+
+      const parseIrnTablesBuilder = jest.fn(() => parseIrnTables) as any
+
+      const buildFormData = jest.fn(() => ({ data: "some-form-data", boundary: "some-boundary" }))
+      const fetch = jest
+        .fn()
+        .mockImplementationOnce(() => actionOf(homeResponse))
+        .mockImplementationOnce(() => actionOf(tablesResponse))
+        .mockImplementationOnce(() => actionOf(homeResponse))
+        .mockImplementationOnce(() => actionOf(tablesResponse))
+
+      const environment = {
+        ...defaultEnvironment,
+        config: {
+          irnUrlLocations: {
+            homePage: "some-home-page",
+            irnTablesPage: "some-tables-page",
+            irnUrl: "some-url",
+          },
+          maxNoServiceFetchDelay: 1,
+          maxNoServiceFetchRetries: 2,
+        },
+        fetch,
+      } as any
+
+      const result = await run(
+        buildGetIrnTables(parseTok, buildFormData, parseIrnTablesBuilder)({} as any),
+        environment,
+      )
+
+      expect(fetch).toHaveBeenCalledTimes(2 * environment.config.maxNoServiceFetchRetries)
+
+      pipe(
+        result,
+        map(r => expect(r).toEqual([])),
       )
     })
   })
@@ -174,6 +295,7 @@ describe("delayedFetch", () => {
   const fetch = jest.fn(() => actionOf(response))
   const fetchDelay = 20
   const environment = {
+    ...defaultEnvironment,
     config: {
       fetchDelay,
       irnUrlLocations: {

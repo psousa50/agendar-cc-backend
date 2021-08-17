@@ -1,9 +1,11 @@
 import FormData from "form-data"
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain } from "fp-ts/lib/ReaderTaskEither"
+import { Environment } from "../environment"
 import { ParseCounties, parseCounties, parseIrnTables, ParseIrnTables, ParseTok, parseTok } from "../irnParser/main"
 import { Counties } from "../irnRepository/models"
-import { Action, actionOf, ask, toAction } from "../utils/actions"
+import { Action, actionOf, ask, delay, toAction } from "../utils/actions"
+import { ServiceError } from "../utils/audit"
 import { AppConfig } from "../utils/config"
 import { delayedFetch, extractCookies, extractText } from "../utils/fetch"
 import { FetchIrnTablesParams, IrnTables } from "./models"
@@ -142,11 +144,43 @@ export const buildGetIrnTables: BuildGetIrnTables = (
   injectedParseTok,
   injectedBuildFormData,
   injectedParseIrnTables,
-) => params =>
-  pipe(
-    buildGetIrnTablesHtml(injectedParseTok, injectedBuildFormData)({ params, descriptions: {} }),
-    chain(toAction(injectedParseIrnTables(params.serviceId, params.countyId, params.districtId))),
-  )
+) => params => {
+  const tryParseIrnTables: Action<number, IrnTables> = counter => {
+    return pipe(
+      ask(),
+      chain(env => {
+        if (counter >= env.config.maxNoServiceFetchRetries) {
+          env.log("NOT Recovered.")
+          return actionOf([])
+        } else {
+          return pipe(
+            buildGetIrnTablesHtml(injectedParseTok, injectedBuildFormData)({ params, descriptions: {} }),
+            chain(html => {
+              const parsedTables = injectedParseIrnTables(env)(params.serviceId, params.countyId, params.districtId)(
+                html,
+              )
+              if (parsedTables) {
+                if (counter > 0) {
+                  env.log("Recovered.")
+                }
+                return actionOf(parsedTables)
+              } else {
+                if (counter === 0) {
+                  env.log(`Invalid response for (${JSON.stringify(params)}), retrying...`)
+                }
+                return delay<Environment, ServiceError, IrnTables>(env)(env.config.maxNoServiceFetchDelay)(
+                  tryParseIrnTables(counter + 1),
+                )
+              }
+            }),
+          )
+        }
+      }),
+    )
+  }
+
+  return tryParseIrnTables(0)
+}
 
 export const getIrnTablesResponse = buildGetIrnTablesResponse(parseTok, buildFormData(buildFormDataParams))
 

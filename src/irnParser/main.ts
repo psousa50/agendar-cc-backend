@@ -1,4 +1,5 @@
 import cheerio from "cheerio"
+import { Environment } from "../environment"
 import { IrnTable, IrnTables } from "../irnFetch/models"
 import { Counties } from "../irnRepository/models"
 import { toExistingDateString } from "../utils/dates"
@@ -15,9 +16,17 @@ export const parseTok: ParseTok = html => {
   return $(tokInput).attr("value")
 }
 
-export type ParseIrnTables = (serviceId: number, countyId: number, districtId: number) => (html: string) => IrnTables
-export const parseIrnTables: ParseIrnTables = (serviceId, countyId, districtId) => html => {
+export type ParseIrnTables = (
+  env: Environment,
+) => (serviceId: number, countyId: number, districtId: number) => (html: string) => IrnTables | undefined
+export const parseIrnTables: ParseIrnTables = env => (serviceId, countyId, districtId) => html => {
   const $ = cheerio.load(html)
+
+  const serviceDoesNotExist = $('ul:contains("Neste concelho n")')
+  if (serviceDoesNotExist.length > 0) {
+    env.log(`Service ${serviceId} is not available in District ${districtId}, County ${countyId}.`)
+    return undefined
+  }
 
   const buildTable = (horario: CheerioElement) => {
     const tableInfo = $(horario)

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <title>IRN - Agendamento Online</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/validator.min.js"></script>
+  <script src='https://www.google.com/recaptcha/api.js?hl=pt'></script>
+  <link rel="stylesheet" href="css/agd.css">
+<style>
+
+#tblResult {
+        line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .btn-responsive {
+    padding:2px 4px;
+    line-height: 2;
+    margin-top: 10px;
+        width: 200px;
+  }
+
+  #btnGroup {
+        width: 100%;
+        text-align: center;
+  }
+
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+  .btn-responsive {
+    line-height: 1.2;
+  }
+
+  #btnGroup {
+        width: 100%;
+  }
+
+  #btnConcluir {
+        float: right;
+  }
+}
+
+@media (min-width: 993px) {
+  .btn-responsive {
+    line-height: 1.2;
+  }
+  
+  #btnGroup {
+        width: 100%;
+  }
+
+  #btnConcluir {
+        float: right;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+        <div class="header">
+                <div class="row">
+                        <div class="form-group col-md-6">
+                                <a href="../index.php" ><img src="images/irnlogo.jpg" alt="IRN" width="314" height="119"></a>
+                        </div>
+                        <div class="form-group col-md-6 center" id="note">
+                                <div style="font-weight: bold; text-align: center;">Atenção</div>Para finalizar o seu pedido de agendamento, deverá, no prazo de 12 horas confirmar através do e-mail que irá receber na caixa de correio mencionada.
+                        </div>
+                </div>
+        </div>
+
+        <form action="step3.php" id="formAgd" method="POST" data-toggle="validator" role="form" id="formAgd">
+                <input type="hidden" name="tok" value="6c8ffc85dca460e30b430235284680907ea0fe7a221381c116463da952405aa192daa9831c16906d3064e7d3cc7292e64611299e09832868f4b46588cc4ea60b">
+
+                <div class="row">
+                        <!--<div class="form-group col-md-12 has-danger" style="border: 3px solid orange; padding: 10px">-->
+
+                    <!--    </div> -->
+
+
+                </div>
+
+        <div id="divHorario">
+        <br><h4>Resultados para <b>servico_desc</b> no concelho de <b>concelho_desc</b></h4><br>
+
+<label><font color="black"><ul>Neste concelho n&atilde;o existe nenhuma conservat&oacute;ria ou Loja do Cidad&atilde;o que preste por agendamento o servi&ccedil;o de <b>servico_desc</b></label><br><br><a href="step1.php" data-role="button" data-rel="false" data-ajax="false">Efetuar nova pesquisa</a>

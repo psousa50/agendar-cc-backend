@@ -3,6 +3,8 @@ import convict from "convict"
 export interface AppConfig {
   crawlDaysLimit: number
   fetchDelay: number
+  maxNoServiceFetchDelay: number
+  maxNoServiceFetchRetries: number
   retryCount: number
   retryDelay: number
   geoCoding: {
@@ -69,6 +71,18 @@ export const config = convict<AppConfig>({
       env: "IRN_URL",
       format: "url",
     },
+  },
+  maxNoServiceFetchDelay: {
+    default: 5000,
+    doc: "",
+    env: "MAX_NO_SERVICE_FETCH_DELAY",
+    format: "int",
+  },
+  maxNoServiceFetchRetries: {
+    default: 3,
+    doc: "",
+    env: "MAX_NO_SERVICE_FETCH_RETRIES",
+    format: "int",
   },
   mongodb: {
     uri: {
