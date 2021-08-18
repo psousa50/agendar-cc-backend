@@ -1,22 +1,31 @@
 import convict from "convict"
 
+export enum LogLevel {
+  debug = 0,
+  info = 1,
+  error = 2,
+}
+
+export const logLevelDescriptions = (level: LogLevel) => ["Debug", "Info", "Error"][level]
+
 export interface AppConfig {
   crawlDaysLimit: number
   fetchDelay: number
-  maxNoServiceFetchDelay: number
-  maxNoServiceFetchRetries: number
-  retryCount: number
-  retryDelay: number
   geoCoding: {
     url: string
     key: string
   }
   irnUrlLocations: { homePage: string; irnUrl: string; countiesPage: string; irnTablesPage: string }
+  logLevel: LogLevel
+  maxNoServiceFetchDelay: number
+  maxNoServiceFetchRetries: number
   mongodb: {
     uri: string
   }
   nodeEnv: string
   port: number
+  retryCount: number
+  retryDelay: number
 }
 
 export const config = convict<AppConfig>({
@@ -71,6 +80,12 @@ export const config = convict<AppConfig>({
       env: "IRN_URL",
       format: "url",
     },
+  },
+  logLevel: {
+    default: LogLevel.error,
+    doc: "",
+    env: "LOG_LEVEL",
+    format: "int",
   },
   maxNoServiceFetchDelay: {
     default: 5000,

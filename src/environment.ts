@@ -8,17 +8,9 @@ import { IrnFetch } from "./irnFetch/models"
 import { irnRepository } from "./irnRepository/main"
 import { IrnRepository } from "./irnRepository/models"
 import { connect } from "./mongodb/main"
-import { config as appConfig, isDev } from "./utils/config"
+import { config as appConfig, LogLevel, logLevelDescriptions } from "./utils/config"
 import { AppConfig } from "./utils/config"
 import { FetchAction, fetchAction } from "./utils/fetch"
-
-export enum LogLevel {
-  debug = 0,
-  info = 1,
-  error = 2,
-}
-
-const logLevelDescriptions = ["Debug", "Info", "Error"]
 
 export type Environment = {
   config: AppConfig
@@ -35,8 +27,8 @@ export const buildEnvironment = () => {
   const config = appConfig.get()
 
   const log = (c: AppConfig) => (message: string, level: LogLevel = LogLevel.info) => {
-    if (isDev(c) || level > LogLevel.info) {
-      console.log(`${logLevelDescriptions[level]}: ${message}`)
+    if (level >= c.logLevel) {
+      console.log(`${logLevelDescriptions(level)}: ${message}`)
     }
   }
 
