@@ -1,7 +1,7 @@
 import FormData from "form-data"
 import { pipe } from "fp-ts/lib/pipeable"
 import { chain } from "fp-ts/lib/ReaderTaskEither"
-import { Environment } from "../environment"
+import { Environment, LogLevel } from "../environment"
 import { ParseCounties, parseCounties, parseIrnTables, ParseIrnTables, ParseTok, parseTok } from "../irnParser/main"
 import { Counties } from "../irnRepository/models"
 import { Action, actionOf, ask, delay, toAction } from "../utils/actions"
@@ -150,7 +150,7 @@ export const buildGetIrnTables: BuildGetIrnTables = (
       ask(),
       chain(env => {
         if (counter >= env.config.maxNoServiceFetchRetries) {
-          env.log("NOT Recovered.")
+          env.log("NOT Recovered.", LogLevel.info)
           return actionOf([])
         } else {
           return pipe(
@@ -161,12 +161,12 @@ export const buildGetIrnTables: BuildGetIrnTables = (
               )
               if (parsedTables) {
                 if (counter > 0) {
-                  env.log("Recovered.")
+                  env.log("Recovered.", LogLevel.info)
                 }
                 return actionOf(parsedTables)
               } else {
                 if (counter === 0) {
-                  env.log(`Invalid response for (${JSON.stringify(params)}), retrying...`)
+                  env.log(`Invalid response for (${JSON.stringify(params)}), retrying...`, LogLevel.info)
                 }
                 return delay<Environment, ServiceError, IrnTables>(env)(env.config.maxNoServiceFetchDelay)(
                   tryParseIrnTables(counter + 1),
