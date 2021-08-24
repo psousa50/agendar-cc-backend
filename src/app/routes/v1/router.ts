@@ -1,5 +1,5 @@
 import { Response, Router } from "express"
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { bimap, run } from "fp-ts/lib/ReaderTaskEither"
 import { Environment } from "../../../environment"
 import { ErrorCodes, ServiceError } from "../../../utils/audit"

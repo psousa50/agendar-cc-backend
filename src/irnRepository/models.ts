@@ -85,19 +85,19 @@ export interface IrnRepository {
   clearAll: Action<void, void>
   clearIrnTablesTemporary: Action<void, void>
   close: Action<void, void>
-  getCounty: Action<{ countyId: number }, County | null>
+  getCounty: Action<{ countyId: number }, County | undefined>
   getCounties: Action<{ districtId?: number }, Counties>
   getDistrictRegion: Action<number, Region>
-  getDistrict: Action<{ districtId: number }, District | null>
+  getDistrict: Action<{ districtId: number }, District | undefined>
   getDistricts: Action<void, Districts>
-  getIrnService: Action<{ serviceId: number }, IrnService | null>
+  getIrnService: Action<{ serviceId: number }, IrnService | undefined>
   getIrnServices: Action<void, IrnServices>
   getIrnTables: Action<GetIrnRepositoryTablesParams, IrnRepositoryTables>
   getIrnTablesCount: Action<void, number>
   getIrnTablesTemporaryCount: Action<void, number>
   getLastRefreshIrnLog: Action<void, IrnLog | undefined>
   switchIrnTables: Action<void, void>
-  getIrnPlace: Action<{ placeName: string }, IrnPlace | null>
+  getIrnPlace: Action<{ placeName: string }, IrnPlace | undefined>
   getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces>
   removeOldLogs: Action<void, void>
   upsertIrnPlace: Action<Partial<IrnPlace>, void>

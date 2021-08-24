@@ -1,6 +1,6 @@
 import { array } from "fp-ts/lib/Array"
 import { right } from "fp-ts/lib/Either"
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { chain, fromEither, map, orElse, readerTaskEither } from "fp-ts/lib/ReaderTaskEither"
 import { Environment } from "../environment"
 import { IrnTable, IrnTables } from "../irnFetch/models"

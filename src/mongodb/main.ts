@@ -1,5 +1,5 @@
 import { TaskEither, tryCatch } from "fp-ts/lib/TaskEither"
-import { FilterQuery, MongoClient } from "mongodb"
+import { Filter, MongoClient } from "mongodb"
 import { isNil } from "ramda"
 import {
   Counties,
@@ -36,10 +36,7 @@ export interface IrnLog extends IrnLogInput {
 }
 
 export const connect = (mongoDbUri: string): TaskEither<ServiceError, MongoClient> =>
-  tryCatch(
-    () => MongoClient.connect(mongoDbUri, { useNewUrlParser: true, useUnifiedTopology: true }),
-    error => new ServiceError((error as Error).message),
-  )
+  tryCatch(() => MongoClient.connect(mongoDbUri), error => new ServiceError((error as Error).message))
 
 export const disconnect = (client: MongoClient) => client.close()
 
@@ -49,7 +46,7 @@ export const clearAllIrnTablesTemporary = async (client: MongoClient) => {
     .db()
     .listCollections()
     .toArray()
-  if (cols.includes(IRN_TABLES_TEMPORARY)) {
+  if (cols.map(c => c.name).includes(IRN_TABLES_TEMPORARY)) {
     client
       .db()
       .collection(IRN_TABLES_TEMPORARY)
@@ -61,11 +58,11 @@ function getById<T>(collection: string) {
   return (id: any) => (client: MongoClient) =>
     client
       .db()
-      .collection<T>(collection)
-      .findOne({ _id: id.toString() })
+      .collection(collection)
+      .findOne<T>({ _id: id.toString() })
 }
 function get<T>(collection: string) {
-  return (query: FilterQuery<any> = {}) => (client: MongoClient) => {
+  return (query: Filter<any> = {}) => (client: MongoClient) => {
     return client
       .db()
       .collection<T>(collection)

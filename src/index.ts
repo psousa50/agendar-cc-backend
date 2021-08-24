@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv"
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { run } from "fp-ts/lib/ReaderTaskEither"
 import { task } from "fp-ts/lib/Task"
 import { fold } from "fp-ts/lib/TaskEither"

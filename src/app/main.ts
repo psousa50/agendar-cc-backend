@@ -1,5 +1,5 @@
 import express, { Express } from "express"
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { chain, fromTaskEither, map } from "fp-ts/lib/ReaderTaskEither"
 import { tryCatch } from "fp-ts/lib/TaskEither"
 import { Server } from "http"

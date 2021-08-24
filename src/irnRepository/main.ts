@@ -1,4 +1,4 @@
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { map } from "fp-ts/lib/ReaderTaskEither"
 import * as mongoDb from "../mongodb/main"
 import { disconnect } from "../mongodb/main"
@@ -26,17 +26,17 @@ const clearAll: Action<void, void> = () => fromVoidPromise(env => mongoDb.clearA
 const clearIrnTablesTemporary: Action<void, void> = () =>
   fromVoidPromise(env => mongoDb.clearAllIrnTablesTemporary(env.dbClient))
 
-const getCounty: Action<{ countyId: number }, County | null> = ({ countyId }) =>
+const getCounty: Action<{ countyId: number }, County | undefined> = ({ countyId }) =>
   fromPromise(env => mongoDb.getCounty(countyId)(env.dbClient))
 
 const getCounties: Action<{ districtId?: number }, Counties> = ({ districtId }) =>
   fromPromise(env => mongoDb.getCounties(districtId)(env.dbClient))
 
-const getDistrict: Action<{ districtId: number }, District | null> = ({ districtId }) =>
+const getDistrict: Action<{ districtId: number }, District | undefined> = ({ districtId }) =>
   fromPromise(env => mongoDb.getDistrict(districtId)(env.dbClient))
 const getDistricts: Action<void, Districts> = () => fromPromise(env => mongoDb.getDistricts(env.dbClient))
 
-const getIrnService: Action<{ serviceId: number }, IrnService | null> = ({ serviceId }) =>
+const getIrnService: Action<{ serviceId: number }, IrnService | undefined> = ({ serviceId }) =>
   fromPromise(env => mongoDb.getIrnService(serviceId)(env.dbClient))
 const getIrnServices: Action<void, IrnServices> = () => fromPromise(env => mongoDb.getIrnServices(env.dbClient))
 
@@ -72,7 +72,7 @@ const switchIrnTables: Action<void, void> = () => fromVoidPromise(env => mongoDb
 
 const close: Action<void, void> = () => fromVoidPromise(env => disconnect(env.dbClient))
 
-const getIrnPlace: Action<{ placeName: string }, IrnPlace | null> = ({ placeName }) =>
+const getIrnPlace: Action<{ placeName: string }, IrnPlace | undefined> = ({ placeName }) =>
   fromPromise(env => mongoDb.getIrnPlace(placeName)(env.dbClient))
 
 const getIrnPlaces: Action<GetIrnPlacesParams, IrnPlaces> = params =>

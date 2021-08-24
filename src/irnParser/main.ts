@@ -1,4 +1,4 @@
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 import { Environment } from "../environment"
 import { IrnTable, IrnTables } from "../irnFetch/models"
 import { Counties } from "../irnRepository/models"
@@ -13,7 +13,7 @@ export const parseTok: ParseTok = html => {
 
   const tokInput = $("input[name='tok']")
 
-  return $(tokInput).attr("value")
+  return $(tokInput).attr("value")!
 }
 
 export type ParseIrnTables = (
@@ -28,9 +28,9 @@ export const parseIrnTables: ParseIrnTables = env => (serviceId, countyId, distr
     return undefined
   }
 
-  const buildTable = (horario: CheerioElement) => {
-    const tableInfo = $(horario)
-      .attr("onchange")
+  const buildTable = (horario: cheerio.Element) => {
+    const tableInfo = $(horario)!
+      .attr("onchange")!
       .replaceAll("'", '"')
       .replace(");", "")
 
@@ -41,7 +41,7 @@ export const parseIrnTables: ParseIrnTables = env => (serviceId, countyId, distr
 
     const times = $(timeOptions)
       .toArray()
-      .map(h => $(h).attr("value"))
+      .map(h => $(h).attr("value")!)
 
     const table: IrnTable = {
       address: parts[5],
@@ -72,6 +72,6 @@ export const parseCounties: ParseCounties = districtId => html => {
 
   return options
     .toArray()
-    .filter(o => $(o).attr("value").length > 0)
-    .map(o => ({ countyId: Number.parseInt($(o).attr("value"), 10), name: $(o).text(), districtId, gps: [0, 0] }))
+    .filter(o => $(o).attr("value")!.length > 0)
+    .map(o => ({ countyId: Number.parseInt($(o).attr("value")!, 10), name: $(o).text(), districtId, gps: [0, 0] }))
 }

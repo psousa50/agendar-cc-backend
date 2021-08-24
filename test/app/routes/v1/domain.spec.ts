@@ -1,5 +1,5 @@
 import { map, right } from "fp-ts/lib/Either"
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { run } from "fp-ts/lib/ReaderTaskEither"
 import { getIrnTableMatch, GetIrnTableMatchParams } from "../../../../src/app/routes/v1/domain"
 import {

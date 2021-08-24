@@ -1,4 +1,4 @@
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { chain } from "fp-ts/lib/ReaderTaskEither"
 import qs from "query-string"
 import { Action, actionErrorOf, actionOf, ask } from "../utils/actions"

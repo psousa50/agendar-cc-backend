@@ -1,5 +1,5 @@
 import { fold, left, right } from "fp-ts/lib/Either"
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { ask as askReader, reader } from "fp-ts/lib/Reader"
 
 import {
@@ -88,7 +88,7 @@ export const fromVoidPromise = <T>(lazyPromise: (env: Environment) => Promise<T>
     chain(() => actionOf(undefined)),
   )
 
-export function rteActionsSequence<R>(rte: Array<ReaderTaskEither<Environment, ServiceError, R>>) {
+export function rteActionsSequence<R>(rte: ReaderTaskEither<Environment, ServiceError, R>[]) {
   return rte.reduceRight(
     (acc, cur) =>
       pipe(

@@ -1,4 +1,4 @@
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { chain, fold, fromTaskEither, ReaderTaskEither, swap } from "fp-ts/lib/ReaderTaskEither"
 import { tryCatch } from "fp-ts/lib/TaskEither"
 import isoFetch from "isomorphic-fetch"

@@ -1,8 +1,8 @@
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { chain, mapLeft, run } from "fp-ts/lib/ReaderTaskEither"
 import { task } from "fp-ts/lib/Task"
 import { fold } from "fp-ts/lib/TaskEither"
-import moment = require("moment")
+import moment from "moment"
 import { buildEnvironment, Environment } from "../environment"
 import { irnCrawler } from "../irnCrawler/main"
 import { IrnLog } from "../mongodb/main"

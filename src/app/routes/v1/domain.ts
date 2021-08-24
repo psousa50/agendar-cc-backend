@@ -1,4 +1,4 @@
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { chain, map } from "fp-ts/lib/ReaderTaskEither"
 import { flatten, isNil, sort, uniq } from "ramda"
 import {

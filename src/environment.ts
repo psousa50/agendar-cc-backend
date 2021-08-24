@@ -1,4 +1,4 @@
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/function"
 import { map } from "fp-ts/lib/TaskEither"
 import { MongoClient } from "mongodb"
 import { get as getGeoCoding } from "./geoCoding/main"
